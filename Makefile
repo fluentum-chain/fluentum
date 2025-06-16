@@ -286,3 +286,70 @@ endif
 contract-tests:
 	dredd
 .PHONY: contract-tests
+
+# Fluentum Core Makefile
+
+# Variables
+VERSION := v0.1.0
+BUILD_DIR := build
+BINARY_NAME := fluentum
+MAIN_PACKAGE := ./cmd/fluentum
+LDFLAGS := -X github.com/kellyadamtan/tendermint/version.Version=$(VERSION)
+
+# Default target
+.PHONY: all
+all: clean build
+
+# Build the binary
+.PHONY: build
+build:
+	@echo "Building Fluentum Core $(VERSION)..."
+	@mkdir -p $(BUILD_DIR)
+	@go build -o $(BUILD_DIR)/$(BINARY_NAME) -ldflags "$(LDFLAGS)" $(MAIN_PACKAGE)
+
+# Clean build artifacts
+.PHONY: clean
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf $(BUILD_DIR)
+
+# Run tests
+.PHONY: test
+test:
+	@echo "Running tests..."
+	@go test -v ./...
+
+# Run linter
+.PHONY: lint
+lint:
+	@echo "Running linter..."
+	@golangci-lint run
+
+# Install dependencies
+.PHONY: deps
+deps:
+	@echo "Installing dependencies..."
+	@go mod download
+	@go mod tidy
+
+# Generate protobuf files
+.PHONY: proto
+proto:
+	@echo "Generating protobuf files..."
+	@protoc --go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		proto/**/*.proto
+
+# Help target
+.PHONY: help
+help:
+	@echo "Fluentum Core Makefile"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make build        Build the binary"
+	@echo "  make clean        Clean build artifacts"
+	@echo "  make test         Run tests"
+	@echo "  make lint         Run linter"
+	@echo "  make deps         Install dependencies"
+	@echo "  make proto        Generate protobuf files"
+	@echo "  make help         Show this help message"

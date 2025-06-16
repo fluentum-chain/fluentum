@@ -1,68 +1,91 @@
-version: '3'
+version: '3.8'
 
 services:
-  node0:
-    container_name: node0
-    image: "tendermint/localnode"
-    ports:
-      - "26656-26657:26656-26657"
+  fluentum-validator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fluentum/validator:latest
+    container_name: fluentum-validator
+    restart: unless-stopped
     environment:
-      - ID=0
-      - LOG=${LOG:-tendermint.log}
+      - MONIKER=validator1
+      - CHAIN_ID=fluentum-1
+      - SEED_NODES=seed1.fluentum.net:26656,seed2.fluentum.net:26656
+      - ZK_PROVER_URL=https://zk.fluentum.net
     volumes:
-      - ./build:/tendermint:Z
+      - ./config:/fluentum/config
+      - ./quantum-keys:/quantum-keys
+    ports:
+      - "26656:26656"  # P2P
+      - "26657:26657"  # RPC
+      - "26660:26660"  # Prometheus
     networks:
-      localnet:
-        ipv4_address: 192.167.10.2
+      - fluentum-net
 
-  node1:
-    container_name: node1
-    image: "tendermint/localnode"
-    ports:
-      - "26659-26660:26656-26657"
+  fluentum-sentry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fluentum/sentry:latest
+    container_name: fluentum-sentry
+    restart: unless-stopped
     environment:
-      - ID=1
-      - LOG=${LOG:-tendermint.log}
+      - MONIKER=sentry1
+      - CHAIN_ID=fluentum-1
+      - SEED_NODES=seed1.fluentum.net:26656,seed2.fluentum.net:26656
     volumes:
-      - ./build:/tendermint:Z
+      - ./sentry-config:/fluentum/config
+    ports:
+      - "26656:26656"  # P2P
+      - "26657:26657"  # RPC
+      - "26660:26660"  # Prometheus
     networks:
-      localnet:
-        ipv4_address: 192.167.10.3
+      - fluentum-net
 
-  node2:
-    container_name: node2
-    image: "tendermint/localnode"
+  cosmos-exporter:
+    image: ghcr.io/solarlabsteam/cosmos-exporter:latest
+    container_name: cosmos-exporter
+    restart: unless-stopped
     environment:
-      - ID=2
-      - LOG=${LOG:-tendermint.log}
+      - VALIDATOR_ADDR=fluentum-validator:26657
     ports:
-      - "26661-26662:26656-26657"
-    volumes:
-      - ./build:/tendermint:Z
+      - "9300:9300"
     networks:
-      localnet:
-        ipv4_address: 192.167.10.4
+      - fluentum-net
 
-  node3:
-    container_name: node3
-    image: "tendermint/localnode"
-    environment:
-      - ID=3
-      - LOG=${LOG:-tendermint.log}
-    ports:
-      - "26663-26664:26656-26657"
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
     volumes:
-      - ./build:/tendermint:Z
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
     networks:
-      localnet:
-        ipv4_address: 192.167.10.5
+      - fluentum-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - fluentum-net
 
 networks:
-  localnet:
+  fluentum-net:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-      -
-        subnet: 192.167.10.0/16
+
+volumes:
+  prometheus-data:
+  grafana-data:
 

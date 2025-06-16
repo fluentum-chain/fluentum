@@ -21,3 +21,18 @@ var (
 	// This includes validity of blocks and state updates.
 	BlockProtocol uint64 = 11
 )
+
+// Version is the current version of Fluentum Core
+var Version = "v0.1.0"
+
+// GitCommit is the git commit hash
+var GitCommit = ""
+
+// BuildTime is the build timestamp
+var BuildTime = ""
+
+// GoVersion is the Go version used to build
+var GoVersion = ""
+
+// BuildTags are the build tags used
+var BuildTags = ""

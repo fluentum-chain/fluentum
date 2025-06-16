@@ -20,6 +20,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
+	"github.com/kellyadamtan/tendermint/fluentum/zkprover"
 )
 
 const (
@@ -47,6 +48,36 @@ type Block struct {
 	Data       `json:"data"`
 	Evidence   EvidenceData `json:"evidence"`
 	LastCommit *Commit      `json:"last_commit"`
+	ZKBatches  []zkprover.ZKBatch `json:"zk_batches"`
+	QuantumSig []byte             `json:"quantum_sig"`
+}
+
+// MakeBlock returns a new block with an empty header, except what can be computed from itself.
+// It populates the same set of fields validated by ValidateBasic.
+func MakeBlock(
+	height int64,
+	txs []Tx,
+	lastCommit *Commit,
+	evidence []Evidence,
+	zkBatches []zkprover.ZKBatch,
+	quantumSig []byte,
+) *Block {
+	block := &Block{
+		Header: Header{
+			Version: version.Consensus{Block: version.BlockProtocol, App: 0},
+			Height:  height,
+			Time:    time.Now().UTC(),
+		},
+		Data: Data{
+			Txs: txs,
+		},
+		Evidence:   EvidenceData{Evidence: evidence},
+		LastCommit: lastCommit,
+		ZKBatches:  zkBatches,
+		QuantumSig: quantumSig,
+	}
+	block.fillHeader()
+	return block
 }
 
 // ValidateBasic performs basic validation that doesn't involve state data.
@@ -57,49 +88,46 @@ func (b *Block) ValidateBasic() error {
 		return errors.New("nil block")
 	}
 
-	b.mtx.Lock()
-	defer b.mtx.Unlock()
+	bData, err := b.Data.Hash()
+	if err != nil {
+		return err
+	}
 
+	if !bytes.Equal(b.Header.DataHash, bData) {
+		return fmt.Errorf("wrong Header.DataHash. Expected %v, got %v", bData, b.Header.DataHash)
+	}
+
+	// Validate ZK batches
+	for i, batch := range b.ZKBatches {
+		if !zkprover.VerifyProof(batch.Proof, batch.PublicSignals) {
+			return fmt.Errorf("invalid ZK proof in batch %d", i)
+		}
+	}
+
+	// Validate quantum signature if present
+	if len(b.QuantumSig) > 0 {
+		if !quantum.VerifySignature(b.Header.ProposerAddress, b.Hash(), b.QuantumSig) {
+			return errors.New("invalid quantum signature")
+		}
+	}
+
+	// Validate basic fields
 	if err := b.Header.ValidateBasic(); err != nil {
 		return fmt.Errorf("invalid header: %w", err)
 	}
 
-	// Validate the last commit and its hash.
-	if b.LastCommit == nil {
-		return errors.New("nil LastCommit")
-	}
-	if err := b.LastCommit.ValidateBasic(); err != nil {
-		return fmt.Errorf("wrong LastCommit: %v", err)
+	if err := b.Data.ValidateBasic(); err != nil {
+		return fmt.Errorf("invalid data: %w", err)
 	}
 
-	if !bytes.Equal(b.LastCommitHash, b.LastCommit.Hash()) {
-		return fmt.Errorf("wrong Header.LastCommitHash. Expected %v, got %v",
-			b.LastCommit.Hash(),
-			b.LastCommitHash,
-		)
+	if err := b.Evidence.ValidateBasic(); err != nil {
+		return fmt.Errorf("invalid evidence: %w", err)
 	}
 
-	// NOTE: b.Data.Txs may be nil, but b.Data.Hash() still works fine.
-	if !bytes.Equal(b.DataHash, b.Data.Hash()) {
-		return fmt.Errorf(
-			"wrong Header.DataHash. Expected %v, got %v",
-			b.Data.Hash(),
-			b.DataHash,
-		)
-	}
-
-	// NOTE: b.Evidence.Evidence may be nil, but we're just looping.
-	for i, ev := range b.Evidence.Evidence {
-		if err := ev.ValidateBasic(); err != nil {
-			return fmt.Errorf("invalid evidence (#%d): %v", i, err)
+	if b.LastCommit != nil {
+		if err := b.LastCommit.ValidateBasic(); err != nil {
+			return fmt.Errorf("invalid last commit: %w", err)
 		}
-	}
-
-	if !bytes.Equal(b.EvidenceHash, b.Evidence.Hash()) {
-		return fmt.Errorf("wrong Header.EvidenceHash. Expected %v, got %v",
-			b.EvidenceHash,
-			b.Evidence.Hash(),
-		)
 	}
 
 	return nil
@@ -200,11 +228,15 @@ func (b *Block) StringIndented(indent string) string {
 %s  %v
 %s  %v
 %s  %v
+%s  %v
+%s  %v
 %s}#%v`,
 		indent, b.Header.StringIndented(indent+"  "),
 		indent, b.Data.StringIndented(indent+"  "),
 		indent, b.Evidence.StringIndented(indent+"  "),
 		indent, b.LastCommit.StringIndented(indent+"  "),
+		indent, fmt.Sprintf("ZKBatches: %d", len(b.ZKBatches)),
+		indent, fmt.Sprintf("QuantumSig: %x", b.QuantumSig),
 		indent, b.Hash())
 }
 
@@ -233,6 +265,15 @@ func (b *Block) ToProto() (*tmproto.Block, error) {
 		return nil, err
 	}
 	pb.Evidence = *protoEvidence
+
+	// Convert ZK batches
+	pb.ZkBatches = make([]*tmproto.ZKBatch, len(b.ZKBatches))
+	for i, batch := range b.ZKBatches {
+		pb.ZkBatches[i] = batch.ToProto()
+	}
+
+	// Set quantum signature
+	pb.QuantumSig = b.QuantumSig
 
 	return pb, nil
 }
@@ -266,6 +307,19 @@ func BlockFromProto(bp *tmproto.Block) (*Block, error) {
 		}
 		b.LastCommit = lc
 	}
+
+	// Convert ZK batches
+	b.ZKBatches = make([]zkprover.ZKBatch, len(bp.ZkBatches))
+	for i, pbBatch := range bp.ZkBatches {
+		batch, err := zkprover.ZKBatchFromProto(pbBatch)
+		if err != nil {
+			return nil, err
+		}
+		b.ZKBatches[i] = *batch
+	}
+
+	// Set quantum signature
+	b.QuantumSig = bp.QuantumSig
 
 	return b, b.ValidateBasic()
 }

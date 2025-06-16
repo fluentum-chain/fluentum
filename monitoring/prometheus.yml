@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'fluentum-validator'
+    static_configs:
+      - targets: ['fluentum-validator:26660']
+    metrics_path: '/metrics'
+
+  - job_name: 'fluentum-sentry'
+    static_configs:
+      - targets: ['fluentum-sentry:26660']
+    metrics_path: '/metrics'
+
+  - job_name: 'cosmos-exporter'
+    static_configs:
+      - targets: ['cosmos-exporter:9300']
+    metrics_path: '/metrics' 

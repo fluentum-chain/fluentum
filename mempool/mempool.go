@@ -5,9 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sync"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/types"
+	"github.com/tendermum/tendermint/config"
+	"github.com/tendermint/tendermint/libs/clist"
+	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/proxy"
+	"github.com/kellyadamtan/tendermint/fluentum/keeper"
 )
 
 const (
@@ -190,4 +196,204 @@ func (e ErrPreCheck) Error() string {
 // IsPreCheckError returns true if err is due to pre check failure.
 func IsPreCheckError(err error) bool {
 	return errors.As(err, &ErrPreCheck{})
+}
+
+// CListMempool is an ordered in-memory pool for transactions before they are proposed in a consensus
+// round. Transaction validity is checked using the CheckTx abci message before the transaction is
+// added to the pool. The mempool uses a concurrent list structure for storing transactions that can
+// be efficiently accessed by multiple concurrent readers.
+type CListMempool struct {
+	// Atomic integers
+	height   int64 // the latest height passed to Update
+	txsBytes int64 // total size of mempool, in bytes
+
+	// notify listeners (ie. consensus) when txs are available
+	notifiedTxsAvailable bool
+	txsAvailable         chan struct{} // fires once for each height, when the mempool is not empty
+
+	config *config.MempoolConfig
+
+	// Exclusive mutex for Update method to prevent concurrent execution of it and ReapMaxBytesMaxGas.
+	updateMtx sync.Mutex
+	preCheck  PreCheckFunc
+	postCheck PostCheckFunc
+
+	txs          *clist.CList // concurrent linked-list of good txs
+	proxyAppConn proxy.AppConnMempool
+
+	// Keep track of the Fluentum keeper for staker checks
+	fluentumKeeper *keeper.Keeper
+
+	logger log.Logger
+}
+
+// NewCListMempool returns a new mempool with the given configuration and connection to an application.
+func NewCListMempool(
+	config *config.MempoolConfig,
+	proxyAppConn proxy.AppConnMempool,
+	height int64,
+	preCheck PreCheckFunc,
+	postCheck PostCheckFunc,
+	fluentumKeeper *keeper.Keeper,
+) *CListMempool {
+	mempool := &CListMempool{
+		config:         config,
+		proxyAppConn:   proxyAppConn,
+		txs:            clist.New(),
+		height:         height,
+		preCheck:       preCheck,
+		postCheck:      postCheck,
+		fluentumKeeper: fluentumKeeper,
+		notifiedTxsAvailable: false,
+		txsAvailable:         make(chan struct{}, 1),
+	}
+	return mempool
+}
+
+// CheckTx implements Mempool.CheckTx: validate the transaction for the mempool.
+func (mem *CListMempool) CheckTx(tx types.Tx) error {
+	mem.updateMtx.Lock()
+	// use defer to unlock mutex because application (*local client*) might panic
+	defer mem.updateMtx.Unlock()
+
+	// Check if sender is FLU staker
+	if isStaker, err := mem.fluentumKeeper.IsStaker(tx.Sender()); err == nil && isStaker {
+		// Set zero gas price for stakers
+		if err := tx.SetGasPrice(0); err != nil {
+			return fmt.Errorf("failed to set gas price for staker: %w", err)
+		}
+	}
+
+	// Check if the transaction is valid
+	if err := mem.preCheck(tx); err != nil {
+		return err
+	}
+
+	// Check if the transaction is already in the mempool
+	if mem.txs.Has(tx.Key()) {
+		return ErrTxInCache
+	}
+
+	// Check if the transaction is valid according to the application
+	res, err := mem.proxyAppConn.CheckTxSync(abci.RequestCheckTx{Tx: tx})
+	if err != nil {
+		return err
+	}
+	if res.Code != abci.CodeTypeOK {
+		return fmt.Errorf("transaction rejected: %s", res.Log)
+	}
+
+	// Add the transaction to the mempool
+	mem.txs.PushBack(tx)
+	mem.txsBytes += int64(len(tx))
+
+	// Notify that new transactions are available
+	if !mem.notifiedTxsAvailable {
+		mem.notifiedTxsAvailable = true
+		select {
+		case mem.txsAvailable <- struct{}{}:
+		default:
+		}
+	}
+
+	return nil
+}
+
+// Update implements Mempool.Update: remove all transactions from the mempool that were included in the block.
+func (mem *CListMempool) Update(
+	height int64,
+	txs []types.Tx,
+	deliverTxResponses []*abci.ResponseDeliverTx,
+	preCheck PreCheckFunc,
+	postCheck PostCheckFunc,
+) error {
+	mem.updateMtx.Lock()
+	defer mem.updateMtx.Unlock()
+
+	mem.height = height
+	mem.notifiedTxsAvailable = false
+	mem.preCheck = preCheck
+	mem.postCheck = postCheck
+
+	// Remove transactions that were included in the block
+	for i, tx := range txs {
+		if deliverTxResponses[i].Code == abci.CodeTypeOK {
+			mem.txs.Remove(tx.Key())
+			mem.txsBytes -= int64(len(tx))
+		}
+	}
+
+	return nil
+}
+
+// ReapMaxBytesMaxGas returns a list of transactions that fit within the given size and gas limits.
+func (mem *CListMempool) ReapMaxBytesMaxGas(maxBytes, maxGas int64) types.Txs {
+	mem.updateMtx.Lock()
+	defer mem.updateMtx.Unlock()
+
+	var (
+		totalBytes int64
+		totalGas   int64
+		txs        types.Txs
+	)
+
+	// Iterate through transactions in the mempool
+	for e := mem.txs.Front(); e != nil; e = e.Next() {
+		tx := e.Value.(types.Tx)
+
+		// Check if adding this transaction would exceed the limits
+		txBytes := int64(len(tx))
+		if totalBytes+txBytes > maxBytes {
+			return txs
+		}
+
+		// For stakers, gas is always 0
+		txGas := int64(0)
+		if isStaker, _ := mem.fluentumKeeper.IsStaker(tx.Sender()); !isStaker {
+			txGas = tx.Gas()
+		}
+
+		if totalGas+txGas > maxGas {
+			return txs
+		}
+
+		txs = append(txs, tx)
+		totalBytes += txBytes
+		totalGas += txGas
+	}
+
+	return txs
+}
+
+// Size returns the number of transactions in the mempool.
+func (mem *CListMempool) Size() int {
+	return mem.txs.Len()
+}
+
+// SizeBytes returns the total size of all transactions in the mempool.
+func (mem *CListMempool) SizeBytes() int64 {
+	return mem.txsBytes
+}
+
+// Flush removes all transactions from the mempool.
+func (mem *CListMempool) Flush() {
+	mem.updateMtx.Lock()
+	defer mem.updateMtx.Unlock()
+
+	mem.txs = clist.New()
+	mem.txsBytes = 0
+	mem.notifiedTxsAvailable = false
+}
+
+// TxsAvailable returns a channel that fires when transactions are available.
+func (mem *CListMempool) TxsAvailable() <-chan struct{} {
+	return mem.txsAvailable
+}
+
+// EnableTxsAvailable enables the txsAvailable channel.
+func (mem *CListMempool) EnableTxsAvailable() {
+	mem.updateMtx.Lock()
+	defer mem.updateMtx.Unlock()
+
+	mem.notifiedTxsAvailable = false
 }
