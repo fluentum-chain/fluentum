@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/fluentum-chain/fluentum/libs/log"
-	"github.com/fluentum-chain/fluentum/libs/service"
-	"github.com/fluentum-chain/fluentum/quantum"
-	"github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/types"
-	"github.com/fluentum-chain/fluentum/zkprover"
-	"github.com/tendermint/tendermint/store"
+
+	"github.com/fluentum-chain/fluentum/fluentum/quantum"
+	"github.com/fluentum-chain/fluentum/fluentum/zkprover"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	"github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/store"
 )
 
 // HybridConsensus combines Tendermint's DPoS with ZK-Rollups and quantum-resistant signatures

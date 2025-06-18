@@ -3,9 +3,9 @@ package hybrid_consensus
 import (
 	"errors"
 
-	fluentum_quantum "github.com/fluentum-chain/fluentum/quantum"
+	fluentum_quantum "github.com/fluentum-chain/fluentum/fluentum/quantum"
+	fluentum_zk "github.com/fluentum-chain/fluentum/fluentum/zkprover"
 	"github.com/fluentum-chain/fluentum/types"
-	fluentum_zk "github.com/fluentum-chain/fluentum/zkprover"
 )
 
 // HybridConsensusState represents the state of the hybrid consensus mechanism

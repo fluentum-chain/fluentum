@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/quantum"
 	"github.com/stretchr/testify/require"
 
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/consensus"
+	"github.com/fluentum-chain/fluentum/fluentum/quantum"
+	"github.com/fluentum-chain/fluentum/fluentum/zkprover"
 	"github.com/fluentum-chain/fluentum/types"
-	"github.com/fluentum-chain/fluentum/zkprover"
 )
 
 // TestHybridConsensus tests the hybrid consensus mechanism

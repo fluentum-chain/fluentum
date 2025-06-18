@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/types"
-	"github.com/fluentum-chain/fluentum/x/cex"
-	"github.com/fluentum-chain/fluentum/x/dex"
+	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/types"
+	"github.com/fluentum-chain/fluentum/fluentum/x/cex"
+	"github.com/fluentum-chain/fluentum/fluentum/x/dex"
 )
 
 // Router handles order routing between CEX and DEX
@@ -31,7 +31,7 @@ func NewRouter(cexClient *cex.Client, dexClient *dex.Client) *Router {
 }
 
 // RouteOrder routes an order to either CEX or DEX based on dynamic threshold
-func (r *Router) RouteOrder(ctx context.Context, order types.Order) error {
+func (r *Router) RouteOrder(ctx context.Context, order fluentumtypes.Order) error {
 	// Update threshold if needed
 	if time.Since(r.lastUpdate) > r.updatePeriod {
 		r.updateThreshold()

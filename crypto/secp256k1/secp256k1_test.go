@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	underlyingSecp256k1 "github.com/btcsuite/btcd/btcec/v2"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/fluentum-chain/fluentum/crypto"
+	"github.com/fluentum-chain/fluentum/crypto/secp256k1"
 )
 
 type keyData struct {

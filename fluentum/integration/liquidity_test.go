@@ -9,10 +9,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/fluentum-chain/fluentum/liquidity"
-	"github.com/fluentum-chain/fluentum/types"
-	"github.com/fluentum-chain/fluentum/x/cex"
-	"github.com/fluentum-chain/fluentum/x/dex"
+	"github.com/fluentum-chain/fluentum/fluentum/liquidity"
+	"github.com/fluentum-chain/fluentum/fluentum/types"
+	"github.com/fluentum-chain/fluentum/fluentum/x/cex"
+	"github.com/fluentum-chain/fluentum/fluentum/x/dex"
 )
 
 // TestHybridLiquidityRouting tests the hybrid liquidity routing system

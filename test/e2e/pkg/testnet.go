@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fluentum-chain/fluentum/crypto/secp256k1"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	mcs "github.com/tendermint/tendermint/test/maverick/consensus"
 )
