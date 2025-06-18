@@ -3,7 +3,6 @@ module github.com/fluentum-chain/fluentum
 go 1.21
 
 require (
-	github.com/arnaucube/go-snark v0.0.0-20201226112357-0d0b679105e5
 	github.com/cloudflare/circl v1.3.7
 	github.com/cosmos/cosmos-sdk v0.50.0
 	github.com/iden3/go-iden3-crypto v0.0.15
@@ -18,9 +17,9 @@ require (
 	github.com/btcsuite/btcd v0.24.0
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/btcsuite/btcd/btcutil v1.1.5
-	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/davecgh/go-spew v1.1.1
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.4.0
@@ -31,7 +30,7 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a
 	github.com/petermattis/goid v0.0.0-20230904192822-1876fd5063bc
 	github.com/pkg/errors v0.9.1
-	github.com/pmezard/go-difflib v1.0.0
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/rs/cors v1.10.1
 	github.com/sasha-s/go-deadlock v0.3.1
@@ -42,3 +41,7 @@ require (
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+require github.com/arnaucube/go-snark v0.0.4 // indirect
+
+replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1

@@ -5,34 +5,30 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/consensus"
-	"github.com/fluentum-chain/fluentum/types"
-	"github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/fluentum/quantum"
+	"github.com/fluentum-chain/fluentum/fluentum/zkproofs"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/libs/service"
-	"github.com/fluentum-chain/fluentum/p2p"
-	"github.com/fluentum-chain/fluentum/privval"
-	"github.com/fluentum-chain/fluentum/proxy"
-	"github.com/fluentum-chain/fluentum/fluentum/zkproofs"
-	"github.com/fluentum-chain/fluentum/fluentum/quantum"
+	"github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/types"
+	"github.com/tendermint/tendermint/store"
 )
 
 // HybridConsensus combines Tendermint's DPoS with ZK-Rollups and quantum-resistant signatures
 type HybridConsensus struct {
-	*consensus.State
 	service.BaseService
 	logger log.Logger
 
 	// Core components
-	blockExec    *state.BlockExecutor
+	blockExec     *state.BlockExecutor
 	privValidator types.PrivValidator
-	blockStore   *store.BlockStore
-	stateStore   state.Store
+	blockStore    *store.BlockStore
+	stateStore    state.Store
 
 	// ZK-Rollup components
-	zkProver     *zkproofs.Prover
-	zkVerifier   *zkproofs.Verifier
-	zkState      *zkproofs.State
+	zkProver   *zkproofs.Prover
+	zkVerifier *zkproofs.Verifier
+	zkState    *zkproofs.State
 
 	// Quantum-resistant components
 	quantumSigner   *quantum.DilithiumSigner
@@ -45,13 +41,13 @@ type HybridConsensus struct {
 
 // Config holds the configuration for the hybrid consensus
 type Config struct {
-	BlockTime           time.Duration
-	ZKEnabled          bool
-	QuantumEnabled     bool
-	ZKProverURL        string
-	QuantumKeyFile     string
-	MaxZKBatchSize     int
-	ZKProofTimeout     time.Duration
+	BlockTime      time.Duration
+	ZKEnabled      bool
+	QuantumEnabled bool
+	ZKProverURL    string
+	QuantumKeyFile string
+	MaxZKBatchSize int
+	ZKProofTimeout time.Duration
 }
 
 // NewHybridConsensus creates a new hybrid consensus instance
@@ -64,7 +60,7 @@ func NewHybridConsensus(
 	logger log.Logger,
 ) *HybridConsensus {
 	hc := &HybridConsensus{
-		State:         consensus.NewState(config, blockExec, blockStore, stateStore, privValidator, logger),
+		BaseService:   *service.NewBaseService(logger, "HybridConsensus", hc),
 		logger:        logger,
 		blockExec:     blockExec,
 		blockStore:    blockStore,
@@ -87,15 +83,14 @@ func NewHybridConsensus(
 		hc.quantumVerifier = quantum.NewDilithiumVerifier()
 	}
 
-	hc.BaseService = *service.NewBaseService(logger, "HybridConsensus", hc)
 	return hc
 }
 
 // FinalizeBlock processes a block through the hybrid consensus mechanism
 func (hc *HybridConsensus) FinalizeBlock(block *types.Block) error {
-	// 1. Process regular transactions with Tendermint
-	if err := hc.State.FinalizeBlock(block); err != nil {
-		return fmt.Errorf("tendermint finalization failed: %w", err)
+	// 1. Process regular transactions
+	if err := hc.blockExec.ApplyBlock(block); err != nil {
+		return fmt.Errorf("block execution failed: %w", err)
 	}
 
 	// 2. Process ZK-Rollup batches if enabled
@@ -136,7 +131,7 @@ func (hc *HybridConsensus) verifyZKBatch(batch *types.ZKBatch) error {
 
 	// Verify batch size
 	if len(batch.Transactions) > hc.config.MaxZKBatchSize {
-		return fmt.Errorf("zk batch size exceeds maximum: %d > %d", 
+		return fmt.Errorf("zk batch size exceeds maximum: %d > %d",
 			len(batch.Transactions), hc.config.MaxZKBatchSize)
 	}
 
@@ -189,15 +184,13 @@ func (hc *HybridConsensus) verifyQuantumSignature(block *types.Block) error {
 
 // OnStart implements service.Service
 func (hc *HybridConsensus) OnStart() error {
-	// Start base Tendermint consensus
-	if err := hc.State.OnStart(); err != nil {
-		return err
-	}
-
 	// Start ZK components if enabled
 	if hc.config.ZKEnabled {
 		if err := hc.zkProver.Start(); err != nil {
 			return fmt.Errorf("failed to start zk prover: %w", err)
+		}
+		if err := hc.zkVerifier.Start(); err != nil {
+			return fmt.Errorf("failed to start zk verifier: %w", err)
 		}
 	}
 
@@ -206,6 +199,9 @@ func (hc *HybridConsensus) OnStart() error {
 		if err := hc.quantumSigner.Start(); err != nil {
 			return fmt.Errorf("failed to start quantum signer: %w", err)
 		}
+		if err := hc.quantumVerifier.Start(); err != nil {
+			return fmt.Errorf("failed to start quantum verifier: %w", err)
+		}
 	}
 
 	return nil
@@ -213,9 +209,6 @@ func (hc *HybridConsensus) OnStart() error {
 
 // OnStop implements service.Service
 func (hc *HybridConsensus) OnStop() {
-	// Stop base Tendermint consensus
-	hc.State.OnStop()
-
 	// Stop ZK components if enabled
 	if hc.config.ZKEnabled {
 		hc.zkProver.Stop()
@@ -225,4 +218,4 @@ func (hc *HybridConsensus) OnStop() {
 	if hc.config.QuantumEnabled {
 		hc.quantumSigner.Stop()
 	}
-} 
+}
