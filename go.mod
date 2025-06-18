@@ -3,6 +3,8 @@ module github.com/fluentum-chain/fluentum
 go 1.21
 
 require (
+	github.com/arnaucube/go-snark v0.0.0-20201226112357-0d0b679105e5
+	github.com/cloudflare/circl v1.3.7
 	github.com/cosmos/cosmos-sdk v0.50.0
 	github.com/iden3/go-iden3-crypto v0.0.15
 	github.com/iden3/go-merkletree v0.1.0

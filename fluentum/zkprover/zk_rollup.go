@@ -1,12 +1,11 @@
 package zkprover
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"crypto/sha256"
-	"time"
 	"os"
-	"path/filepath"
+	"time"
 
 	"github.com/arnaucube/go-snark"
 	"github.com/arnaucube/go-snark/circuitcompiler"
@@ -76,6 +75,7 @@ func generateBatchID(data []byte) string {
 type ZKRollup struct {
 	circuit *Circuit
 	state   []byte
+	Proof   snark.Proof
 }
 
 // NewZKRollup creates a new ZKRollup instance

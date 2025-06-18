@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
-	"fluentum/types"
-	"fluentum/x/cex"
-	"fluentum/x/dex"
+	"github.com/fluentum-chain/fluentum/fluentum/types"
+	"github.com/fluentum-chain/fluentum/fluentum/x/cex"
+	"github.com/fluentum-chain/fluentum/fluentum/x/dex"
 )
 
 // Router handles order routing between CEX and DEX
@@ -64,7 +64,7 @@ func (r *Router) updateThreshold() {
 	newThreshold := int64(float64(r.threshold) * adjustment)
 
 	// Apply bounds to prevent extreme values
-	minThreshold := int64(100000000)  // 1 FLU
+	minThreshold := int64(100000000)   // 1 FLU
 	maxThreshold := int64(10000000000) // 100 FLU
 	r.threshold = clamp(newThreshold, minThreshold, maxThreshold)
 	r.lastUpdate = time.Now()
@@ -79,4 +79,4 @@ func clamp(value, min, max int64) int64 {
 		return max
 	}
 	return value
-} 
+}
