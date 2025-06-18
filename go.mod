@@ -1,11 +1,13 @@
 module github.com/fluentum-chain/fluentum
 
-go 1.21
+go 1.22.0
+
+toolchain go1.24.4
 
 require (
-	github.com/cloudflare/circl v1.3.7
+	github.com/cloudflare/circl v1.6.1
 	github.com/cosmos/cosmos-sdk v0.50.0
-	github.com/iden3/go-iden3-crypto v0.0.15
+	github.com/iden3/go-iden3-crypto v0.0.17
 	github.com/iden3/go-merkletree v0.1.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
@@ -41,7 +43,5 @@ require (
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
 )
-
-require github.com/arnaucube/go-snark v0.0.4 // indirect
 
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1

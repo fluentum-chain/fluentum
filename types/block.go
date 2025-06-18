@@ -10,7 +10,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	gogotypes "github.com/gogo/protobuf/types"
 
-	"github.com/fluentum-chain/fluentum/fluentum/quantum"
+	"github.com/fluentum-chain/fluentum/quantum"
 	"github.com/fluentum-chain/fluentum/zkprover"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/merkle"
