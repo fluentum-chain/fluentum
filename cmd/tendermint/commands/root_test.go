@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/cli"
-	tmos "github.com/tendermint/tendermint/libs/os"
+	cfg "github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/libs/cli"
+	tmos "github.com/fluentum-chain/fluentum/libs/os"
 )
 
 var defaultRoot = os.ExpandEnv("$HOME/.some/test/dir")

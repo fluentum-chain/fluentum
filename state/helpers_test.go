@@ -7,16 +7,16 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/proxy"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/crypto"
+	"github.com/fluentum-chain/fluentum/crypto/ed25519"
+	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"github.com/fluentum-chain/fluentum/proxy"
+	sm "github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
 )
 
 type paramsChangeTestCase struct {

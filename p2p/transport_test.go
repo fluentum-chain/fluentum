@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/libs/protoio"
-	"github.com/tendermint/tendermint/p2p/conn"
-	tmp2p "github.com/tendermint/tendermint/proto/tendermint/p2p"
+	"github.com/fluentum-chain/fluentum/crypto/ed25519"
+	"github.com/fluentum-chain/fluentum/libs/protoio"
+	"github.com/fluentum-chain/fluentum/p2p/conn"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
 )
 
 var defaultNodeName = "host_peer"

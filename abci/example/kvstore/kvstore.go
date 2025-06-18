@@ -8,9 +8,9 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/tendermint/tendermint/abci/example/code"
-	"github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/version"
+	"github.com/fluentum-chain/fluentum/abci/example/code"
+	"github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 var (

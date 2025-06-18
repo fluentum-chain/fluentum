@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	tmos "github.com/tendermint/tendermint/libs/os"
-	"github.com/tendermint/tendermint/p2p"
+	tmos "github.com/fluentum-chain/fluentum/libs/os"
+	"github.com/fluentum-chain/fluentum/p2p"
 )
 
 // GenNodeKeyCmd allows the generation of a node key. It prints node's ID to

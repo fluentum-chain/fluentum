@@ -9,10 +9,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/tendermint/tendermint/libs/log"
-	e2e "github.com/tendermint/tendermint/test/e2e/pkg"
-	"github.com/tendermint/tendermint/test/e2e/pkg/infra"
-	"github.com/tendermint/tendermint/test/e2e/pkg/infra/docker"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	e2e "github.com/fluentum-chain/fluentum/test/e2e/pkg"
+	"github.com/fluentum-chain/fluentum/test/e2e/pkg/infra"
+	"github.com/fluentum-chain/fluentum/test/e2e/pkg/infra/docker"
 )
 
 var (

@@ -5,10 +5,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/protoio"
-	"github.com/tendermint/tendermint/libs/service"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
+	"github.com/fluentum-chain/fluentum/libs/protoio"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	privvalproto "github.com/fluentum-chain/fluentum/proto/tendermint/privval"
 )
 
 const (

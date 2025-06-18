@@ -3,13 +3,13 @@ package consensus
 import (
 	"fmt"
 
-	tmcon "github.com/tendermint/tendermint/consensus"
-	cstypes "github.com/tendermint/tendermint/consensus/types"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/p2p"
-	tmcons "github.com/tendermint/tendermint/proto/tendermint/consensus"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/types"
+	tmcon "github.com/fluentum-chain/fluentum/consensus"
+	cstypes "github.com/fluentum-chain/fluentum/consensus/types"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/p2p"
+	tmcons "github.com/fluentum-chain/fluentum/proto/tendermint/consensus"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // MisbehaviorList encompasses a list of all possible behaviors

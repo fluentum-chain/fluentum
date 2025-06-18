@@ -1,8 +1,8 @@
 package core
 
 import (
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
 
 // UnsafeFlushMempool removes all transactions from the mempool.

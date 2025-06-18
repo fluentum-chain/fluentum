@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	"github.com/tendermint/tendermint/libs/protoio"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/fluentum-chain/fluentum/crypto/tmhash"
+	"github.com/fluentum-chain/fluentum/libs/protoio"
+	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
 var (

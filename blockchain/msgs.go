@@ -6,9 +6,9 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/p2p"
-	bcproto "github.com/tendermint/tendermint/proto/tendermint/blockchain"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/p2p"
+	bcproto "github.com/fluentum-chain/fluentum/proto/tendermint/blockchain"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 const (

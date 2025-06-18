@@ -18,13 +18,13 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/rpc/client"
-	"github.com/tendermint/tendermint/rpc/core"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/bytes"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	"github.com/fluentum-chain/fluentum/rpc/client"
+	"github.com/fluentum-chain/fluentum/rpc/core"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // Client wraps arbitrary implementations of the various interfaces.

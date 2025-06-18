@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/tendermint/tendermint/abci/example/code"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/version"
+	"github.com/fluentum-chain/fluentum/abci/example/code"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 const appVersion = 1

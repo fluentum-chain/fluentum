@@ -3,8 +3,8 @@ package privval
 import (
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/libs/service"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/libs/service"
 )
 
 const (

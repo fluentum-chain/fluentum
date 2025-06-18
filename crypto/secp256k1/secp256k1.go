@@ -11,8 +11,8 @@ import (
 	secp256k1 "github.com/btcsuite/btcd/btcec/v2"
 	"golang.org/x/crypto/ripemd160" //nolint: staticcheck // necessary for Bitcoin address format
 
-	"github.com/tendermint/tendermint/crypto"
-	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/fluentum-chain/fluentum/crypto"
+	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 )
 
 // -------------------------------------

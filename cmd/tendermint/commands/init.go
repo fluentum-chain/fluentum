@@ -5,13 +5,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cfg "github.com/tendermint/tendermint/config"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	cfg "github.com/fluentum-chain/fluentum/config"
+	tmos "github.com/fluentum-chain/fluentum/libs/os"
+	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	"github.com/fluentum-chain/fluentum/p2p"
+	"github.com/fluentum-chain/fluentum/privval"
+	"github.com/fluentum-chain/fluentum/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
 )
 
 // InitFilesCmd initialises a fresh Tendermint Core instance.

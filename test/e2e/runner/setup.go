@@ -16,14 +16,14 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/privval"
-	e2e "github.com/tendermint/tendermint/test/e2e/pkg"
-	"github.com/tendermint/tendermint/test/e2e/pkg/infra"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/crypto/ed25519"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/p2p"
+	"github.com/fluentum-chain/fluentum/privval"
+	e2e "github.com/fluentum-chain/fluentum/test/e2e/pkg"
+	"github.com/fluentum-chain/fluentum/test/e2e/pkg/infra"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 const (

@@ -11,13 +11,13 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmcfg "github.com/tendermint/tendermint/config"
-	prototmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	blockmocks "github.com/tendermint/tendermint/state/indexer/mocks"
-	"github.com/tendermint/tendermint/state/mocks"
-	txmocks "github.com/tendermint/tendermint/state/txindex/mocks"
-	"github.com/tendermint/tendermint/types"
+	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
+	tmcfg "github.com/fluentum-chain/fluentum/config"
+	prototmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
+	blockmocks "github.com/fluentum-chain/fluentum/state/indexer/mocks"
+	"github.com/fluentum-chain/fluentum/state/mocks"
+	txmocks "github.com/fluentum-chain/fluentum/state/txindex/mocks"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 const (

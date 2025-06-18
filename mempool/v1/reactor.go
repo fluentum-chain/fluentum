@@ -7,14 +7,14 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/clist"
-	"github.com/tendermint/tendermint/libs/log"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/mempool"
-	"github.com/tendermint/tendermint/p2p"
-	protomem "github.com/tendermint/tendermint/proto/tendermint/mempool"
-	"github.com/tendermint/tendermint/types"
+	cfg "github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/libs/clist"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	"github.com/fluentum-chain/fluentum/mempool"
+	"github.com/fluentum-chain/fluentum/p2p"
+	protomem "github.com/fluentum-chain/fluentum/proto/tendermint/mempool"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // Reactor handles mempool tx broadcasting amongst peers.
@@ -260,7 +260,7 @@ func (memR *Reactor) broadcastTxRoutine(peer p2p.Peer) {
 		}
 
 		// NOTE: Transaction batching was disabled due to
-		// https://github.com/tendermint/tendermint/issues/5796
+		// https://github.com/fluentum-chain/fluentum/issues/5796
 		if !memTx.HasPeer(peerID) {
 			success := p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
 				ChannelID: mempool.MempoolChannel,

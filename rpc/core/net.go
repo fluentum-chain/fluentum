@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tendermint/tendermint/p2p"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	"github.com/fluentum-chain/fluentum/p2p"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
 
 // NetInfo returns network info.

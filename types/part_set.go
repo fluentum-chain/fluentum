@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/tendermint/tendermint/crypto/merkle"
-	"github.com/tendermint/tendermint/libs/bits"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmmath "github.com/tendermint/tendermint/libs/math"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/fluentum-chain/fluentum/crypto/merkle"
+	"github.com/fluentum-chain/fluentum/libs/bits"
+	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
+	tmjson "github.com/fluentum-chain/fluentum/libs/json"
+	tmmath "github.com/fluentum-chain/fluentum/libs/math"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
 var (

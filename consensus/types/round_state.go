@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/bytes"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 //-----------------------------------------------------------------------------

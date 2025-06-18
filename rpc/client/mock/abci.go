@@ -3,12 +3,12 @@ package mock
 import (
 	"context"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/libs/bytes"
+	"github.com/fluentum-chain/fluentum/proxy"
+	"github.com/fluentum-chain/fluentum/rpc/client"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // ABCIApp will send all abci related request to the named app,

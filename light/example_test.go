@@ -10,13 +10,13 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/light"
-	"github.com/tendermint/tendermint/light/provider"
-	httpp "github.com/tendermint/tendermint/light/provider/http"
-	dbs "github.com/tendermint/tendermint/light/store/db"
-	rpctest "github.com/tendermint/tendermint/rpc/test"
+	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/light"
+	"github.com/fluentum-chain/fluentum/light/provider"
+	httpp "github.com/fluentum-chain/fluentum/light/provider/http"
+	dbs "github.com/fluentum-chain/fluentum/light/store/db"
+	rpctest "github.com/fluentum-chain/fluentum/rpc/test"
 )
 
 // Automatically getting new headers and verifying them.

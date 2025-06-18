@@ -3,8 +3,8 @@ package indexer
 import (
 	"context"
 
-	"github.com/tendermint/tendermint/libs/pubsub/query"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 //go:generate ../../scripts/mockery_generate.sh BlockIndexer

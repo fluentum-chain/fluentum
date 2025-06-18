@@ -7,11 +7,11 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/light"
-	"github.com/tendermint/tendermint/light/provider"
-	mockp "github.com/tendermint/tendermint/light/provider/mock"
-	dbs "github.com/tendermint/tendermint/light/store/db"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/light"
+	"github.com/fluentum-chain/fluentum/light/provider"
+	mockp "github.com/fluentum-chain/fluentum/light/provider/mock"
+	dbs "github.com/fluentum-chain/fluentum/light/store/db"
 )
 
 // NOTE: block is produced every minute. Make sure the verification time

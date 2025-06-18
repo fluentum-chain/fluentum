@@ -1,11 +1,11 @@
 package core
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/proxy"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/libs/bytes"
+	"github.com/fluentum-chain/fluentum/proxy"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
 
 // ABCIQuery queries the application for some information.

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/fluentum-chain/fluentum/libs/log"
 )
 
 func TestVariousLevels(t *testing.T) {

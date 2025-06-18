@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/p2p"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	"github.com/fluentum-chain/fluentum/p2p"
 )
 
 // errDone is returned by chunkQueue.Next() when all chunks have been returned.

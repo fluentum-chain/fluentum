@@ -15,14 +15,14 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmnet "github.com/tendermint/tendermint/libs/net"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmnet "github.com/fluentum-chain/fluentum/libs/net"
 
-	abcicli "github.com/tendermint/tendermint/abci/client"
-	"github.com/tendermint/tendermint/abci/example/code"
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	abciserver "github.com/tendermint/tendermint/abci/server"
-	"github.com/tendermint/tendermint/abci/types"
+	abcicli "github.com/fluentum-chain/fluentum/abci/client"
+	"github.com/fluentum-chain/fluentum/abci/example/code"
+	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
+	abciserver "github.com/fluentum-chain/fluentum/abci/server"
+	"github.com/fluentum-chain/fluentum/abci/types"
 )
 
 func init() {

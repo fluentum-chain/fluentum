@@ -12,11 +12,11 @@ import (
 
 	db "github.com/tendermint/tm-db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/pubsub/query"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	"github.com/tendermint/tendermint/state/txindex"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
+	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	"github.com/fluentum-chain/fluentum/state/txindex"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 func TestTxIndex(t *testing.T) {
@@ -391,7 +391,7 @@ func TestTxSearchMultipleTxs(t *testing.T) {
 	require.NoError(t, err)
 
 	// indexed fourth (to test we don't include txs with similar events)
-	// https://github.com/tendermint/tendermint/issues/2908
+	// https://github.com/fluentum-chain/fluentum/issues/2908
 	txResult4 := txResultWithEvents([]abci.Event{
 		{Type: "account", Attributes: []abci.EventAttribute{{Key: []byte("number.id"), Value: []byte("1"), Index: true}}},
 	})

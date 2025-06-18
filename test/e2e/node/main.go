@@ -13,25 +13,25 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/tendermint/tendermint/abci/server"
-	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
-	"github.com/tendermint/tendermint/libs/log"
-	tmnet "github.com/tendermint/tendermint/libs/net"
-	"github.com/tendermint/tendermint/light"
-	lproxy "github.com/tendermint/tendermint/light/proxy"
-	lrpc "github.com/tendermint/tendermint/light/rpc"
-	dbs "github.com/tendermint/tendermint/light/store/db"
-	"github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
-	rpcserver "github.com/tendermint/tendermint/rpc/jsonrpc/server"
-	"github.com/tendermint/tendermint/test/e2e/app"
-	e2e "github.com/tendermint/tendermint/test/e2e/pkg"
-	mcs "github.com/tendermint/tendermint/test/maverick/consensus"
-	maverick "github.com/tendermint/tendermint/test/maverick/node"
+	"github.com/fluentum-chain/fluentum/abci/server"
+	"github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/crypto/ed25519"
+	tmflags "github.com/fluentum-chain/fluentum/libs/cli/flags"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmnet "github.com/fluentum-chain/fluentum/libs/net"
+	"github.com/fluentum-chain/fluentum/light"
+	lproxy "github.com/fluentum-chain/fluentum/light/proxy"
+	lrpc "github.com/fluentum-chain/fluentum/light/rpc"
+	dbs "github.com/fluentum-chain/fluentum/light/store/db"
+	"github.com/fluentum-chain/fluentum/node"
+	"github.com/fluentum-chain/fluentum/p2p"
+	"github.com/fluentum-chain/fluentum/privval"
+	"github.com/fluentum-chain/fluentum/proxy"
+	rpcserver "github.com/fluentum-chain/fluentum/rpc/jsonrpc/server"
+	"github.com/fluentum-chain/fluentum/test/e2e/app"
+	e2e "github.com/fluentum-chain/fluentum/test/e2e/pkg"
+	mcs "github.com/fluentum-chain/fluentum/test/maverick/consensus"
+	maverick "github.com/fluentum-chain/fluentum/test/maverick/node"
 )
 
 var logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
@@ -182,7 +182,7 @@ func startLightClient(cfg *Config) error {
 	rpccfg.MaxOpenConnections = tmcfg.RPC.MaxOpenConnections
 	// If necessary adjust global WriteTimeout to ensure it's greater than
 	// TimeoutBroadcastTxCommit.
-	// See https://github.com/tendermint/tendermint/issues/3435
+	// See https://github.com/fluentum-chain/fluentum/issues/3435
 	if rpccfg.WriteTimeout <= tmcfg.RPC.TimeoutBroadcastTxCommit {
 		rpccfg.WriteTimeout = tmcfg.RPC.TimeoutBroadcastTxCommit + 1*time.Second
 	}

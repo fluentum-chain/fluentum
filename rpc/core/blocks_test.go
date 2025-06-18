@@ -9,12 +9,12 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
+	sm "github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 func TestBlockchainInfo(t *testing.T) {

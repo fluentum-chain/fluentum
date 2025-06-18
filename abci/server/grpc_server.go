@@ -5,9 +5,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/tendermint/tendermint/abci/types"
-	tmnet "github.com/tendermint/tendermint/libs/net"
-	"github.com/tendermint/tendermint/libs/service"
+	"github.com/fluentum-chain/fluentum/abci/types"
+	tmnet "github.com/fluentum-chain/fluentum/libs/net"
+	"github.com/fluentum-chain/fluentum/libs/service"
 )
 
 type GRPCServer struct {

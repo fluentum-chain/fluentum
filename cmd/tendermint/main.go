@@ -4,11 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
-	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	"github.com/tendermint/tendermint/cmd/tendermint/commands/debug"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/cli"
-	nm "github.com/tendermint/tendermint/node"
+	cmd "github.com/fluentum-chain/fluentum/cmd/tendermint/commands"
+	"github.com/fluentum-chain/fluentum/cmd/tendermint/commands/debug"
+	cfg "github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/libs/cli"
+	nm "github.com/fluentum-chain/fluentum/node"
 )
 
 func main() {

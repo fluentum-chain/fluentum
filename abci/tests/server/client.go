@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	abcicli "github.com/tendermint/tendermint/abci/client"
-	"github.com/tendermint/tendermint/abci/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
+	abcicli "github.com/fluentum-chain/fluentum/abci/client"
+	"github.com/fluentum-chain/fluentum/abci/types"
+	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
 )
 
 func InitChain(client abcicli.Client) error {

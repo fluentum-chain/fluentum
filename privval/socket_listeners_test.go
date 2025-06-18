@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 )
 
 //-------------------------------------------

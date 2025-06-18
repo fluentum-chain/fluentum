@@ -1,13 +1,13 @@
 package v1
 
 import (
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/log"
-	mempl "github.com/tendermint/tendermint/mempool"
-	"github.com/tendermint/tendermint/proxy"
+	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
+	"github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	mempl "github.com/fluentum-chain/fluentum/mempool"
+	"github.com/fluentum-chain/fluentum/proxy"
 
-	mempoolv1 "github.com/tendermint/tendermint/mempool/v1"
+	mempoolv1 "github.com/fluentum-chain/fluentum/mempool/v1"
 )
 
 var mempool mempl.Mempool

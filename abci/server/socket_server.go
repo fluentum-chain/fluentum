@@ -8,11 +8,11 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/tendermint/tendermint/abci/types"
-	tmlog "github.com/tendermint/tendermint/libs/log"
-	tmnet "github.com/tendermint/tendermint/libs/net"
-	"github.com/tendermint/tendermint/libs/service"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
+	"github.com/fluentum-chain/fluentum/abci/types"
+	tmlog "github.com/fluentum-chain/fluentum/libs/log"
+	tmnet "github.com/fluentum-chain/fluentum/libs/net"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 )
 
 // var maxNumberConnections = 2

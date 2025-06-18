@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/libs/service"
+	"github.com/fluentum-chain/fluentum/crypto/ed25519"
+	"github.com/fluentum-chain/fluentum/libs/service"
 )
 
 // mockPeer for testing the PeerSet

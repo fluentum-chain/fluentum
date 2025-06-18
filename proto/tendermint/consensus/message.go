@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/tendermint/tendermint/p2p"
+	"github.com/fluentum-chain/fluentum/p2p"
 )
 
 var _ p2p.Wrapper = &VoteSetBits{}

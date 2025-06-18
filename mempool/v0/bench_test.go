@@ -5,9 +5,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	"github.com/tendermint/tendermint/mempool"
-	"github.com/tendermint/tendermint/proxy"
+	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
+	"github.com/fluentum-chain/fluentum/mempool"
+	"github.com/fluentum-chain/fluentum/proxy"
 )
 
 func BenchmarkReap(b *testing.B) {

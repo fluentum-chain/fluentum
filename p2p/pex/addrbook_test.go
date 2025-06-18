@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmmath "github.com/tendermint/tendermint/libs/math"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	"github.com/tendermint/tendermint/p2p"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmmath "github.com/fluentum-chain/fluentum/libs/math"
+	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	"github.com/fluentum-chain/fluentum/p2p"
 )
 
 // FIXME These tests should not rely on .(*addrBook) assertions

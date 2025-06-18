@@ -15,43 +15,43 @@ import (
 	"github.com/rs/cors"
 	dbm "github.com/tendermint/tm-db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	bcv0 "github.com/tendermint/tendermint/blockchain/v0"
-	bcv1 "github.com/tendermint/tendermint/blockchain/v1"
-	bcv2 "github.com/tendermint/tendermint/blockchain/v2"
-	cfg "github.com/tendermint/tendermint/config"
-	cs "github.com/tendermint/tendermint/consensus"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/evidence"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	bcv0 "github.com/fluentum-chain/fluentum/blockchain/v0"
+	bcv1 "github.com/fluentum-chain/fluentum/blockchain/v1"
+	bcv2 "github.com/fluentum-chain/fluentum/blockchain/v2"
+	cfg "github.com/fluentum-chain/fluentum/config"
+	cs "github.com/fluentum-chain/fluentum/consensus"
+	"github.com/fluentum-chain/fluentum/crypto"
+	"github.com/fluentum-chain/fluentum/evidence"
 
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/light"
-	mempl "github.com/tendermint/tendermint/mempool"
-	mempoolv0 "github.com/tendermint/tendermint/mempool/v0"
-	mempoolv1 "github.com/tendermint/tendermint/mempool/v1"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/p2p/pex"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
-	rpccore "github.com/tendermint/tendermint/rpc/core"
-	grpccore "github.com/tendermint/tendermint/rpc/grpc"
-	rpcserver "github.com/tendermint/tendermint/rpc/jsonrpc/server"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/state/indexer"
-	blockidxkv "github.com/tendermint/tendermint/state/indexer/block/kv"
-	blockidxnull "github.com/tendermint/tendermint/state/indexer/block/null"
-	"github.com/tendermint/tendermint/state/indexer/sink/psql"
-	"github.com/tendermint/tendermint/state/txindex"
-	"github.com/tendermint/tendermint/state/txindex/kv"
-	"github.com/tendermint/tendermint/state/txindex/null"
-	"github.com/tendermint/tendermint/statesync"
-	"github.com/tendermint/tendermint/store"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-	"github.com/tendermint/tendermint/version"
+	tmjson "github.com/fluentum-chain/fluentum/libs/json"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmpubsub "github.com/fluentum-chain/fluentum/libs/pubsub"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	"github.com/fluentum-chain/fluentum/light"
+	mempl "github.com/fluentum-chain/fluentum/mempool"
+	mempoolv0 "github.com/fluentum-chain/fluentum/mempool/v0"
+	mempoolv1 "github.com/fluentum-chain/fluentum/mempool/v1"
+	"github.com/fluentum-chain/fluentum/p2p"
+	"github.com/fluentum-chain/fluentum/p2p/pex"
+	"github.com/fluentum-chain/fluentum/privval"
+	"github.com/fluentum-chain/fluentum/proxy"
+	rpccore "github.com/fluentum-chain/fluentum/rpc/core"
+	grpccore "github.com/fluentum-chain/fluentum/rpc/grpc"
+	rpcserver "github.com/fluentum-chain/fluentum/rpc/jsonrpc/server"
+	sm "github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/state/indexer"
+	blockidxkv "github.com/fluentum-chain/fluentum/state/indexer/block/kv"
+	blockidxnull "github.com/fluentum-chain/fluentum/state/indexer/block/null"
+	"github.com/fluentum-chain/fluentum/state/indexer/sink/psql"
+	"github.com/fluentum-chain/fluentum/state/txindex"
+	"github.com/fluentum-chain/fluentum/state/txindex/kv"
+	"github.com/fluentum-chain/fluentum/state/txindex/null"
+	"github.com/fluentum-chain/fluentum/statesync"
+	"github.com/fluentum-chain/fluentum/store"
+	"github.com/fluentum-chain/fluentum/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
+	"github.com/fluentum-chain/fluentum/version"
 
 	_ "net/http/pprof" //nolint: gosec // securely exposed on separate, optional port
 
@@ -135,7 +135,7 @@ func DefaultMetricsProvider(config *cfg.InstrumentationConfig) MetricsProvider {
 type Option func(*Node)
 
 // Temporary interface for switching to fast sync, we should get rid of v0 and v1 reactors.
-// See: https://github.com/tendermint/tendermint/issues/4595
+// See: https://github.com/fluentum-chain/fluentum/issues/4595
 type fastSyncReactor interface {
 	SwitchToFastSync(sm.State) error
 }
@@ -636,7 +636,7 @@ func createPEXReactorAndAddToSwitch(addrBook pex.AddrBook, config *cfg.Config,
 			// blocks assuming 10s blocks ~ 28 hours.
 			// TODO (melekes): make it dynamic based on the actual block latencies
 			// from the live network.
-			// https://github.com/tendermint/tendermint/issues/3523
+			// https://github.com/fluentum-chain/fluentum/issues/3523
 			SeedDisconnectWaitPeriod:     28 * time.Hour,
 			PersistentPeersMaxDialPeriod: config.P2P.PersistentPeersMaxDialPeriod,
 		})
@@ -835,7 +835,7 @@ func NewNode(config *cfg.Config,
 	// Set up state sync reactor, and schedule a sync if requested.
 	// FIXME The way we do phased startups (e.g. replay -> fast sync -> consensus) is very messy,
 	// we should clean this whole thing up. See:
-	// https://github.com/tendermint/tendermint/issues/4644
+	// https://github.com/fluentum-chain/fluentum/issues/4644
 	stateSyncReactor := statesync.NewReactor(
 		*config.StateSync,
 		proxyApp.Snapshot(),
@@ -1114,7 +1114,7 @@ func (n *Node) startRPC() ([]net.Listener, error) {
 	config.MaxOpenConnections = n.config.RPC.MaxOpenConnections
 	// If necessary adjust global WriteTimeout to ensure it's greater than
 	// TimeoutBroadcastTxCommit.
-	// See https://github.com/tendermint/tendermint/issues/3435
+	// See https://github.com/fluentum-chain/fluentum/issues/3435
 	if config.WriteTimeout <= n.config.RPC.TimeoutBroadcastTxCommit {
 		config.WriteTimeout = n.config.RPC.TimeoutBroadcastTxCommit + 1*time.Second
 	}
@@ -1194,7 +1194,7 @@ func (n *Node) startRPC() ([]net.Listener, error) {
 		config.MaxOpenConnections = n.config.RPC.GRPCMaxOpenConnections
 		// If necessary adjust global WriteTimeout to ensure it's greater than
 		// TimeoutBroadcastTxCommit.
-		// See https://github.com/tendermint/tendermint/issues/3435
+		// See https://github.com/fluentum-chain/fluentum/issues/3435
 		if config.WriteTimeout <= n.config.RPC.TimeoutBroadcastTxCommit {
 			config.WriteTimeout = n.config.RPC.TimeoutBroadcastTxCommit + 1*time.Second
 		}

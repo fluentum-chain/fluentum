@@ -13,12 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/consensus/types"
-	"github.com/tendermint/tendermint/crypto/merkle"
-	"github.com/tendermint/tendermint/libs/autofile"
-	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	"github.com/fluentum-chain/fluentum/consensus/types"
+	"github.com/fluentum-chain/fluentum/crypto/merkle"
+	"github.com/fluentum-chain/fluentum/libs/autofile"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmtypes "github.com/fluentum-chain/fluentum/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
 )
 
 const (

@@ -1,13 +1,13 @@
 package proxy
 
 import (
-	"github.com/tendermint/tendermint/libs/bytes"
-	lrpc "github.com/tendermint/tendermint/light/rpc"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpcserver "github.com/tendermint/tendermint/rpc/jsonrpc/server"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/bytes"
+	lrpc "github.com/fluentum-chain/fluentum/light/rpc"
+	rpcclient "github.com/fluentum-chain/fluentum/rpc/client"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpcserver "github.com/fluentum-chain/fluentum/rpc/jsonrpc/server"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 func RPCRoutes(c *lrpc.Client) map[string]*rpcserver.RPCFunc {

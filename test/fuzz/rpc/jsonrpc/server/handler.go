@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/tendermint/tendermint/libs/log"
-	rs "github.com/tendermint/tendermint/rpc/jsonrpc/server"
-	types "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	rs "github.com/fluentum-chain/fluentum/rpc/jsonrpc/server"
+	types "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
 
 var rpcFuncMap = map[string]*rs.RPCFunc{

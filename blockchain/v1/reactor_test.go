@@ -14,18 +14,18 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/mempool/mock"
-	"github.com/tendermint/tendermint/p2p"
-	bcproto "github.com/tendermint/tendermint/proto/tendermint/blockchain"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/proxy"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/store"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	cfg "github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/mempool/mock"
+	"github.com/fluentum-chain/fluentum/p2p"
+	bcproto "github.com/fluentum-chain/fluentum/proto/tendermint/blockchain"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"github.com/fluentum-chain/fluentum/proxy"
+	sm "github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/store"
+	"github.com/fluentum-chain/fluentum/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
 )
 
 var config *cfg.Config

@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/tendermint/tendermint/libs/pubsub/query"
-	"github.com/tendermint/tendermint/state/indexer"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
+	"github.com/fluentum-chain/fluentum/state/indexer"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 var _ indexer.BlockIndexer = (*BlockerIndexer)(nil)

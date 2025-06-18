@@ -18,13 +18,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/libs/log"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
+	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
 
-	client "github.com/tendermint/tendermint/rpc/jsonrpc/client"
-	server "github.com/tendermint/tendermint/rpc/jsonrpc/server"
-	types "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	client "github.com/fluentum-chain/fluentum/rpc/jsonrpc/client"
+	server "github.com/fluentum-chain/fluentum/rpc/jsonrpc/server"
+	types "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
 
 // Client and Server should work over tcp or unix sockets

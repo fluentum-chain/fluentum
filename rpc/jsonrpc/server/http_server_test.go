@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/libs/log"
-	types "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	types "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
 
 type sampleResult struct {

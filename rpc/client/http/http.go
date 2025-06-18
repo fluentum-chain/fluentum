@@ -7,16 +7,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/bytes"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	"github.com/tendermint/tendermint/libs/service"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	jsonrpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/bytes"
+	tmjson "github.com/fluentum-chain/fluentum/libs/json"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmpubsub "github.com/fluentum-chain/fluentum/libs/pubsub"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	rpcclient "github.com/fluentum-chain/fluentum/rpc/client"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	jsonrpcclient "github.com/fluentum-chain/fluentum/rpc/jsonrpc/client"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 /*

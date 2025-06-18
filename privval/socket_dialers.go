@@ -5,9 +5,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto"
-	tmnet "github.com/tendermint/tendermint/libs/net"
-	p2pconn "github.com/tendermint/tendermint/p2p/conn"
+	"github.com/fluentum-chain/fluentum/crypto"
+	tmnet "github.com/fluentum-chain/fluentum/libs/net"
+	p2pconn "github.com/fluentum-chain/fluentum/p2p/conn"
 )
 
 // Socket errors.

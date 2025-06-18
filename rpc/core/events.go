@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	tmpubsub "github.com/fluentum-chain/fluentum/libs/pubsub"
+	tmquery "github.com/fluentum-chain/fluentum/libs/pubsub/query"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
 
 const (

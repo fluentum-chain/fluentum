@@ -11,10 +11,10 @@ import (
 	"github.com/google/orderedcode"
 	dbm "github.com/tendermint/tm-db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/pubsub/query"
-	"github.com/tendermint/tendermint/state/indexer"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
+	"github.com/fluentum-chain/fluentum/state/indexer"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 var _ indexer.BlockIndexer = (*BlockerIndexer)(nil)

@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/tendermint/tendermint/version"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 // VersionCmd ...

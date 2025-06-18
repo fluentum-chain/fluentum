@@ -5,12 +5,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/libs/log"
-	tmnet "github.com/tendermint/tendermint/libs/net"
-	tmos "github.com/tendermint/tendermint/libs/os"
+	"github.com/fluentum-chain/fluentum/crypto/ed25519"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmnet "github.com/fluentum-chain/fluentum/libs/net"
+	tmos "github.com/fluentum-chain/fluentum/libs/os"
 
-	"github.com/tendermint/tendermint/privval"
+	"github.com/fluentum-chain/fluentum/privval"
 )
 
 func main() {

@@ -11,18 +11,18 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmos "github.com/fluentum-chain/fluentum/libs/os"
 
-	abcicli "github.com/tendermint/tendermint/abci/client"
-	"github.com/tendermint/tendermint/abci/example/code"
-	"github.com/tendermint/tendermint/abci/example/counter"
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	"github.com/tendermint/tendermint/abci/server"
-	servertest "github.com/tendermint/tendermint/abci/tests/server"
-	"github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/abci/version"
-	"github.com/tendermint/tendermint/proto/tendermint/crypto"
+	abcicli "github.com/fluentum-chain/fluentum/abci/client"
+	"github.com/fluentum-chain/fluentum/abci/example/code"
+	"github.com/fluentum-chain/fluentum/abci/example/counter"
+	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
+	"github.com/fluentum-chain/fluentum/abci/server"
+	servertest "github.com/fluentum-chain/fluentum/abci/tests/server"
+	"github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/abci/version"
+	"github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 // client is a global variable so it can be reused by the console

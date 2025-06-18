@@ -7,8 +7,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/service"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 )
 
 //---------------------------------------------------------------------------------------

@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"reflect"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmstrings "github.com/tendermint/tendermint/libs/strings"
-	tmp2p "github.com/tendermint/tendermint/proto/tendermint/p2p"
-	"github.com/tendermint/tendermint/version"
+	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
+	tmstrings "github.com/fluentum-chain/fluentum/libs/strings"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 const (

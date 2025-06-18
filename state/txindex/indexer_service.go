@@ -3,9 +3,9 @@ package txindex
 import (
 	"context"
 
-	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/state/indexer"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	"github.com/fluentum-chain/fluentum/state/indexer"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // XXX/TODO: These types should be moved to the indexer package.

@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/tendermint/tendermint/light/provider"
-	"github.com/tendermint/tendermint/light/provider/http"
-	"github.com/tendermint/tendermint/light/store"
+	"github.com/fluentum-chain/fluentum/light/provider"
+	"github.com/fluentum-chain/fluentum/light/provider/http"
+	"github.com/fluentum-chain/fluentum/light/store"
 )
 
 // NewHTTPClient initiates an instance of a light client using HTTP addresses

@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/rpc/client"
-	"github.com/tendermint/tendermint/rpc/client/mock"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/libs/bytes"
+	"github.com/fluentum-chain/fluentum/rpc/client"
+	"github.com/fluentum-chain/fluentum/rpc/client/mock"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 func TestABCIMock(t *testing.T) {

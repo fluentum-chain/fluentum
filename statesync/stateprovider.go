@@ -8,18 +8,18 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/light"
-	lightprovider "github.com/tendermint/tendermint/light/provider"
-	lighthttp "github.com/tendermint/tendermint/light/provider/http"
-	lightrpc "github.com/tendermint/tendermint/light/rpc"
-	lightdb "github.com/tendermint/tendermint/light/store/db"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
-	"github.com/tendermint/tendermint/version"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	"github.com/fluentum-chain/fluentum/light"
+	lightprovider "github.com/fluentum-chain/fluentum/light/provider"
+	lighthttp "github.com/fluentum-chain/fluentum/light/provider/http"
+	lightrpc "github.com/fluentum-chain/fluentum/light/rpc"
+	lightdb "github.com/fluentum-chain/fluentum/light/store/db"
+	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
+	rpchttp "github.com/fluentum-chain/fluentum/rpc/client/http"
+	sm "github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/types"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 //go:generate ../scripts/mockery_generate.sh StateProvider

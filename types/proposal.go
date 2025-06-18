@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/libs/protoio"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
+	"github.com/fluentum-chain/fluentum/libs/protoio"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
 )
 
 var (

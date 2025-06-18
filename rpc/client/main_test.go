@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	nm "github.com/tendermint/tendermint/node"
-	rpctest "github.com/tendermint/tendermint/rpc/test"
+	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
+	nm "github.com/fluentum-chain/fluentum/node"
+	rpctest "github.com/fluentum-chain/fluentum/rpc/test"
 )
 
 var node *nm.Node

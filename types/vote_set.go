@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tendermint/tendermint/libs/bits"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/bits"
+	tmjson "github.com/fluentum-chain/fluentum/libs/json"
+	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
 const (

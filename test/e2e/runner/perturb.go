@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
-	rpctypes "github.com/tendermint/tendermint/rpc/core/types"
-	e2e "github.com/tendermint/tendermint/test/e2e/pkg"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	e2e "github.com/fluentum-chain/fluentum/test/e2e/pkg"
 )
 
 // Perturbs a running testnet.

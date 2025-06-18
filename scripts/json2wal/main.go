@@ -14,9 +14,9 @@ import (
 	"os"
 	"strings"
 
-	cs "github.com/tendermint/tendermint/consensus"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/types"
+	cs "github.com/fluentum-chain/fluentum/consensus"
+	tmjson "github.com/fluentum-chain/fluentum/libs/json"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 func main() {

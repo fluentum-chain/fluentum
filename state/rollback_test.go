@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	"github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/state/mocks"
-	"github.com/tendermint/tendermint/types"
-	"github.com/tendermint/tendermint/version"
+	"github.com/fluentum-chain/fluentum/crypto"
+	"github.com/fluentum-chain/fluentum/crypto/tmhash"
+	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
+	tmversion "github.com/fluentum-chain/fluentum/proto/tendermint/version"
+	"github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/state/mocks"
+	"github.com/fluentum-chain/fluentum/types"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 func TestRollback(t *testing.T) {

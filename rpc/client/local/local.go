@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/libs/log"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
-	nm "github.com/tendermint/tendermint/node"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	"github.com/tendermint/tendermint/rpc/core"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-	"github.com/tendermint/tendermint/types"
+	"github.com/fluentum-chain/fluentum/libs/bytes"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	tmpubsub "github.com/fluentum-chain/fluentum/libs/pubsub"
+	tmquery "github.com/fluentum-chain/fluentum/libs/pubsub/query"
+	nm "github.com/fluentum-chain/fluentum/node"
+	rpcclient "github.com/fluentum-chain/fluentum/rpc/client"
+	"github.com/fluentum-chain/fluentum/rpc/core"
+	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 /*

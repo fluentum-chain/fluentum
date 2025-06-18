@@ -8,12 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	"github.com/fluentum-chain/fluentum/crypto"
+	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
+	tmjson "github.com/fluentum-chain/fluentum/libs/json"
+	tmos "github.com/fluentum-chain/fluentum/libs/os"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
 )
 
 const (

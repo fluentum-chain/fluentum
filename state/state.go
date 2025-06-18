@@ -9,12 +9,12 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-	"github.com/tendermint/tendermint/version"
+	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	tmversion "github.com/fluentum-chain/fluentum/proto/tendermint/version"
+	"github.com/fluentum-chain/fluentum/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 // database key

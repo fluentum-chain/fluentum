@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	"github.com/fluentum-chain/fluentum/crypto/secp256k1"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	mcs "github.com/tendermint/tendermint/test/maverick/consensus"
+	"github.com/fluentum-chain/fluentum/crypto"
+	"github.com/fluentum-chain/fluentum/crypto/ed25519"
+	rpchttp "github.com/fluentum-chain/fluentum/rpc/client/http"
+	mcs "github.com/fluentum-chain/fluentum/test/maverick/consensus"
 )
 
 const (
