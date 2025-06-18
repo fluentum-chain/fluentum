@@ -2,7 +2,8 @@ package cex
 
 import (
 	"context"
-	"fluentum/types"
+
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // Client handles interactions with centralized exchanges
@@ -49,4 +50,4 @@ func (c *Client) GetAverageFees() int64 {
 	// 1. Fetching current fee schedule
 	// 2. Calculating weighted average based on recent trades
 	return 1000 // Placeholder: 0.001%
-} 
+}

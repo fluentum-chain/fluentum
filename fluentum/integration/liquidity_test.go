@@ -3,16 +3,16 @@ package integration
 import (
 	"context"
 	"math/big"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"fluentum/config"
-	"fluentum/liquidity"
-	"fluentum/types"
-	"fluentum/x/cex"
-	"fluentum/x/dex"
+	"github.com/fluentum-chain/fluentum/liquidity"
+	"github.com/fluentum-chain/fluentum/types"
+	"github.com/fluentum-chain/fluentum/x/cex"
+	"github.com/fluentum-chain/fluentum/x/dex"
 )
 
 // TestHybridLiquidityRouting tests the hybrid liquidity routing system
@@ -52,7 +52,7 @@ func TestHybridLiquidityRouting(t *testing.T) {
 			order: types.Order{
 				ID:        "order2",
 				Type:      types.MarketOrder,
-				Amount:    500000000, // 5 FLU
+				Amount:    500000000,  // 5 FLU
 				Price:     1000000000, // 10 FLU
 				Side:      "sell",
 				Timestamp: time.Now(),
@@ -129,4 +129,4 @@ func createTestDEXClient(t *testing.T) *dex.Client {
 	client.SetLiquidity(big.NewInt(50000000000)) // 500 FLU
 	client.SetFees(3000)                         // 0.3%
 	return client
-} 
+}

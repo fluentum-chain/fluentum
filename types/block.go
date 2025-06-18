@@ -10,6 +10,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	gogotypes "github.com/gogo/protobuf/types"
 
+	"github.com/fluentum-chain/fluentum/fluentum/quantum"
+	"github.com/fluentum-chain/fluentum/zkprover"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -20,7 +22,6 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
-	"github.com/fluentum-chain/fluentum/fluentum/zkprover"
 )
 
 const (
@@ -46,8 +47,8 @@ type Block struct {
 
 	Header     `json:"header"`
 	Data       `json:"data"`
-	Evidence   EvidenceData `json:"evidence"`
-	LastCommit *Commit      `json:"last_commit"`
+	Evidence   EvidenceData       `json:"evidence"`
+	LastCommit *Commit            `json:"last_commit"`
 	ZKBatches  []zkprover.ZKBatch `json:"zk_batches"`
 	QuantumSig []byte             `json:"quantum_sig"`
 }

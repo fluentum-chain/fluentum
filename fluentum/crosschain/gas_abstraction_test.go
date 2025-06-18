@@ -2,12 +2,12 @@ package crosschain
 
 import (
 	"context"
+	"errors"
 	"math/big"
 	"testing"
 	"time"
 
-	"fluentum/types"
-	"fluentum/x/fluentum"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 type mockKeeper struct {
@@ -52,9 +52,9 @@ func (mk *mockKeeper) EmitEvent(ctx context.Context, eventType string, event int
 }
 
 type mockPriceFeed struct {
-	gasPrice     *big.Int
-	congestion   float64
-	shouldError  bool
+	gasPrice    *big.Int
+	congestion  float64
+	shouldError bool
 }
 
 func newMockPriceFeed() *mockPriceFeed {
@@ -81,31 +81,31 @@ func (mpf *mockPriceFeed) GetNetworkCongestion(ctx context.Context) (float64, er
 func TestGasAbstraction(t *testing.T) {
 	keeper := newMockKeeper()
 	priceFeed := newMockPriceFeed()
-	
+
 	ga := NewGasAbstraction(keeper)
 	ga.priceFeeds["ethereum"] = priceFeed
 
 	// Test cases
 	tests := []struct {
-		name          string
-		sender        string
+		name           string
+		sender         string
 		initialBalance *big.Int
-		gasLimit      int64
-		shouldSucceed bool
+		gasLimit       int64
+		shouldSucceed  bool
 	}{
 		{
-			name:          "sufficient balance",
-			sender:        "0x123",
+			name:           "sufficient balance",
+			sender:         "0x123",
 			initialBalance: big.NewInt(10000000000), // 100 FLU
-			gasLimit:      21000,
-			shouldSucceed: true,
+			gasLimit:       21000,
+			shouldSucceed:  true,
 		},
 		{
-			name:          "insufficient balance",
-			sender:        "0x456",
+			name:           "insufficient balance",
+			sender:         "0x456",
 			initialBalance: big.NewInt(100000000), // 1 FLU
-			gasLimit:      21000,
-			shouldSucceed: false,
+			gasLimit:       21000,
+			shouldSucceed:  false,
 		},
 	}
 
@@ -156,7 +156,7 @@ func TestGasAbstraction(t *testing.T) {
 func TestGasConfigUpdates(t *testing.T) {
 	keeper := newMockKeeper()
 	priceFeed := newMockPriceFeed()
-	
+
 	ga := NewGasAbstraction(keeper)
 	ga.priceFeeds["ethereum"] = priceFeed
 
@@ -180,7 +180,7 @@ func TestGasConfigUpdates(t *testing.T) {
 
 	// Force config update
 	config.LastUpdate = time.Now().Add(-6 * time.Minute)
-	
+
 	// Get updated config
 	config, err = ga.getGasConfig("ethereum")
 	if err != nil {
@@ -194,4 +194,4 @@ func TestGasConfigUpdates(t *testing.T) {
 	if config.GasMultiplier != 1.16 { // 1.0 + (0.8 * 0.2)
 		t.Error("gas multiplier was not updated correctly")
 	}
-} 
+}

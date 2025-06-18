@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fluentum-chain/fluentum/quantum"
 	"github.com/stretchr/testify/require"
 
-	"fluentum/config"
-	"fluentum/consensus"
-	"fluentum/state"
-	"fluentum/types"
-	"fluentum/zkprover"
+	"github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/consensus"
+	"github.com/fluentum-chain/fluentum/types"
+	"github.com/fluentum-chain/fluentum/zkprover"
 )
 
 // TestHybridConsensus tests the hybrid consensus mechanism
@@ -116,12 +116,12 @@ func createValidZKBatch(t *testing.T) *types.ZKBatch {
 	// Create test transactions
 	txs := []types.Tx{
 		{
-			Type:    types.TxTypeTransfer,
-			From:    "0x123",
-			To:      "0x456",
-			Amount:  1000000000,
-			Nonce:   1,
-			Gas:     21000,
+			Type:     types.TxTypeTransfer,
+			From:     "0x123",
+			To:       "0x456",
+			Amount:   1000000000,
+			Nonce:    1,
+			Gas:      21000,
 			GasPrice: 20000000000,
 		},
 	}
@@ -133,9 +133,9 @@ func createValidZKBatch(t *testing.T) *types.ZKBatch {
 
 	return &types.ZKBatch{
 		Transactions: txs,
-		Proof:       proof,
-		StateRoot:   []byte("test_state_root"),
-		Timestamp:   time.Now().Unix(),
+		Proof:        proof,
+		StateRoot:    []byte("test_state_root"),
+		Timestamp:    time.Now().Unix(),
 	}
 }
 
@@ -173,4 +173,4 @@ func ResetConfig(testName string) *config.Config {
 	cfg.RPC.ListenAddress = "tcp://127.0.0.1:0"
 	cfg.Consensus.CreateEmptyBlocksInterval = 0
 	return cfg
-} 
+}

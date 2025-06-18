@@ -2,7 +2,8 @@ package dex
 
 import (
 	"context"
-	"fluentum/types"
+
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // Client handles interactions with decentralized exchanges
@@ -47,4 +48,4 @@ func (c *Client) GetAverageFees() int64 {
 	// 1. Querying pool fees
 	// 2. Calculating weighted average based on pool sizes
 	return 3000 // Placeholder: 0.003%
-} 
+}
