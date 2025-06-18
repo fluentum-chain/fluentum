@@ -6,10 +6,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/kellyadamtan/tendermint/config"
-	"github.com/kellyadamtan/tendermint/p2p"
-	"github.com/kellyadamtan/tendermint/privval"
-	"github.com/kellyadamtan/tendermint/types"
+	"github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/p2p"
+	"github.com/fluentum-chain/fluentum/privval"
+	"github.com/fluentum-chain/fluentum/types"
+	"github.com/spf13/cobra"
 )
 
 type TestnetConfig struct {

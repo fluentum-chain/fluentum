@@ -9,11 +9,11 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/types"
-	"github.com/tendermum/tendermint/config"
+	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/clist"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
-	"github.com/kellyadamtan/tendermint/fluentum/keeper"
+	"github.com/fluentum-chain/fluentum/fluentum/keeper"
 )
 
 const (

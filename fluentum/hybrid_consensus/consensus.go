@@ -6,8 +6,8 @@ import (
 
 	"github.com/tendermint/tendermint/consensus"
 	"github.com/tendermint/tendermint/types"
-	fluentum_zk "github.com/kellyadamtan/tendermint/fluentum/zkprover"
-	fluentum_quantum "github.com/kellyadamtan/tendermint/fluentum/quantum"
+	fluentum_zk "github.com/fluentum-chain/fluentum/fluentum/zkprover"
+	fluentum_quantum "github.com/fluentum-chain/fluentum/fluentum/quantum"
 )
 
 // HybridConsensusState represents the state of the hybrid consensus mechanism

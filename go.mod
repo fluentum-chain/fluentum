@@ -1,14 +1,14 @@
-module github.com/kellyadamtan/tendermint
+module github.com/fluentum-chain/fluentum
 
 go 1.21
 
 require (
 	github.com/cosmos/cosmos-sdk v0.50.0
 	github.com/iden3/go-iden3-crypto v0.0.15
-	github.com/iden3/go-merkletree v0.0.0-20230911125859-9b62a6d39733
+	github.com/iden3/go-merkletree v0.1.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
-	github.com/tendermint/tendermint v0.37.0
+	github.com/tendermint/tendermint v0.34.24
 	golang.org/x/crypto v0.17.0
 )
 

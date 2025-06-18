@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kellyadamtan/tendermint/types"
+	"github.com/fluentum-chain/fluentum/types"
 	"github.com/gorilla/websocket"
 )
 

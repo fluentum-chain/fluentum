@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kellyadamtan/tendermint/config"
-	"github.com/kellyadamtan/tendermint/node"
-	"github.com/kellyadamtan/tendermint/version"
+	"github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/node"
+	"github.com/fluentum-chain/fluentum/version"
 	"github.com/spf13/cobra"
 )
 

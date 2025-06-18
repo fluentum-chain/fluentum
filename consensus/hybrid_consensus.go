@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kellyadamtan/tendermint/consensus"
-	"github.com/kellyadamtan/tendermint/types"
-	"github.com/kellyadamtan/tendermint/state"
-	"github.com/kellyadamtan/tendermint/libs/log"
-	"github.com/kellyadamtan/tendermint/libs/service"
-	"github.com/kellyadamtan/tendermint/p2p"
-	"github.com/kellyadamtan/tendermint/privval"
-	"github.com/kellyadamtan/tendermint/proxy"
-	"github.com/kellyadamtan/tendermint/fluentum/zkproofs"
-	"github.com/kellyadamtan/tendermint/fluentum/quantum"
+	"github.com/fluentum-chain/fluentum/consensus"
+	"github.com/fluentum-chain/fluentum/types"
+	"github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/libs/service"
+	"github.com/fluentum-chain/fluentum/p2p"
+	"github.com/fluentum-chain/fluentum/privval"
+	"github.com/fluentum-chain/fluentum/proxy"
+	"github.com/fluentum-chain/fluentum/fluentum/zkproofs"
+	"github.com/fluentum-chain/fluentum/fluentum/quantum"
 )
 
 // HybridConsensus combines Tendermint's DPoS with ZK-Rollups and quantum-resistant signatures

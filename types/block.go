@@ -20,7 +20,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
-	"github.com/kellyadamtan/tendermint/fluentum/zkprover"
+	"github.com/fluentum-chain/fluentum/fluentum/zkprover"
 )
 
 const (
