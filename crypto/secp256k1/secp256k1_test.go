@@ -1,4 +1,4 @@
-package secp256k1_test
+package secp256k1
 
 import (
 	"encoding/hex"
@@ -9,10 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	underlyingSecp256k1 "github.com/btcsuite/btcd/btcec/v2"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
-
-	underlyingSecp256k1 "github.com/btcsuite/btcd/btcec"
 )
 
 type keyData struct {

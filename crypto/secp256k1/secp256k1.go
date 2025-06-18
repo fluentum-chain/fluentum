@@ -8,7 +8,7 @@ import (
 	"io"
 	"math/big"
 
-	secp256k1 "github.com/btcsuite/btcd/btcec"
+	secp256k1 "github.com/btcsuite/btcd/btcec/v2"
 	"golang.org/x/crypto/ripemd160" //nolint: staticcheck // necessary for Bitcoin address format
 
 	"github.com/tendermint/tendermint/crypto"
@@ -106,7 +106,7 @@ var one = new(big.Int).SetInt64(1)
 func GenPrivKeySecp256k1(secret []byte) PrivKey {
 	secHash := sha256.Sum256(secret)
 	// to guarantee that we have a valid field element, we use the approach of:
-	// "Suite B Implementer’s Guide to FIPS 186-3", A.2.1
+	// "Suite B Implementer's Guide to FIPS 186-3", A.2.1
 	// https://apps.nsa.gov/iaarchive/library/ia-guidance/ia-solutions-for-classified/algorithm-guidance/suite-b-implementers-guide-to-fips-186-3-ecdsa.cfm
 	// see also https://github.com/golang/go/blob/0380c9ad38843d523d9c9804fe300cb7edd7cd3c/src/crypto/ecdsa/ecdsa.go#L89-L101
 	fe := new(big.Int).SetBytes(secHash[:])

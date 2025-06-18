@@ -8,12 +8,11 @@ import (
 	"sync"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/clist"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
-	"github.com/fluentum-chain/fluentum/fluentum/keeper"
+	"github.com/tendermint/tendermint/types"
 )
 
 const (
@@ -221,9 +220,6 @@ type CListMempool struct {
 	txs          *clist.CList // concurrent linked-list of good txs
 	proxyAppConn proxy.AppConnMempool
 
-	// Keep track of the Fluentum keeper for staker checks
-	fluentumKeeper *keeper.Keeper
-
 	logger log.Logger
 }
 
@@ -234,16 +230,14 @@ func NewCListMempool(
 	height int64,
 	preCheck PreCheckFunc,
 	postCheck PostCheckFunc,
-	fluentumKeeper *keeper.Keeper,
 ) *CListMempool {
 	mempool := &CListMempool{
-		config:         config,
-		proxyAppConn:   proxyAppConn,
-		txs:            clist.New(),
-		height:         height,
-		preCheck:       preCheck,
-		postCheck:      postCheck,
-		fluentumKeeper: fluentumKeeper,
+		config:               config,
+		proxyAppConn:         proxyAppConn,
+		txs:                  clist.New(),
+		height:               height,
+		preCheck:             preCheck,
+		postCheck:            postCheck,
 		notifiedTxsAvailable: false,
 		txsAvailable:         make(chan struct{}, 1),
 	}
@@ -255,14 +249,6 @@ func (mem *CListMempool) CheckTx(tx types.Tx) error {
 	mem.updateMtx.Lock()
 	// use defer to unlock mutex because application (*local client*) might panic
 	defer mem.updateMtx.Unlock()
-
-	// Check if sender is FLU staker
-	if isStaker, err := mem.fluentumKeeper.IsStaker(tx.Sender()); err == nil && isStaker {
-		// Set zero gas price for stakers
-		if err := tx.SetGasPrice(0); err != nil {
-			return fmt.Errorf("failed to set gas price for staker: %w", err)
-		}
-	}
 
 	// Check if the transaction is valid
 	if err := mem.preCheck(tx); err != nil {
