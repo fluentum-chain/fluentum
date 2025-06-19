@@ -8,8 +8,9 @@ import (
 	"io"
 	"math/big"
 
-	secp256k1 "github.com/btcsuite/btcd/btcec/v2"
-	"golang.org/x/crypto/ripemd160" //nolint: staticcheck // necessary for Bitcoin address format
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
+	"golang.org/x/crypto/ripemd160" // necessary for Bitcoin address format
 
 	"github.com/fluentum-chain/fluentum/crypto"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
@@ -42,10 +43,8 @@ func (privKey PrivKey) Bytes() []byte {
 // PubKey performs the point-scalar multiplication from the privKey on the
 // generator point to get the pubkey.
 func (privKey PrivKey) PubKey() crypto.PubKey {
-	_, pubkeyObject := secp256k1.PrivKeyFromBytes(secp256k1.S256(), privKey)
-
-	pk := pubkeyObject.SerializeCompressed()
-
+	priv := secp256k1.PrivKeyFromBytes(privKey)
+	pk := priv.PubKey().SerializeCompressed()
 	return PubKey(pk)
 }
 
@@ -71,24 +70,16 @@ func GenPrivKey() PrivKey {
 // genPrivKey generates a new secp256k1 private key using the provided reader.
 func genPrivKey(rand io.Reader) PrivKey {
 	var privKeyBytes [PrivKeySize]byte
-	d := new(big.Int)
-
 	for {
-		privKeyBytes = [PrivKeySize]byte{}
 		_, err := io.ReadFull(rand, privKeyBytes[:])
 		if err != nil {
 			panic(err)
 		}
-
-		d.SetBytes(privKeyBytes[:])
-		// break if we found a valid point (i.e. > 0 and < N == curverOrder)
-		isValidFieldElement := 0 < d.Sign() && d.Cmp(secp256k1.S256().N) < 0
-		if isValidFieldElement {
-			break
+		priv := secp256k1.PrivKeyFromBytes(privKeyBytes[:])
+		if priv != nil {
+			return PrivKey(privKeyBytes[:])
 		}
 	}
-
-	return PrivKey(privKeyBytes[:])
 }
 
 var one = new(big.Int).SetInt64(1)
@@ -105,20 +96,13 @@ var one = new(big.Int).SetInt64(1)
 // if it's derived from user input.
 func GenPrivKeySecp256k1(secret []byte) PrivKey {
 	secHash := sha256.Sum256(secret)
-	// to guarantee that we have a valid field element, we use the approach of:
-	// "Suite B Implementer's Guide to FIPS 186-3", A.2.1
-	// https://apps.nsa.gov/iaarchive/library/ia-guidance/ia-solutions-for-classified/algorithm-guidance/suite-b-implementers-guide-to-fips-186-3-ecdsa.cfm
-	// see also https://github.com/golang/go/blob/0380c9ad38843d523d9c9804fe300cb7edd7cd3c/src/crypto/ecdsa/ecdsa.go#L89-L101
 	fe := new(big.Int).SetBytes(secHash[:])
 	n := new(big.Int).Sub(secp256k1.S256().N, one)
 	fe.Mod(fe, n)
 	fe.Add(fe, one)
-
 	feB := fe.Bytes()
 	privKey32 := make([]byte, PrivKeySize)
-	// copy feB over to fixed 32 byte privKey32 and pad (if necessary)
 	copy(privKey32[32-len(feB):32], feB)
-
 	return PrivKey(privKey32)
 }
 
@@ -131,15 +115,12 @@ var secp256k1halfN = new(big.Int).Rsh(secp256k1.S256().N, 1)
 // Sign creates an ECDSA signature on curve Secp256k1, using SHA256 on the msg.
 // The returned signature will be of the form R || S (in lower-S form).
 func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
-	priv, _ := secp256k1.PrivKeyFromBytes(secp256k1.S256(), privKey)
-
-	sig, err := priv.Sign(crypto.Sha256(msg))
-	if err != nil {
-		return nil, err
+	priv := secp256k1.PrivKeyFromBytes(privKey)
+	if priv == nil {
+		return nil, fmt.Errorf("invalid private key")
 	}
-
-	sigBytes := serializeSig(sig)
-	return sigBytes, nil
+	sig := ecdsa.Sign(priv, crypto.Sha256(msg))
+	return serializeSig(sig), nil
 }
 
 //-------------------------------------
@@ -163,11 +144,11 @@ func (pubKey PubKey) Address() crypto.Address {
 		panic("length of pubkey is incorrect")
 	}
 	hasherSHA256 := sha256.New()
-	_, _ = hasherSHA256.Write(pubKey) // does not error
+	_, _ = hasherSHA256.Write(pubKey)
 	sha := hasherSHA256.Sum(nil)
 
 	hasherRIPEMD160 := ripemd160.New()
-	_, _ = hasherRIPEMD160.Write(sha) // does not error
+	_, _ = hasherRIPEMD160.Write(sha)
 
 	return crypto.Address(hasherRIPEMD160.Sum(nil))
 }
@@ -198,27 +179,18 @@ func (pubKey PubKey) VerifySignature(msg []byte, sigStr []byte) bool {
 	if len(sigStr) != 64 {
 		return false
 	}
-
-	pub, err := secp256k1.ParsePubKey(pubKey, secp256k1.S256())
+	pub, err := secp256k1.ParsePubKey(pubKey)
 	if err != nil {
 		return false
 	}
-
-	// parse the signature:
-	signature := signatureFromBytes(sigStr)
-	// Reject malleable signatures. libsecp256k1 does this check but btcec doesn't.
-	// see: https://github.com/ethereum/go-ethereum/blob/f9401ae011ddf7f8d2d95020b7446c17f8d98dc1/crypto/signature_nocgo.go#L90-L93
-	if signature.S.Cmp(secp256k1halfN) > 0 {
-		return false
-	}
-
-	return signature.Verify(crypto.Sha256(msg), pub)
+	sig := signatureFromBytes(sigStr)
+	return sig.Verify(crypto.Sha256(msg), pub)
 }
 
 // Read Signature struct from R || S. Caller needs to ensure
 // that len(sigStr) == 64.
-func signatureFromBytes(sigStr []byte) *secp256k1.Signature {
-	return &secp256k1.Signature{
+func signatureFromBytes(sigStr []byte) *ecdsa.Signature {
+	return &ecdsa.Signature{
 		R: new(big.Int).SetBytes(sigStr[:32]),
 		S: new(big.Int).SetBytes(sigStr[32:64]),
 	}
@@ -226,7 +198,7 @@ func signatureFromBytes(sigStr []byte) *secp256k1.Signature {
 
 // Serialize signature to R || S.
 // R, S are padded to 32 bytes respectively.
-func serializeSig(sig *secp256k1.Signature) []byte {
+func serializeSig(sig *ecdsa.Signature) []byte {
 	rBytes := sig.R.Bytes()
 	sBytes := sig.S.Bytes()
 	sigBytes := make([]byte, 64)
