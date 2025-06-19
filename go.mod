@@ -11,7 +11,7 @@ require (
 	github.com/iden3/go-merkletree v0.1.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.10.0
-	github.com/tendermint/tendermint v0.34.24
+	github.com/tendermint/tendermint v0.35.9
 	golang.org/x/crypto v0.17.0
 )
 
