@@ -4,24 +4,25 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
-	"dilithium/dilithium3"
+
+	"github.com/cloudflare/circl/sign/dilithium"
 )
 
 var (
-	ErrInvalidKeySize     = errors.New("invalid key size")
-	ErrInvalidSignature   = errors.New("invalid signature")
-	ErrInvalidMessage     = errors.New("invalid message")
-	ErrInvalidPublicKey   = errors.New("invalid public key")
-	ErrInvalidPrivateKey  = errors.New("invalid private key")
+	ErrInvalidKeySize    = errors.New("invalid key size")
+	ErrInvalidSignature  = errors.New("invalid signature")
+	ErrInvalidMessage    = errors.New("invalid message")
+	ErrInvalidPublicKey  = errors.New("invalid public key")
+	ErrInvalidPrivateKey = errors.New("invalid private key")
 )
 
 // GenerateQuantumKeys generates a new Dilithium3 key pair
 func GenerateQuantumKeys() ([]byte, []byte, error) {
-	pub, priv, err := dilithium3.GenerateKey(rand.Reader)
+	pub, priv, err := dilithium.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, nil, err
 	}
-	
+
 	return pub.Bytes(), priv.Bytes(), nil
 }
 
@@ -33,21 +34,21 @@ func QuantumSign(privKey []byte, msg []byte) ([]byte, error) {
 	if len(msg) == 0 {
 		return nil, ErrInvalidMessage
 	}
-	
-	priv := dilithium3.PrivateKeyFromBytes(privKey)
+
+	priv := dilithium.PrivateKeyFromBytes(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
-	
+
 	// Hash message
 	hash := sha256.Sum256(msg)
-	
+
 	// Sign hash
 	sig, err := priv.Sign(rand.Reader, hash[:], nil)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return sig, nil
 }
 
@@ -62,15 +63,15 @@ func QuantumVerify(pubKey []byte, msg []byte, sig []byte) (bool, error) {
 	if len(sig) == 0 {
 		return false, ErrInvalidSignature
 	}
-	
-	pub := dilithium3.PublicKeyFromBytes(pubKey)
+
+	pub := dilithium.PublicKeyFromBytes(pubKey)
 	if pub == nil {
 		return false, ErrInvalidPublicKey
 	}
-	
+
 	// Hash message
 	hash := sha256.Sum256(msg)
-	
+
 	// Verify signature
 	return pub.Verify(hash[:], sig), nil
 }
@@ -84,9 +85,9 @@ func QuantumBatchVerify(
 	if len(pubKeys) != len(msgs) || len(msgs) != len(sigs) {
 		return nil, errors.New("length mismatch")
 	}
-	
+
 	results := make([]bool, len(pubKeys))
-	
+
 	for i := range pubKeys {
 		valid, err := QuantumVerify(pubKeys[i], msgs[i], sigs[i])
 		if err != nil {
@@ -94,7 +95,7 @@ func QuantumBatchVerify(
 		}
 		results[i] = valid
 	}
-	
+
 	return results, nil
 }
 
@@ -103,12 +104,12 @@ func QuantumKeyFromSeed(seed []byte) ([]byte, []byte, error) {
 	if len(seed) < 32 {
 		return nil, nil, errors.New("seed too short")
 	}
-	
-	pub, priv, err := dilithium3.GenerateKeyFromSeed(seed)
+
+	pub, priv, err := dilithium.GenerateKeyFromSeed(seed)
 	if err != nil {
 		return nil, nil, err
 	}
-	
+
 	return pub.Bytes(), priv.Bytes(), nil
 }
 
@@ -117,12 +118,12 @@ func QuantumPublicKeyFromPrivate(privKey []byte) ([]byte, error) {
 	if len(privKey) == 0 {
 		return nil, ErrInvalidPrivateKey
 	}
-	
-	priv := dilithium3.PrivateKeyFromBytes(privKey)
+
+	priv := dilithium.PrivateKeyFromBytes(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
-	
+
 	return priv.Public().Bytes(), nil
 }
 
@@ -138,21 +139,21 @@ func QuantumSignWithContext(
 	if len(msg) == 0 {
 		return nil, ErrInvalidMessage
 	}
-	
-	priv := dilithium3.PrivateKeyFromBytes(privKey)
+
+	priv := dilithium.PrivateKeyFromBytes(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
-	
+
 	// Hash message and context
 	hash := sha256.Sum256(append(msg, context...))
-	
+
 	// Sign hash
 	sig, err := priv.Sign(rand.Reader, hash[:], nil)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return sig, nil
 }
 
@@ -172,15 +173,15 @@ func QuantumVerifyWithContext(
 	if len(sig) == 0 {
 		return false, ErrInvalidSignature
 	}
-	
-	pub := dilithium3.PublicKeyFromBytes(pubKey)
+
+	pub := dilithium.PublicKeyFromBytes(pubKey)
 	if pub == nil {
 		return false, ErrInvalidPublicKey
 	}
-	
+
 	// Hash message and context
 	hash := sha256.Sum256(append(msg, context...))
-	
+
 	// Verify signature
 	return pub.Verify(hash[:], sig), nil
-} 
+}

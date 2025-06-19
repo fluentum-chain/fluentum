@@ -897,10 +897,6 @@ func (*mockTicker) SetLogger(log.Logger) {}
 
 //------------------------------------
 
-func newCounter() abci.Application {
-	return counter.NewApplication(true)
-}
-
 func newPersistentKVStore() abci.Application {
 	dir, err := os.MkdirTemp("", "persistent-kvstore")
 	if err != nil {
