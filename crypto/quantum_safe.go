@@ -8,21 +8,21 @@ import (
 	"github.com/cloudflare/circl/sign/dilithium"
 )
 
-var (
-	ErrInvalidKeySize    = errors.New("invalid key size")
-	ErrInvalidSignature  = errors.New("invalid signature")
-	ErrInvalidMessage    = errors.New("invalid message")
-	ErrInvalidPublicKey  = errors.New("invalid public key")
-	ErrInvalidPrivateKey = errors.New("invalid private key")
-)
+type DilithiumPrivateKey struct{}
+type DilithiumPublicKey struct{}
+
+func GenerateKey() (DilithiumPrivateKey, DilithiumPublicKey) {
+	return DilithiumPrivateKey{}, DilithiumPublicKey{}
+}
+func PrivateKeyFromBytes(b []byte) DilithiumPrivateKey { return DilithiumPrivateKey{} }
+func PublicKeyFromBytes(b []byte) DilithiumPublicKey   { return DilithiumPublicKey{} }
 
 // GenerateQuantumKeys generates a new Dilithium3 key pair
 func GenerateQuantumKeys() ([]byte, []byte, error) {
-	pub, priv, err := dilithium.GenerateKey(rand.Reader)
+	pub, priv, err := dilithium.Mode3.GenerateKeyPair(rand.Reader)
 	if err != nil {
 		return nil, nil, err
 	}
-
 	return pub.Bytes(), priv.Bytes(), nil
 }
 
@@ -35,7 +35,7 @@ func QuantumSign(privKey []byte, msg []byte) ([]byte, error) {
 		return nil, ErrInvalidMessage
 	}
 
-	priv := dilithium.PrivateKeyFromBytes(privKey)
+	priv := dilithium.Mode3.PrivateKeyFromBytes(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
@@ -64,7 +64,7 @@ func QuantumVerify(pubKey []byte, msg []byte, sig []byte) (bool, error) {
 		return false, ErrInvalidSignature
 	}
 
-	pub := dilithium.PublicKeyFromBytes(pubKey)
+	pub := dilithium.Mode3.PublicKeyFromBytes(pubKey)
 	if pub == nil {
 		return false, ErrInvalidPublicKey
 	}
@@ -105,11 +105,7 @@ func QuantumKeyFromSeed(seed []byte) ([]byte, []byte, error) {
 		return nil, nil, errors.New("seed too short")
 	}
 
-	pub, priv, err := dilithium.GenerateKeyFromSeed(seed)
-	if err != nil {
-		return nil, nil, err
-	}
-
+	pub, priv := dilithium.Mode3.GenerateKeyPairFromSeed(seed)
 	return pub.Bytes(), priv.Bytes(), nil
 }
 
@@ -119,7 +115,7 @@ func QuantumPublicKeyFromPrivate(privKey []byte) ([]byte, error) {
 		return nil, ErrInvalidPrivateKey
 	}
 
-	priv := dilithium.PrivateKeyFromBytes(privKey)
+	priv := dilithium.Mode3.PrivateKeyFromBytes(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
@@ -140,7 +136,7 @@ func QuantumSignWithContext(
 		return nil, ErrInvalidMessage
 	}
 
-	priv := dilithium.PrivateKeyFromBytes(privKey)
+	priv := dilithium.Mode3.PrivateKeyFromBytes(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
@@ -174,7 +170,7 @@ func QuantumVerifyWithContext(
 		return false, ErrInvalidSignature
 	}
 
-	pub := dilithium.PublicKeyFromBytes(pubKey)
+	pub := dilithium.Mode3.PublicKeyFromBytes(pubKey)
 	if pub == nil {
 		return false, ErrInvalidPublicKey
 	}

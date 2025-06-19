@@ -12,6 +12,8 @@ var (
 	ErrInvalidPublicKey  = errors.New("invalid public key")
 )
 
+var Mode3 = 0
+
 type DilithiumSigner struct{}
 
 func (s *DilithiumSigner) GenerateKeyPair() ([]byte, []byte, error) {
