@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  counter-abci:
+    build: .
+    container_name: counter-abci-demo
+    ports:
+      - "26658:26658"
+    networks:
+      - tendermintnet
+
+  tendermint:
+    image: tendermint/tendermint:v0.35.9
+    container_name: tendermint-demo
+    depends_on:
+      - counter-abci
+    environment:
+      - TMHOME=/tendermint
+    volumes:
+      - ./tendermint:/tendermint
+    command: node --proxy_app=tcp://counter-abci:26658 --rpc.laddr tcp://0.0.0.0:26657 --p2p.laddr tcp://0.0.0.0:26656
+    ports:
+      - "26656:26656"
+      - "26657:26657"
+    networks:
+      - tendermintnet
+
+networks:
+  tendermintnet:
+    driver: bridge 
