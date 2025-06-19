@@ -8,6 +8,13 @@ import (
 	"github.com/cloudflare/circl/sign/dilithium"
 )
 
+var (
+	ErrInvalidPrivateKey = errors.New("invalid private key")
+	ErrInvalidPublicKey  = errors.New("invalid public key")
+	ErrInvalidMessage    = errors.New("invalid message")
+	ErrInvalidSignature  = errors.New("invalid signature")
+)
+
 type DilithiumPrivateKey struct{}
 type DilithiumPublicKey struct{}
 

@@ -12,7 +12,7 @@ var (
 	ErrInvalidPublicKey  = errors.New("invalid public key")
 )
 
-var Mode3 = 0
+var Mode3 struct{}
 
 type DilithiumSigner struct{}
 
