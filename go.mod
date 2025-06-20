@@ -110,4 +110,4 @@ replace github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcre
 
 replace github.com/fluentum-chain/dilithium => ./stubs/dilithium
 
-replace github.com/btcsuite/btcd/btcec => github.com/btcsuite/btcd/btcec/v2 v2.3.5
+replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.0
