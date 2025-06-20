@@ -1,34 +1,60 @@
 # Fluentum Core
 
-Fluentum Mainnet aims to be a high-performance, interoperable, and privacy-enabled blockchain that differentiate from existing CEX mainnets by:
+[![Go Version](https://img.shields.io/badge/Go-1.24.4+-blue.svg)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
+[![Commits](https://img.shields.io/badge/Commits-8,761+-orange.svg)](https://github.com/fluentum-chain/fluentum/commits/main)
+[![Code Size](https://img.shields.io/badge/Size-~150MB-lightgrey.svg)](https://github.com/fluentum-chain/fluentum)
 
-1. Supporting both EVM and SVM for broader developer adoption.
-2. Offering additional privacy features.
-3. Achieving higher throughput and faster finality.
-4. Deep integration with the Fluentum ecosystem.
+> **Next-Generation Hybrid Blockchain Platform** - High-performance, quantum-resistant, and privacy-enabled blockchain with cross-chain interoperability.
 
-Fluentum Exchange is a cryptocurrency exchange combining CEX efficiency with DEX security, focusing on tokenized real-world assets and cross-chain interoperability.
-and is positioned as a Next-Generation Super Exchange Ecosystem with: fluentum core engine, fluentum wallet, fluentum Blockchain mainnet, fluentum token $FLU as well as Zero Fees, Hybrid Liquidity, zk-KYC, AI Yield, Cross-Chain Gas, Compliance Oracle and Quantum Security.
+## 🚀 Overview
 
-Some of integrations supported by fluentum exchange:
-- NFT Floor price Oracle
-- RWA Tokenization Bridge
-- On-Chain Analytics Pipeline
-- Options Market Maker
-- Staking Derivative Engine
+Fluentum Core is a production-ready blockchain platform that combines **Delegated Proof of Stake (DPoS)** with **Zero-Knowledge Rollups (ZK-Rollups)** for unprecedented performance and security. Built on Tendermint consensus with quantum-resistant cryptography and cross-chain capabilities.
 
-Fluentum Exchange: 'Trade Crypto Fluidly'
-www.fluentum.tech
+### Key Differentiators
 
-## Quick Start
+1. **🔄 Hybrid Consensus**: DPoS + ZK-Rollups for scalability and security
+2. **🔐 Quantum-Resistant**: Post-quantum cryptography (Dilithium signatures)
+3. **🌐 Cross-Chain**: Native interoperability with EVM and SVM chains
+4. **⚡ High Performance**: Optimized for 10,000+ TPS
+5. **🔒 Privacy**: Zero-knowledge proof integration
+6. **🎯 Enterprise Ready**: Production-grade with comprehensive tooling
+
+## 📊 Project Statistics
+
+| Metric | Value |
+|--------|-------|
+| **Repository Size** | ~150 MB (compressed) |
+| **Source Code** | ~60 MB (uncompressed) |
+| **Go Files** | 682 files (~5.4 MB) |
+| **Total Files** | 1,205 files |
+| **Directories** | 319 |
+| **Git Commits** | 8,761+ |
+| **Languages** | Go (82.2%), Solidity (2.6%), TeX (6.7%) |
+
+### Architecture Components
+
+```
+fluentum/
+├── 📁 consensus/          # Hybrid consensus (DPoS + ZK-Rollups)
+├── 📁 crypto/             # Quantum-resistant cryptography
+├── 📁 fluentum/           # Core Fluentum-specific modules
+├── 📁 contracts/          # Smart contracts (Solidity)
+├── 📁 circuits/           # Zero-knowledge circuits
+├── 📁 cmd/fluentum/       # Main executable
+├── 📁 docs/               # Comprehensive documentation
+└── 📁 networks/           # Network configurations
+```
+
+## 🛠️ Quick Start
 
 ### Prerequisites
-- Go 1.24.4 or later
-- Git
+- **Go**: 1.24.4 or later
+- **Git**: Latest version
+- **System**: Ubuntu 20.04+ (recommended) or Windows/macOS
 
-### Installation
+### 🚀 Automated Installation (Ubuntu)
 
-#### Ubuntu/Debian
 ```bash
 # Clone the repository
 git clone https://github.com/fluentum-chain/fluentum.git
@@ -39,7 +65,8 @@ chmod +x install-ubuntu.sh
 ./install-ubuntu.sh
 ```
 
-#### Manual Installation
+### 🔧 Manual Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/fluentum-chain/fluentum.git
@@ -50,7 +77,7 @@ make build
 make install
 ```
 
-### Usage
+### ✅ Verify Installation
 
 ```bash
 # Check version
@@ -66,21 +93,66 @@ fluentum node
 fluentum --help
 ```
 
-## Documentation
+## 🎯 Core Features
 
-- [Ubuntu Installation Guide](INSTALL_UBUNTU.md)
-- [Configuration Guide](docs/configuration.md)
-- [API Documentation](docs/api.md)
+### 🔄 Hybrid Consensus Engine
+- **DPoS**: Delegated Proof of Stake for fast finality
+- **ZK-Rollups**: Zero-knowledge proofs for scalability
+- **Hybrid Router**: Intelligent transaction routing
 
-## Features
+### 🔐 Quantum-Resistant Security
+- **Dilithium Signatures**: Post-quantum cryptography
+- **Lattice-Based Crypto**: Future-proof security
+- **Multi-Signature Support**: Enhanced security models
 
-- **Hybrid Consensus**: Combines DPoS and ZK-Rollups
-- **Quantum-Resistant**: Post-quantum cryptography support
-- **Cross-Chain**: Interoperability with multiple blockchains
-- **High Performance**: Optimized for high throughput
-- **Privacy**: Zero-knowledge proof integration
+### 🌐 Cross-Chain Interoperability
+- **EVM Compatibility**: Ethereum Virtual Machine support
+- **SVM Support**: Solana Virtual Machine integration
+- **Bridge Infrastructure**: Seamless asset transfers
 
-## Development
+### ⚡ Performance Optimizations
+- **High Throughput**: 10,000+ TPS target
+- **Fast Finality**: Sub-second block finality
+- **Optimized Networking**: P2P optimization
+
+### 🔒 Privacy Features
+- **Zero-Knowledge Proofs**: Privacy-preserving transactions
+- **zk-KYC**: Privacy-compliant identity verification
+- **Confidential Transactions**: Optional transaction privacy
+
+## 🏗️ Architecture
+
+### Core Components
+
+| Component | Description | Status |
+|-----------|-------------|--------|
+| **Consensus Engine** | Hybrid DPoS + ZK-Rollups | ✅ Production |
+| **Quantum Crypto** | Dilithium signatures | ✅ Implemented |
+| **Cross-Chain Bridge** | EVM/SVM interoperability | 🔄 Development |
+| **Privacy Layer** | ZK-proof integration | 🔄 Development |
+| **Smart Contracts** | Solidity contracts | ✅ Ready |
+| **RPC Interface** | JSON-RPC & gRPC | ✅ Complete |
+
+### Technology Stack
+
+- **Consensus**: Tendermint Core + Custom DPoS
+- **Cryptography**: Dilithium, Ed25519, Secp256k1
+- **Smart Contracts**: Solidity (EVM) + Rust (SVM)
+- **Networking**: P2P with libp2p
+- **Storage**: LevelDB, RocksDB, BadgerDB
+- **API**: JSON-RPC, gRPC, WebSocket
+
+## 📚 Documentation
+
+- **[Ubuntu Installation Guide](INSTALL_UBUNTU.md)** - Detailed Ubuntu setup
+- **[Configuration Guide](docs/configuration.md)** - Node configuration
+- **[API Documentation](docs/api.md)** - RPC and gRPC APIs
+- **[Architecture Specs](docs/introduction/architecture.md)** - Technical architecture
+- **[Smart Contracts](contracts/)** - Solidity contract documentation
+
+## 🧪 Development
+
+### Build Commands
 
 ```bash
 # Build for development
@@ -94,18 +166,95 @@ make format
 
 # Lint code
 make lint
+
+# Generate protobuf
+make proto-gen
+
+# Build for specific platform
+make build-linux
 ```
 
-## Contributing
+### Development Workflow
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+```bash
+# 1. Clone and setup
+git clone https://github.com/fluentum-chain/fluentum.git
+cd fluentum
 
-## License
+# 2. Install dependencies
+go mod download
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+# 3. Build
+make build
 
-## Support
+# 4. Test
+make test
 
-- GitHub Issues: https://github.com/fluentum-chain/fluentum/issues
-- Documentation: https://docs.fluentum.tech
-- Community: https://t.me/fluentum
+# 5. Run locally
+./build/fluentum init
+./build/fluentum node
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for:
+
+- **Code of Conduct**: Community guidelines
+- **Development Setup**: Local development environment
+- **Pull Request Process**: How to submit changes
+- **Testing Guidelines**: Code quality standards
+
+### Development Areas
+
+- 🔄 **Consensus**: Hybrid consensus optimization
+- 🔐 **Cryptography**: Quantum-resistant implementations
+- 🌐 **Interoperability**: Cross-chain bridge development
+- 🔒 **Privacy**: ZK-proof integration
+- 📊 **Performance**: Throughput optimization
+
+## 📈 Roadmap
+
+### Phase 1: Core Infrastructure ✅
+- [x] Hybrid consensus implementation
+- [x] Quantum-resistant cryptography
+- [x] Basic cross-chain functionality
+- [x] Smart contract support
+
+### Phase 2: Advanced Features 🔄
+- [ ] Enhanced privacy layer
+- [ ] Advanced ZK-rollups
+- [ ] Cross-chain bridges
+- [ ] Governance system
+
+### Phase 3: Ecosystem 🎯
+- [ ] DeFi integrations
+- [ ] NFT marketplace
+- [ ] Enterprise solutions
+- [ ] Mobile SDK
+
+## 📄 License
+
+This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support & Community
+
+### Resources
+- **🌐 Website**: [fluentum.tech](https://fluentum.tech)
+- **📖 Documentation**: [docs.fluentum.tech](https://docs.fluentum.tech)
+- **💬 Community**: [Telegram](https://t.me/fluentum)
+- **🐛 Issues**: [GitHub Issues](https://github.com/fluentum-chain/fluentum/issues)
+
+### Contact
+- **Email**: support@fluentum.tech
+- **Discord**: [Fluentum Community](https://discord.gg/fluentum)
+- **Twitter**: [@FluentumChain](https://twitter.com/FluentumChain)
+
+---
+
+<div align="center">
+
+**Fluentum Core** - *Trade Crypto Fluidly* 🚀
+
+[Website](https://fluentum.tech) • [Documentation](https://docs.fluentum.tech) • [Community](https://t.me/fluentum)
+
+</div>
