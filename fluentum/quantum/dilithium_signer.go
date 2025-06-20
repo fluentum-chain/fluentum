@@ -7,33 +7,32 @@ import (
 	"github.com/cloudflare/circl/sign/dilithium"
 )
 
-var (
-	ErrInvalidPrivateKey = errors.New("invalid private key")
-	ErrInvalidPublicKey  = errors.New("invalid public key")
-)
-
-var Mode3 struct{}
-
-type DilithiumSigner struct{}
-
-func (s *DilithiumSigner) GenerateKeyPair() ([]byte, []byte, error) {
-	pub, priv, err := dilithium.Mode3.GenerateKeyPair(rand.Reader)
-	if err != nil {
-		return nil, nil, err
-	}
-	return pub.Bytes(), priv.Bytes(), nil
+type DilithiumSigner struct {
+	mode    dilithium.Mode
+	privKey dilithium.PrivateKey
 }
 
-func (s *DilithiumSigner) Sign(privKey []byte, msg []byte) ([]byte, error) {
-	priv := dilithium.Mode3.PrivateKeyFromBytes(privKey)
-	if priv == nil {
-		return nil, ErrInvalidPrivateKey
+func NewDilithiumSigner() (*DilithiumSigner, error) {
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return nil, errors.New("Dilithium3 mode not supported")
 	}
-	sig, err := priv.Sign(rand.Reader, msg, nil)
+
+	_, privKey, err := mode.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, err
 	}
-	return sig, nil
+
+	return &DilithiumSigner{
+		mode:    mode,
+		privKey: privKey,
+	}, nil
+}
+
+func (ds *DilithiumSigner) Sign(message []byte) ([]byte, error) {
+	signature := make([]byte, ds.mode.SignatureSize())
+	ds.privKey.Sign(signature, message, nil)
+	return signature, nil
 }
 
 func (s *DilithiumSigner) Verify(pubKey []byte, msg []byte, sig []byte) (bool, error) {

@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
+	"fmt"
 
 	"github.com/cloudflare/circl/sign/dilithium"
 )
@@ -24,13 +25,48 @@ func GenerateKey() (DilithiumPrivateKey, DilithiumPublicKey) {
 func PrivateKeyFromBytes(b []byte) DilithiumPrivateKey { return DilithiumPrivateKey{} }
 func PublicKeyFromBytes(b []byte) DilithiumPublicKey   { return DilithiumPublicKey{} }
 
+// Replace all Mode3 references with this pattern
+func generateDilithiumKeys() ([]byte, []byte, error) {
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return nil, nil, errors.New("Dilithium3 mode not supported")
+	}
+
+	pubKey, privKey, err := mode.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to generate keys: %w", err)
+	}
+
+	return pubKey.Bytes(), privKey.Bytes(), nil
+}
+
+// Update all signing operations similarly
+func signWithDilithium(privateKey []byte, msg []byte) ([]byte, error) {
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return nil, errors.New("Dilithium3 mode not supported")
+	}
+
+	privKey := mode.NewKeyFromSeed(privateKey)
+	signature := make([]byte, mode.SignatureSize())
+	privKey.Sign(signature, msg, nil)
+
+	return signature, nil
+}
+
 // GenerateQuantumKeys generates a new Dilithium3 key pair
 func GenerateQuantumKeys() ([]byte, []byte, error) {
-	pub, priv, err := dilithium.Mode3.GenerateKeyPair(rand.Reader)
-	if err != nil {
-		return nil, nil, err
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return nil, nil, errors.New("Dilithium3 mode not supported")
 	}
-	return pub.Bytes(), priv.Bytes(), nil
+
+	pubKey, privKey, err := mode.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to generate keys: %w", err)
+	}
+
+	return pubKey.Bytes(), privKey.Bytes(), nil
 }
 
 // QuantumSign signs a message using Dilithium3
@@ -42,7 +78,12 @@ func QuantumSign(privKey []byte, msg []byte) ([]byte, error) {
 		return nil, ErrInvalidMessage
 	}
 
-	priv := dilithium.Mode3.PrivateKeyFromBytes(privKey)
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return nil, errors.New("Dilithium3 mode not supported")
+	}
+
+	priv := mode.NewKeyFromSeed(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
@@ -51,12 +92,10 @@ func QuantumSign(privKey []byte, msg []byte) ([]byte, error) {
 	hash := sha256.Sum256(msg)
 
 	// Sign hash
-	sig, err := priv.Sign(rand.Reader, hash[:], nil)
-	if err != nil {
-		return nil, err
-	}
+	signature := make([]byte, mode.SignatureSize())
+	priv.Sign(signature, hash[:], nil)
 
-	return sig, nil
+	return signature, nil
 }
 
 // QuantumVerify verifies a Dilithium3 signature
@@ -71,7 +110,12 @@ func QuantumVerify(pubKey []byte, msg []byte, sig []byte) (bool, error) {
 		return false, ErrInvalidSignature
 	}
 
-	pub := dilithium.Mode3.PublicKeyFromBytes(pubKey)
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return false, errors.New("Dilithium3 mode not supported")
+	}
+
+	pub := mode.NewPublicKeyFromBytes(pubKey)
 	if pub == nil {
 		return false, ErrInvalidPublicKey
 	}
@@ -112,7 +156,12 @@ func QuantumKeyFromSeed(seed []byte) ([]byte, []byte, error) {
 		return nil, nil, errors.New("seed too short")
 	}
 
-	pub, priv := dilithium.Mode3.GenerateKeyPairFromSeed(seed)
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return nil, nil, errors.New("Dilithium3 mode not supported")
+	}
+
+	pub, priv := mode.GenerateKeyFromSeed(seed)
 	return pub.Bytes(), priv.Bytes(), nil
 }
 
@@ -122,7 +171,12 @@ func QuantumPublicKeyFromPrivate(privKey []byte) ([]byte, error) {
 		return nil, ErrInvalidPrivateKey
 	}
 
-	priv := dilithium.Mode3.PrivateKeyFromBytes(privKey)
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return nil, errors.New("Dilithium3 mode not supported")
+	}
+
+	priv := mode.NewKeyFromSeed(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
@@ -143,7 +197,12 @@ func QuantumSignWithContext(
 		return nil, ErrInvalidMessage
 	}
 
-	priv := dilithium.Mode3.PrivateKeyFromBytes(privKey)
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return nil, errors.New("Dilithium3 mode not supported")
+	}
+
+	priv := mode.NewKeyFromSeed(privKey)
 	if priv == nil {
 		return nil, ErrInvalidPrivateKey
 	}
@@ -152,12 +211,10 @@ func QuantumSignWithContext(
 	hash := sha256.Sum256(append(msg, context...))
 
 	// Sign hash
-	sig, err := priv.Sign(rand.Reader, hash[:], nil)
-	if err != nil {
-		return nil, err
-	}
+	signature := make([]byte, mode.SignatureSize())
+	priv.Sign(signature, hash[:], nil)
 
-	return sig, nil
+	return signature, nil
 }
 
 // QuantumVerifyWithContext verifies a signature with additional context
@@ -177,7 +234,12 @@ func QuantumVerifyWithContext(
 		return false, ErrInvalidSignature
 	}
 
-	pub := dilithium.Mode3.PublicKeyFromBytes(pubKey)
+	mode := dilithium.ModeByName("Dilithium3")
+	if mode == nil {
+		return false, errors.New("Dilithium3 mode not supported")
+	}
+
+	pub := mode.NewPublicKeyFromBytes(pubKey)
 	if pub == nil {
 		return false, ErrInvalidPublicKey
 	}
