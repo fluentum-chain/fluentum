@@ -183,27 +183,112 @@ func (pubKey PubKey) VerifySignature(msg []byte, sigStr []byte) bool {
 	if err != nil {
 		return false
 	}
-	sig := signatureFromBytes(sigStr)
+
+	// Convert raw signature (R || S) to DER format
+	derSig := rawSignatureToDER(sigStr)
+	sig, err := ecdsa.ParseDERSignature(derSig)
+	if err != nil {
+		return false
+	}
+
 	return sig.Verify(crypto.Sha256(msg), pub)
 }
 
-// Read Signature struct from R || S. Caller needs to ensure
-// that len(sigStr) == 64.
-func signatureFromBytes(sigStr []byte) *ecdsa.Signature {
-	return &ecdsa.Signature{
-		R: new(big.Int).SetBytes(sigStr[:32]),
-		S: new(big.Int).SetBytes(sigStr[32:64]),
+// rawSignatureToDER converts a raw signature (R || S) to DER format
+func rawSignatureToDER(sigStr []byte) []byte {
+	r := new(big.Int).SetBytes(sigStr[:32])
+	s := new(big.Int).SetBytes(sigStr[32:64])
+
+	// Create DER signature manually
+	// DER format: 0x30 + length + 0x02 + r_length + r + 0x02 + s_length + s
+	rBytes := r.Bytes()
+	sBytes := s.Bytes()
+
+	// Remove leading zeros for DER encoding
+	if len(rBytes) > 0 && rBytes[0] == 0 {
+		rBytes = rBytes[1:]
 	}
+	if len(sBytes) > 0 && sBytes[0] == 0 {
+		sBytes = sBytes[1:]
+	}
+
+	// Add sign bit if needed
+	if len(rBytes) > 0 && rBytes[0]&0x80 != 0 {
+		rBytes = append([]byte{0}, rBytes...)
+	}
+	if len(sBytes) > 0 && sBytes[0]&0x80 != 0 {
+		sBytes = append([]byte{0}, sBytes...)
+	}
+
+	// Construct DER signature
+	der := make([]byte, 0, 6+len(rBytes)+len(sBytes))
+	der = append(der, 0x30)                            // SEQUENCE
+	der = append(der, byte(4+len(rBytes)+len(sBytes))) // length
+
+	der = append(der, 0x02)              // INTEGER
+	der = append(der, byte(len(rBytes))) // r length
+	der = append(der, rBytes...)         // r
+
+	der = append(der, 0x02)              // INTEGER
+	der = append(der, byte(len(sBytes))) // s length
+	der = append(der, sBytes...)         // s
+
+	return der
 }
 
 // Serialize signature to R || S.
 // R, S are padded to 32 bytes respectively.
 func serializeSig(sig *ecdsa.Signature) []byte {
-	rBytes := sig.R.Bytes()
-	sBytes := sig.S.Bytes()
+	// The new API returns DER format, but we need R || S format
+	// We need to parse the DER signature and extract R and S
+	derBytes := sig.Serialize()
+
+	// Parse DER signature to extract R and S
+	// This is a simplified approach - in practice you'd want to use a proper DER parser
+	// For now, we'll use a basic approach that works for most cases
+	if len(derBytes) < 6 {
+		return nil
+	}
+
+	// Skip SEQUENCE and length
+	pos := 2
+
+	// Parse R
+	if pos >= len(derBytes) || derBytes[pos] != 0x02 {
+		return nil
+	}
+	pos++
+	rLen := int(derBytes[pos])
+	pos++
+	if pos+rLen > len(derBytes) {
+		return nil
+	}
+	rBytes := derBytes[pos : pos+rLen]
+	pos += rLen
+
+	// Parse S
+	if pos >= len(derBytes) || derBytes[pos] != 0x02 {
+		return nil
+	}
+	pos++
+	sLen := int(derBytes[pos])
+	pos++
+	if pos+sLen > len(derBytes) {
+		return nil
+	}
+	sBytes := derBytes[pos : pos+sLen]
+
+	// Convert to big.Int and then to 32-byte format
+	r := new(big.Int).SetBytes(rBytes)
+	s := new(big.Int).SetBytes(sBytes)
+
+	// Pad to 32 bytes each
 	sigBytes := make([]byte, 64)
-	// 0 pad the byte arrays from the left if they aren't big enough.
-	copy(sigBytes[32-len(rBytes):32], rBytes)
-	copy(sigBytes[64-len(sBytes):64], sBytes)
+	rPadded := r.Bytes()
+	sPadded := s.Bytes()
+
+	copy(sigBytes[32-len(rPadded):32], rPadded)
+	copy(sigBytes[64-len(sPadded):64], sPadded)
+
 	return sigBytes
 }

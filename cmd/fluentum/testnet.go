@@ -1,12 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/types"
@@ -125,11 +126,11 @@ func generateGenesis(chainID string, numValidators int) *types.GenesisDoc {
 		},
 	}
 
-	// Add Fluentum-specific consensus parameters
+	// Add Fluxum-specific consensus parameters
 	genesis.ConsensusParams.FluentumParams = &types.FluentumParams{
 		ZKEnabled:        true,
 		QuantumEnabled:   true,
-		FreeGasThreshold: 5000000000, // 50 FLU
+		FreeGasThreshold: 5000000000, // 50 FLUX
 	}
 
 	// Add validators
@@ -149,16 +150,16 @@ func generateGenesis(chainID string, numValidators int) *types.GenesisDoc {
 
 	// Add app state
 	genesis.AppState = map[string]interface{}{
-		"flu_token": map[string]interface{}{
-			"denom":          "aflu",
-			"initial_supply": "1000000000000000000", // 1B FLU
+		"flux_token": map[string]interface{}{
+			"denom":          "aflux",
+			"initial_supply": "1000000000000000000", // 1B FLUX
 		},
 		"staking": map[string]interface{}{
 			"params": map[string]interface{}{
-				"min_stake": "50000000000", // 50,000 FLU
+				"min_stake": "50000000000", // 50,000 FLUX
 			},
 		},
 	}
 
 	return genesis
-} 
+}

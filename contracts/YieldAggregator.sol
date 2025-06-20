@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -8,6 +8,18 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IAIOptimizer.sol";
 import "./libraries/YieldMath.sol";
+
+interface IERC20 {
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+}
+
+interface IProtocolAdapter {
+    function deposit(uint256 amount) external;
+    function withdraw(uint256 amount) external;
+    function getBalance(address user) external view returns (uint256);
+}
 
 contract YieldAggregator is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
@@ -27,6 +39,11 @@ contract YieldAggregator is ReentrancyGuard, Ownable {
     
     // AI Optimizer
     IAIOptimizer public immutable aiOptimizer;
+    
+    // Mapping from strategy name to protocol adapter
+    mapping(string => address) public adapters;
+    // User balances per strategy
+    mapping(address => mapping(string => uint256)) public userStrategyBalances;
     
     // Events
     event StrategyAdded(address indexed strategy);
@@ -51,6 +68,12 @@ contract YieldAggregator is ReentrancyGuard, Ownable {
         address indexed strategy,
         uint256 allocation
     );
+    event Staked(address indexed user, uint256 amount);
+    event Lent(address indexed user, uint256 amount);
+    event ProvidedLiquidity(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount, string strategy);
+    event AdapterRegistered(string strategy, address adapter);
+    event Rebalanced(address indexed user, string fromStrategy, string toStrategy, uint256 amount);
     
     constructor(address _aiOptimizer) {
         require(_aiOptimizer != address(0), "Invalid optimizer");
@@ -231,4 +254,89 @@ contract YieldAggregator is ReentrancyGuard, Ownable {
     ) external view returns (uint256) {
         return strategyDeposits[user][strategy];
     }
+
+    // Example: Stake funds (could be to a staking contract)
+    function stake(uint256 amount) external {
+        IERC20(aiOptimizer.getToken()).safeTransferFrom(msg.sender, address(this), amount);
+        // TODO: Integrate with staking protocol
+        emit Staked(msg.sender, amount);
+    }
+
+    // Example: Lend funds (could be to a lending protocol)
+    function lend(uint256 amount) external {
+        IERC20(aiOptimizer.getToken()).safeTransferFrom(msg.sender, address(this), amount);
+        // TODO: Integrate with lending protocol
+        emit Lent(msg.sender, amount);
+    }
+
+    // Example: Provide liquidity (could be to an AMM)
+    function provideLiquidity(uint256 amount) external {
+        IERC20(aiOptimizer.getToken()).safeTransferFrom(msg.sender, address(this), amount);
+        // TODO: Integrate with LP protocol
+        emit ProvidedLiquidity(msg.sender, amount);
+    }
+
+    // Example: Withdraw funds from a strategy
+    function withdraw(uint256 amount, string calldata strategy) external onlyOwner {
+        // TODO: Withdraw from the specified strategy
+        IERC20(aiOptimizer.getToken()).safeTransfer(msg.sender, amount);
+        emit Withdrawn(msg.sender, amount, strategy);
+    }
+
+    // Register a protocol adapter for a strategy
+    function registerAdapter(string calldata strategy, address adapter) external onlyOwner {
+        adapters[strategy] = adapter;
+        emit AdapterRegistered(strategy, adapter);
+    }
+
+    // Deposit to a strategy via its adapter
+    function depositToStrategy(string calldata strategy, uint256 amount) external {
+        address adapter = adapters[strategy];
+        require(adapter != address(0), "Adapter not registered");
+        IERC20(aiOptimizer.getToken()).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(aiOptimizer.getToken()).safeApprove(adapter, amount);
+        IProtocolAdapter(adapter).deposit(amount);
+        userStrategyBalances[msg.sender][strategy] += amount;
+        emitDepositEvent(strategy, msg.sender, amount);
+    }
+
+    // Withdraw from a strategy via its adapter
+    function withdrawFromStrategy(string calldata strategy, uint256 amount) external {
+        address adapter = adapters[strategy];
+        require(adapter != address(0), "Adapter not registered");
+        require(userStrategyBalances[msg.sender][strategy] >= amount, "Insufficient balance");
+        IProtocolAdapter(adapter).withdraw(amount);
+        IERC20(aiOptimizer.getToken()).safeTransfer(msg.sender, amount);
+        userStrategyBalances[msg.sender][strategy] -= amount;
+        emit Withdrawn(msg.sender, amount, strategy);
+    }
+
+    // Automated rebalancing: move funds between strategies
+    function rebalance(address user, string calldata fromStrategy, string calldata toStrategy, uint256 amount) external onlyOwner {
+        require(userStrategyBalances[user][fromStrategy] >= amount, "Insufficient balance to rebalance");
+        address fromAdapter = adapters[fromStrategy];
+        address toAdapter = adapters[toStrategy];
+        require(fromAdapter != address(0) && toAdapter != address(0), "Adapters not registered");
+        // Withdraw from old strategy
+        IProtocolAdapter(fromAdapter).withdraw(amount);
+        IERC20(aiOptimizer.getToken()).safeTransfer(toAdapter, amount);
+        IProtocolAdapter(toAdapter).deposit(amount);
+        userStrategyBalances[user][fromStrategy] -= amount;
+        userStrategyBalances[user][toStrategy] += amount;
+        emit Rebalanced(user, fromStrategy, toStrategy, amount);
+    }
+
+    // Helper to emit the correct event for deposit
+    function emitDepositEvent(string calldata strategy, address user, uint256 amount) internal {
+        bytes32 s = keccak256(bytes(strategy));
+        if (s == keccak256(bytes("staking"))) {
+            emit Staked(user, amount);
+        } else if (s == keccak256(bytes("lending"))) {
+            emit Lent(user, amount);
+        } else if (s == keccak256(bytes("lp"))) {
+            emit ProvidedLiquidity(user, amount);
+        }
+    }
+
+    // Optional: Add more strategies or allow owner to call arbitrary protocol adapters
 } 

@@ -5,19 +5,19 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./interfaces/IFLUToken.sol";
+import "./interfaces/IFLUXToken.sol";
 import "./interfaces/IStaking.sol";
 
 contract GasStation is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     // Constants
-    uint256 public constant MIN_STAKE = 500 * 10**18; // 500 FLU
+    uint256 public constant MIN_STAKE = 500 * 10**18; // 500 FLUX
     uint256 public constant GAS_REFUND_MULTIPLIER = 100000;
     uint256 public constant MAX_GAS_REFUND = 1 ether;
     
     // State
-    IFLUToken public immutable fluToken;
+    IFLUXToken public immutable fluxToken;
     IStaking public immutable staking;
     mapping(address => bool) public isStaker;
     mapping(address => uint256) public stakerStakes;
@@ -31,10 +31,10 @@ contract GasStation is ReentrancyGuard, Ownable {
     event GasRefundLimitUpdated(uint256 newLimit);
     event GasRefundMultiplierUpdated(uint256 newMultiplier);
     
-    constructor(address _fluToken, address _staking) {
-        require(_fluToken != address(0), "Invalid token address");
+    constructor(address _fluxToken, address _staking) {
+        require(_fluxToken != address(0), "Invalid token address");
         require(_staking != address(0), "Invalid staking address");
-        fluToken = IFLUToken(_fluToken);
+        fluxToken = IFLUXToken(_fluxToken);
         staking = IStaking(_staking);
     }
     
@@ -82,8 +82,8 @@ contract GasStation is ReentrancyGuard, Ownable {
         lastGasRefund[msg.sender] = block.timestamp;
         totalGasRefunded[msg.sender] += refund;
         
-        // Mint FLU tokens as refund
-        fluToken.mint(msg.sender, refund);
+        // Mint FLUX tokens as refund
+        fluxToken.mint(msg.sender, refund);
         
         emit GasRefunded(msg.sender, refund);
     }

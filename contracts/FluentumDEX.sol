@@ -5,13 +5,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./GasStation.sol";
-import "./interfaces/IFLUToken.sol";
+import "./interfaces/IFLUXToken.sol";
 
 contract FluentumDEX is GasStation {
     using SafeERC20 for IERC20;
 
     // Constants
-    uint256 public constant MIN_LIQUIDITY = 1000 * 10**18; // 1000 FLU
+    uint256 public constant MIN_LIQUIDITY = 1000 * 10**18; // 1000 FLUX
     uint256 public constant MAX_SLIPPAGE = 50; // 5%
     
     // State
@@ -45,9 +45,9 @@ contract FluentumDEX is GasStation {
     );
     
     constructor(
-        address _fluToken,
+        address _fluxToken,
         address _staking
-    ) GasStation(_fluToken, _staking) {}
+    ) GasStation(_fluxToken, _staking) {}
     
     function addTokenPair(address tokenA, address tokenB) external onlyOwner {
         require(tokenA != address(0) && tokenB != address(0), "Invalid token");

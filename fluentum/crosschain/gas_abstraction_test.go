@@ -96,14 +96,14 @@ func TestGasAbstraction(t *testing.T) {
 		{
 			name:           "sufficient balance",
 			sender:         "0x123",
-			initialBalance: big.NewInt(10000000000), // 100 FLU
+			initialBalance: big.NewInt(10000000000), // 100 FLUX
 			gasLimit:       21000,
 			shouldSucceed:  true,
 		},
 		{
 			name:           "insufficient balance",
 			sender:         "0x456",
-			initialBalance: big.NewInt(100000000), // 1 FLU
+			initialBalance: big.NewInt(100000000), // 1 FLUX
 			gasLimit:       21000,
 			shouldSucceed:  false,
 		},
@@ -121,7 +121,7 @@ func TestGasAbstraction(t *testing.T) {
 			}
 
 			// Attempt gas payment
-			err := ga.PayGasWithFLU(context.Background(), tx, "ethereum")
+			err := ga.PayGasWithFLUX(context.Background(), tx, "ethereum")
 
 			if tt.shouldSucceed {
 				if err != nil {

@@ -40,7 +40,7 @@ func (c *Client) GetTotalLiquidity() int64 {
 	// This would typically involve:
 	// 1. Fetching order book depth
 	// 2. Calculating available liquidity at different price levels
-	return 100000000000 // Placeholder: 1000 FLU
+	return 100000000000 // Placeholder: 1000 FLUX
 }
 
 // GetAverageFees returns the average trading fees on the CEX
@@ -50,4 +50,11 @@ func (c *Client) GetAverageFees() int64 {
 	// 1. Fetching current fee schedule
 	// 2. Calculating weighted average based on recent trades
 	return 1000 // Placeholder: 0.001%
+}
+
+// QuoteBestPrice returns the best price for the given order on the CEX
+func (c *Client) QuoteBestPrice(ctx context.Context, order types.Order) (int64, error) {
+	// TODO: Implement actual price quoting logic
+	// This would typically involve querying the order book or price feed
+	return order.Price, nil // Placeholder: returns requested price
 }

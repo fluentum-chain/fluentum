@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IFLUToken.sol";
+import "./interfaces/IFLUXToken.sol";
 import "./libraries/StakingMath.sol";
 
 contract FluentumStaking is ReentrancyGuard, Ownable {
@@ -13,14 +13,14 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
     using StakingMath for uint256;
 
     // Constants
-    uint256 public constant MIN_VALIDATOR_STAKE = 50_000 * 10**18; // 50k FLU
-    uint256 public constant MIN_DELEGATION = 100 * 10**18; // 100 FLU
+    uint256 public constant MIN_VALIDATOR_STAKE = 50_000 * 10**18; // 50k FLUX
+    uint256 public constant MIN_DELEGATION = 100 * 10**18; // 100 FLUX
     uint256 public constant MAX_COMMISSION_RATE = 20; // 20%
-    uint256 public constant GAS_REFUND_THRESHOLD = 10_000 * 10**18; // 10k FLU
+    uint256 public constant GAS_REFUND_THRESHOLD = 10_000 * 10**18; // 10k FLUX
     uint256 public constant GAS_REFUND_MULTIPLIER = 100000;
     
     // State
-    IFLUToken public immutable fluToken;
+    IFLUXToken public immutable fluxToken;
     Validator[] public validators;
     mapping(address => uint256) public delegations;
     mapping(uint256 => mapping(address => uint256)) public validatorDelegations;
@@ -53,9 +53,9 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
     event RewardsClaimed(uint256 indexed validatorId, address indexed delegator, uint256 amount);
     event GasRefunded(address indexed user, uint256 amount);
     
-    constructor(address _fluToken) {
-        require(_fluToken != address(0), "Invalid token address");
-        fluToken = IFLUToken(_fluToken);
+    constructor(address _fluxToken) {
+        require(_fluxToken != address(0), "Invalid token address");
+        fluxToken = IFLUXToken(_fluxToken);
     }
     
     function createValidator(uint256 amount, uint256 commission) external nonReentrant {
@@ -63,7 +63,7 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
         require(commission <= MAX_COMMISSION_RATE, "Commission too high");
         
         // Transfer stake
-        fluToken.safeTransferFrom(msg.sender, address(this), amount);
+        fluxToken.safeTransferFrom(msg.sender, address(this), amount);
         
         // Create validator
         uint256 validatorId = validators.length;
@@ -87,7 +87,7 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
         require(validator.active, "Validator inactive");
         
         // Transfer delegation
-        fluToken.safeTransferFrom(msg.sender, address(this), amount);
+        fluxToken.safeTransferFrom(msg.sender, address(this), amount);
         
         // Update delegations
         delegations[msg.sender] += amount;
@@ -116,7 +116,7 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
         validator.totalDelegated -= amount;
         
         // Transfer tokens back
-        fluToken.safeTransfer(msg.sender, amount);
+        fluxToken.safeTransfer(msg.sender, amount);
         
         emit DelegationRemoved(validatorId, msg.sender, amount);
     }
@@ -125,7 +125,7 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
         require(amount > 0, "Invalid reward amount");
         
         // Transfer rewards
-        fluToken.safeTransferFrom(msg.sender, address(this), amount);
+        fluxToken.safeTransferFrom(msg.sender, address(this), amount);
         
         // Distribute to validators based on stake
         uint256 totalStake = _getTotalStake();
@@ -163,8 +163,8 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
         lastRewardUpdate[validatorId] = block.number;
         
         // Transfer rewards
-        fluToken.safeTransfer(msg.sender, reward);
-        fluToken.safeTransfer(validator.owner, commission);
+        fluxToken.safeTransfer(msg.sender, reward);
+        fluxToken.safeTransfer(validator.owner, commission);
         
         emit RewardsClaimed(validatorId, msg.sender, reward);
     }
@@ -182,7 +182,7 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
     
     function _refundGas(address user) internal {
         uint256 refundAmount = tx.gasprice * GAS_REFUND_MULTIPLIER;
-        fluToken.mint(user, refundAmount);
+        fluxToken.mint(user, refundAmount);
         
         emit GasRefunded(user, refundAmount);
     }

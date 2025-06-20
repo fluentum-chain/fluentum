@@ -24,24 +24,47 @@ func NewRouter(cexClient *cex.Client, dexClient *dex.Client) *Router {
 	return &Router{
 		cexClient:    cexClient,
 		dexClient:    dexClient,
-		threshold:    1000000000, // Initial threshold: 10 FLU
+		threshold:    1000000000, // Initial threshold: 10 FLUX
 		lastUpdate:   time.Now(),
 		updatePeriod: 5 * time.Minute,
 	}
 }
 
-// RouteOrder routes an order to either CEX or DEX based on dynamic threshold
+// RouteOrder routes an order to either CEX or DEX based on best price and dynamic threshold
 func (r *Router) RouteOrder(ctx context.Context, order fluentumtypes.Order) error {
 	// Update threshold if needed
 	if time.Since(r.lastUpdate) > r.updatePeriod {
 		r.updateThreshold()
 	}
 
-	// Route based on threshold
-	if order.Amount > r.threshold {
-		return r.cexClient.ExecuteOrder(ctx, order)
+	// Quote both venues
+	cexPrice, errCEX := r.cexClient.QuoteBestPrice(ctx, order)
+	dexPrice, errDEX := r.dexClient.QuoteBestPrice(ctx, order)
+
+	// Select best price (lower for buy, higher for sell)
+	venue := ""
+	var execErr error
+	if (order.Side == "buy" && (errCEX == nil && (errDEX != nil || cexPrice <= dexPrice))) ||
+		(order.Side == "sell" && (errCEX == nil && (errDEX != nil || cexPrice >= dexPrice))) {
+		execErr = r.cexClient.ExecuteOrder(ctx, order)
+		venue = "CEX"
+	} else if errDEX == nil {
+		execErr = r.dexClient.ExecuteOrder(ctx, order)
+		venue = "DEX"
+	} else {
+		return errCEX // or errDEX, both failed
 	}
-	return r.dexClient.ExecuteOrder(ctx, order)
+	if execErr != nil {
+		return execErr
+	}
+	return r.settleOrder(ctx, order, venue)
+}
+
+// settleOrder records the unified trade in the settlement layer
+func (r *Router) settleOrder(ctx context.Context, order fluentumtypes.Order, venue string) error {
+	// TODO: Implement settlement logic (e.g., update trade records, emit event, etc.)
+	// Example: log.Printf("Settled order %s on %s", order.ID, venue)
+	return nil
 }
 
 // updateThreshold calculates new threshold based on market conditions
@@ -64,8 +87,8 @@ func (r *Router) updateThreshold() {
 	newThreshold := int64(float64(r.threshold) * adjustment)
 
 	// Apply bounds to prevent extreme values
-	minThreshold := int64(100000000)   // 1 FLU
-	maxThreshold := int64(10000000000) // 100 FLU
+	minThreshold := int64(100000000)   // 1 FLUX
+	maxThreshold := int64(10000000000) // 100 FLUX
 	r.threshold = clamp(newThreshold, minThreshold, maxThreshold)
 	r.lastUpdate = time.Now()
 }
