@@ -8,38 +8,32 @@ import (
 )
 
 var (
-	dilithiumMode       = dilithium.ModeByName("Dilithium3")
+	dilithiumMode       = dilithium.Mode3
 	ErrInvalidPublicKey = errors.New("invalid public key")
 )
 
 type DilithiumSigner struct {
-	privKey dilithium.PrivateKey
+	privKey []byte
 }
 
 func NewDilithiumSigner() (*DilithiumSigner, error) {
-	if dilithiumMode == nil {
-		return nil, errors.New("Dilithium3 mode not supported")
-	}
-
-	_, privKey, err := dilithiumMode.GenerateKey(rand.Reader)
+	_, privKey, err := dilithiumMode.GenerateKeyPair(rand.Reader)
 	if err != nil {
 		return nil, err
 	}
-	return &DilithiumSigner{privKey: privKey}, nil
+	return &DilithiumSigner{privKey: privKey.Bytes()}, nil
 }
 
 func (ds *DilithiumSigner) Sign(message []byte) ([]byte, error) {
-	if dilithiumMode == nil {
-		return nil, errors.New("Dilithium3 mode not supported")
+	priv := dilithiumMode.PrivateKeyFromBytes(ds.privKey)
+	if priv == nil {
+		return nil, errors.New("invalid private key")
 	}
-
-	signature := make([]byte, dilithiumMode.SignatureSize())
-	ds.privKey.Sign(signature, message, nil)
-	return signature, nil
+	return priv.Sign(rand.Reader, message, nil)
 }
 
-func (s *DilithiumSigner) Verify(pubKey []byte, msg []byte, sig []byte) (bool, error) {
-	pub := dilithium.Mode3.PublicKeyFromBytes(pubKey)
+func (ds *DilithiumSigner) Verify(pubKey []byte, msg []byte, sig []byte) (bool, error) {
+	pub := dilithiumMode.PublicKeyFromBytes(pubKey)
 	if pub == nil {
 		return false, ErrInvalidPublicKey
 	}
