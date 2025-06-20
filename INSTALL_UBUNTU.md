@@ -76,11 +76,11 @@ go version
 git clone https://github.com/fluentum-chain/fluentum.git
 cd fluentum
 
-# Build Fluentum Core
-make build
+# Build Fluentum Core with BadgerDB (no CGO dependencies)
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make build
 
 # Install Fluentum Core
-make install
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make install
 ```
 
 #### Step 5: Verify Installation
@@ -98,6 +98,7 @@ fluentum version          # Check version
 fluentum --help          # Show all available commands
 fluentum init            # Initialize a new node
 fluentum node            # Start the node
+fluentum testnet         # Generate testnet configuration
 ```
 
 ### Initialize a New Node
@@ -118,6 +119,15 @@ fluentum node
 fluentum node --home /path/to/config
 ```
 
+### Generate Testnet
+```bash
+# Generate a 4-validator testnet
+fluentum testnet
+
+# Generate with custom parameters
+fluentum testnet -v 8 -o ./my-testnet -chain-id my-chain
+```
+
 ## Configuration
 
 The default configuration files are created in `~/.fluentum/` when you run `fluentum init`.
@@ -127,6 +137,17 @@ The default configuration files are created in `~/.fluentum/` when you run `flue
 - `~/.fluentum/config/genesis.json` - Genesis block configuration
 - `~/.fluentum/config/node_key.json` - Node private key
 - `~/.fluentum/config/priv_validator_key.json` - Validator private key
+
+## Database Backends
+
+Fluentum Core supports multiple database backends:
+
+- **BadgerDB** (Default) - Pure Go implementation, no CGO required
+- **LevelDB** - Requires CGO but widely supported
+- **RocksDB** - High performance, requires CGO and additional dependencies
+- **BoltDB** - Pure Go implementation
+
+The installation script uses **BadgerDB** by default to avoid CGO dependencies and external library requirements.
 
 ## Troubleshooting
 
@@ -143,11 +164,13 @@ The default configuration files are created in `~/.fluentum/` when you run `flue
    source ~/.bashrc
    ```
 
-3. **Build fails**
+3. **Build fails with RocksDB error**
    ```bash
-   # Clean and rebuild
-   make clean
-   make build
+   # Use BadgerDB instead (recommended)
+   CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make build
+   
+   # Or install RocksDB dependencies
+   sudo apt install -y librocksdb-dev
    ```
 
 4. **Port already in use**
@@ -170,7 +193,7 @@ For development purposes, you can also build without installation:
 
 ```bash
 # Build only (creates binary in build/fluentum)
-make build
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make build
 
 # Run the binary directly
 ./build/fluentum version

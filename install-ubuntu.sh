@@ -85,13 +85,13 @@ print_status "Go version: $(go version)"
 print_status "Setting up build environment..."
 mkdir -p build
 
-# Build Fluentum
-print_status "Building Fluentum Core..."
-make build
+# Build Fluentum with badgerdb (no CGO dependencies)
+print_status "Building Fluentum Core with BadgerDB..."
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make build
 
 # Install Fluentum
 print_status "Installing Fluentum Core..."
-make install
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make install
 
 # Verify installation
 if command -v fluentum &> /dev/null; then
@@ -103,6 +103,7 @@ if command -v fluentum &> /dev/null; then
     echo "  fluentum version    - Check version"
     echo "  fluentum init       - Initialize a new node"
     echo "  fluentum node       - Start the node"
+    echo "  fluentum testnet    - Generate testnet configuration"
     echo "  fluentum --help     - Show all commands"
     echo ""
     echo "Version: $(fluentum version)"

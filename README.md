@@ -72,7 +72,11 @@ chmod +x install-ubuntu.sh
 git clone https://github.com/fluentum-chain/fluentum.git
 cd fluentum
 
-# Build and install
+# Build and install with BadgerDB (recommended for Ubuntu)
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make build
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make install
+
+# Alternative: Build with default settings
 make build
 make install
 ```
@@ -155,7 +159,10 @@ fluentum --help
 ### Build Commands
 
 ```bash
-# Build for development
+# Build for development (with BadgerDB - recommended)
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make build
+
+# Build with default settings
 make build
 
 # Run tests
@@ -184,8 +191,8 @@ cd fluentum
 # 2. Install dependencies
 go mod download
 
-# 3. Build
-make build
+# 3. Build (with BadgerDB - no CGO dependencies)
+CGO_ENABLED=0 BUILD_TAGS="tendermint,badgerdb" make build
 
 # 4. Test
 make test
