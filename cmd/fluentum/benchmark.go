@@ -9,9 +9,21 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/types"
 	"github.com/gorilla/websocket"
+	"github.com/spf13/cobra"
 )
+
+// Simple transaction type for benchmarking
+type Tx struct {
+	Type     string `json:"type"`
+	From     string `json:"from"`
+	To       string `json:"to"`
+	Amount   int64  `json:"amount"`
+	Nonce    int64  `json:"nonce"`
+	Gas      int64  `json:"gas"`
+	GasPrice int64  `json:"gas_price"`
+	Data     []byte `json:"data"`
+}
 
 type BenchmarkConfig struct {
 	Endpoints []string
@@ -23,6 +35,7 @@ type BenchmarkConfig struct {
 func runBenchmark(cmd *cobra.Command, args []string) error {
 	// Parse flags
 	config := &BenchmarkConfig{}
+	config.Endpoints = []string{"ws://localhost:26657/websocket"}
 	flag.StringVar(&config.Endpoints[0], "endpoints", "ws://localhost:26657/websocket", "WebSocket endpoints")
 	flag.IntVar(&config.Duration, "duration", 60, "Benchmark duration in seconds")
 	flag.IntVar(&config.Size, "size", 250, "Transaction size in bytes")
@@ -51,7 +64,7 @@ func runBenchmark(cmd *cobra.Command, args []string) error {
 	}
 
 	// Start transaction generator
-	txChan := make(chan *types.Tx, config.Rate*2)
+	txChan := make(chan *Tx, config.Rate*2)
 	go generateTransactions(ctx, txChan, config.Size, config.Rate)
 
 	// Start workers
@@ -81,7 +94,7 @@ type BenchmarkMetrics struct {
 	Latencies    []time.Duration
 }
 
-func generateTransactions(ctx context.Context, txChan chan<- *types.Tx, size, rate int) {
+func generateTransactions(ctx context.Context, txChan chan<- *Tx, size, rate int) {
 	ticker := time.NewTicker(time.Second / time.Duration(rate))
 	defer ticker.Stop()
 
@@ -90,15 +103,15 @@ func generateTransactions(ctx context.Context, txChan chan<- *types.Tx, size, ra
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			tx := &types.Tx{
-				Type:    types.TxTypeTransfer,
-				From:    fmt.Sprintf("0x%x", rand.Int63()),
-				To:      fmt.Sprintf("0x%x", rand.Int63()),
-				Amount:  rand.Int63(),
-				Nonce:   rand.Int63(),
-				Gas:     21000,
+			tx := &Tx{
+				Type:     "transfer",
+				From:     fmt.Sprintf("0x%x", rand.Int63()),
+				To:       fmt.Sprintf("0x%x", rand.Int63()),
+				Amount:   rand.Int63(),
+				Nonce:    rand.Int63(),
+				Gas:      21000,
 				GasPrice: 20000000000,
-				Data:    make([]byte, size),
+				Data:     make([]byte, size),
 			}
 			rand.Read(tx.Data)
 			txChan <- tx
@@ -106,7 +119,7 @@ func generateTransactions(ctx context.Context, txChan chan<- *types.Tx, size, ra
 	}
 }
 
-func worker(ctx context.Context, conn *websocket.Conn, txChan <-chan *types.Tx, metrics *BenchmarkMetrics) {
+func worker(ctx context.Context, conn *websocket.Conn, txChan <-chan *Tx, metrics *BenchmarkMetrics) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -166,4 +179,4 @@ func printResults(metrics *BenchmarkMetrics, config *BenchmarkConfig) {
 	fmt.Printf("TPS: %.0f\n", tps)
 	fmt.Printf("Average Latency: %v\n", avgLatency)
 	fmt.Printf("Success Rate: %.2f%%\n", float64(metrics.ConfirmedTxs)/float64(metrics.TotalTxs)*100)
-} 
+}
