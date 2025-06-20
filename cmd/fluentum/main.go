@@ -3,7 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/fluentum-chain/fluentum/fluentum/abci/myapp"
+
+	"github.com/fluentum-chain/fluentum/config"
+	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/fluentum-chain/fluentum/node"
+	"github.com/fluentum-chain/fluentum/proxy"
 	"github.com/spf13/cobra"
 )
 
@@ -68,12 +76,41 @@ func runNode(cmd *cobra.Command, args []string) error {
 	fmt.Printf("P2P address: %s\n", p2pAddr)
 	fmt.Printf("RPC address: %s\n", rpcAddr)
 
-	// TODO: Implement actual node startup
-	fmt.Println("Node started successfully!")
-	fmt.Println("Press Ctrl+C to stop the node")
+	// 1. Load Tendermint config
+	cfg := config.DefaultConfig()
+	cfg.SetRoot(homeDir)
 
-	// Wait for interrupt signal
-	<-cmd.Context().Done()
+	// 2. Create the custom ABCI application
+	app := myapp.NewApplication()
+
+	// 3. Create Tendermint node
+	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	n, err := node.NewNode(
+		cfg,
+		nil, // privValidator: nil uses default file-based
+		nil, // nodeKey: nil uses default file-based
+		proxy.NewLocalClientCreator(app),
+		node.DefaultGenesisDocProviderFunc(cfg),
+		node.DefaultDBProvider,
+		node.DefaultMetricsProvider(cfg.Instrumentation),
+		logger,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create node: %w", err)
+	}
+
+	// 4. Start node
+	if err := n.Start(); err != nil {
+		return fmt.Errorf("failed to start node: %w", err)
+	}
+	defer n.Stop()
+
+	fmt.Println("Node started successfully! Press Ctrl+C to stop.")
+
+	// 5. Wait for signal
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	<-c
 
 	fmt.Println("Shutting down node...")
 	return nil
