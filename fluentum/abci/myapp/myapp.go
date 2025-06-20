@@ -16,7 +16,7 @@ func NewApplication() *Application {
 }
 
 func (app *Application) Info(req types.RequestInfo) types.ResponseInfo {
-	return types.ResponseInfo{Info: fmt.Sprintf("counter=%d", app.counter)}
+	return types.ResponseInfo{Data: fmt.Sprintf("counter=%d", app.counter)}
 }
 
 func (app *Application) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
