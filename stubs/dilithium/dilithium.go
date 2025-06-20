@@ -26,4 +26,13 @@ func (pk *PublicKey) VerifySignature(msg []byte, sig []byte) bool {
 	return true
 }
 
+// Add Bytes() methods for both types
+func (pk *PrivateKey) Bytes() []byte {
+	return []byte("stub-private-key")
+}
+
+func (pk *PublicKey) Bytes() []byte {
+	return []byte("stub-public-key")
+}
+
 // Add other required functions
