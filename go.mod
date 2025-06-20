@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.4
 
 require (
-	github.com/cloudflare/circl v1.6.1
+	github.com/cloudflare/circl v1.3.3
 	github.com/cosmos/cosmos-sdk v0.50.0
 	github.com/iden3/go-iden3-crypto v0.0.17
 	github.com/iden3/go-merkletree v0.1.0

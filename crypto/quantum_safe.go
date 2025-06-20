@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 
-	"github.com/cloudflare/circl/sign/dilithium"
+	"github.com/fluentum-chain/dilithium"
 )
 
 var (

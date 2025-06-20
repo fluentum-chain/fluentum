@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 
-	"github.com/cloudflare/circl/sign/dilithium"
+	"github.com/fluentum-chain/dilithium"
 )
 
 var (
@@ -37,5 +37,5 @@ func (ds *DilithiumSigner) Verify(pubKey []byte, msg []byte, sig []byte) (bool, 
 	if pub == nil {
 		return false, ErrInvalidPublicKey
 	}
-	return pub.Verify(msg, sig), nil
+	return pub.VerifySignature(msg, sig), nil
 }
