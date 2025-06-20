@@ -7,30 +7,33 @@ import (
 	"github.com/cloudflare/circl/sign/dilithium"
 )
 
+var (
+	dilithiumMode       = dilithium.ModeByName("Dilithium3")
+	ErrInvalidPublicKey = errors.New("invalid public key")
+)
+
 type DilithiumSigner struct {
-	mode    dilithium.Mode
 	privKey dilithium.PrivateKey
 }
 
 func NewDilithiumSigner() (*DilithiumSigner, error) {
-	mode := dilithium.ModeByName("Dilithium3")
-	if mode == nil {
+	if dilithiumMode == nil {
 		return nil, errors.New("Dilithium3 mode not supported")
 	}
 
-	_, privKey, err := mode.GenerateKey(rand.Reader)
+	_, privKey, err := dilithiumMode.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, err
 	}
-
-	return &DilithiumSigner{
-		mode:    mode,
-		privKey: privKey,
-	}, nil
+	return &DilithiumSigner{privKey: privKey}, nil
 }
 
 func (ds *DilithiumSigner) Sign(message []byte) ([]byte, error) {
-	signature := make([]byte, ds.mode.SignatureSize())
+	if dilithiumMode == nil {
+		return nil, errors.New("Dilithium3 mode not supported")
+	}
+
+	signature := make([]byte, dilithiumMode.SignatureSize())
 	ds.privKey.Sign(signature, message, nil)
 	return signature, nil
 }
