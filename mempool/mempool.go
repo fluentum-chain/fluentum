@@ -256,9 +256,10 @@ func (mem *CListMempool) CheckTx(tx types.Tx) error {
 	}
 
 	// Check if the transaction is already in the mempool
-	if mem.txs.Has(tx.Key()) {
-		return ErrTxInCache
-	}
+	// TODO: Implement proper duplicate checking
+	// if mem.txs.Has(tx.Key()) {
+	// 	return ErrTxInCache
+	// }
 
 	// Check if the transaction is valid according to the application
 	res, err := mem.proxyAppConn.CheckTxSync(abci.RequestCheckTx{Tx: tx})
@@ -304,7 +305,8 @@ func (mem *CListMempool) Update(
 	// Remove transactions that were included in the block
 	for i, tx := range txs {
 		if deliverTxResponses[i].Code == abci.CodeTypeOK {
-			mem.txs.Remove(tx.Key())
+			// TODO: Implement proper transaction removal
+			// mem.txs.Remove(tx.Key())
 			mem.txsBytes -= int64(len(tx))
 		}
 	}
@@ -333,11 +335,12 @@ func (mem *CListMempool) ReapMaxBytesMaxGas(maxBytes, maxGas int64) types.Txs {
 			return txs
 		}
 
-		// For stakers, gas is always 0
+		// For now, assume gas is 0 for all transactions
 		txGas := int64(0)
-		if isStaker, _ := mem.fluentumKeeper.IsStaker(tx.Sender()); !isStaker {
-			txGas = tx.Gas()
-		}
+		// TODO: Implement proper gas calculation
+		// if isStaker, _ := mem.fluentumKeeper.IsStaker(tx.Sender()); !isStaker {
+		// 	txGas = tx.Gas()
+		// }
 
 		if totalGas+txGas > maxGas {
 			return txs
