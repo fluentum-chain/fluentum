@@ -8,9 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/p2p"
-	"github.com/fluentum-chain/fluentum/privval"
-	"github.com/fluentum-chain/fluentum/types"
 	"github.com/spf13/cobra"
 )
 
@@ -49,44 +46,104 @@ func runTestnet(cmd *cobra.Command, args []string) error {
 
 func generateNodeConfig(nodeDir string, index int, config *TestnetConfig) error {
 	// Create node directory
-	err := os.MkdirAll(nodeDir, 0755)
+	err := os.MkdirAll(filepath.Join(nodeDir, "config"), 0755)
 	if err != nil {
 		return err
 	}
 
-	// Generate node key
-	nodeKey, err := p2p.GenerateNodeKey()
-	if err != nil {
-		return err
-	}
-	err = nodeKey.SaveAs(filepath.Join(nodeDir, "config", "node_key.json"))
-	if err != nil {
-		return err
-	}
+	// Generate simple node key (placeholder)
+	nodeKeyData := fmt.Sprintf(`{
+		"priv_key": {
+			"type": "tendermint/PrivKeyEd25519",
+			"value": "node_key_%d_placeholder"
+		}
+	}`, index)
 
-	// Generate validator key
-	valKey := privval.GenFilePV(
-		filepath.Join(nodeDir, "config", "priv_validator_key.json"),
-		filepath.Join(nodeDir, "config", "priv_validator_state.json"),
-	)
-
-	// Create node config
-	nodeConfig := config.DefaultConfig()
-	nodeConfig.SetRoot(nodeDir)
-	nodeConfig.ChainID = config.ChainID
-	nodeConfig.P2P.ListenAddress = fmt.Sprintf("tcp://0.0.0.0:%d", 26656+index)
-	nodeConfig.RPC.ListenAddress = fmt.Sprintf("tcp://0.0.0.0:%d", 26657+index)
-	nodeConfig.P2P.PersistentPeers = generatePersistentPeers(config.NumValidators, index)
-
-	// Save config
-	err = nodeConfig.SaveAs(filepath.Join(nodeDir, "config", "config.toml"))
+	err = os.WriteFile(filepath.Join(nodeDir, "config", "node_key.json"), []byte(nodeKeyData), 0644)
 	if err != nil {
 		return err
 	}
 
-	// Save genesis
-	genesis := generateGenesis(config.ChainID, config.NumValidators)
-	err = genesis.SaveAs(filepath.Join(nodeDir, "config", "genesis.json"))
+	// Generate simple validator key (placeholder)
+	valKeyData := fmt.Sprintf(`{
+		"address": "validator_%d_address",
+		"pub_key": {
+			"type": "tendermint/PubKeyEd25519",
+			"value": "validator_%d_pubkey_placeholder"
+		},
+		"priv_key": {
+			"type": "tendermint/PrivKeyEd25519",
+			"value": "validator_%d_privkey_placeholder"
+		}
+	}`, index, index, index)
+
+	err = os.WriteFile(filepath.Join(nodeDir, "config", "priv_validator_key.json"), []byte(valKeyData), 0644)
+	if err != nil {
+		return err
+	}
+
+	// Create simple node config
+	nodeConfigData := fmt.Sprintf(`# Fluentum Node Configuration
+chain_id = "%s"
+moniker = "node%d"
+
+[p2p]
+laddr = "tcp://0.0.0.0:%d"
+persistent_peers = "%s"
+
+[rpc]
+laddr = "tcp://0.0.0.0:%d"
+
+[consensus]
+timeout_commit = "1s"
+timeout_propose = "1s"
+`, config.ChainID, index, 26656+index, generatePersistentPeers(config.NumValidators, index), 26657+index)
+
+	err = os.WriteFile(filepath.Join(nodeDir, "config", "config.toml"), []byte(nodeConfigData), 0644)
+	if err != nil {
+		return err
+	}
+
+	// Create simple genesis
+	genesisData := fmt.Sprintf(`{
+		"genesis_time": "%s",
+		"chain_id": "%s",
+		"consensus_params": {
+			"block": {
+				"max_bytes": "22020096",
+				"max_gas": "-1",
+				"time_iota_ms": "1000"
+			},
+			"evidence": {
+				"max_age_num_blocks": "100000",
+				"max_age_duration": "172800000000000",
+				"max_bytes": "1048576"
+			},
+			"validator": {
+				"pub_key_types": ["ed25519"]
+			}
+		},
+		"validators": [
+			{
+				"address": "validator_%d_address",
+				"pub_key": {
+					"type": "tendermint/PubKeyEd25519",
+					"value": "validator_%d_pubkey_placeholder"
+				},
+				"power": "100",
+				"name": "Genesis Validator %d"
+			}
+		],
+		"app_hash": "",
+		"app_state": {
+			"flux_token": {
+				"denom": "aflux",
+				"initial_supply": "1000000000000000000"
+			}
+		}
+	}`, time.Now().UTC().Format(time.RFC3339), config.ChainID, index, index, index+1)
+
+	err = os.WriteFile(filepath.Join(nodeDir, "config", "genesis.json"), []byte(genesisData), 0644)
 	if err != nil {
 		return err
 	}
@@ -103,63 +160,4 @@ func generatePersistentPeers(numValidators, currentIndex int) string {
 		peers = append(peers, fmt.Sprintf("node%d@127.0.0.1:%d", i, 26656+i))
 	}
 	return strings.Join(peers, ",")
-}
-
-func generateGenesis(chainID string, numValidators int) *types.GenesisDoc {
-	genesis := &types.GenesisDoc{
-		ChainID:     chainID,
-		GenesisTime: time.Date(2025, 1, 15, 0, 0, 0, 0, time.UTC),
-		ConsensusParams: &types.ConsensusParams{
-			Block: types.BlockParams{
-				MaxBytes:   22020096,
-				MaxGas:     -1,
-				TimeIotaMs: 1000,
-			},
-			Evidence: types.EvidenceParams{
-				MaxAgeNumBlocks: 100000,
-				MaxAgeDuration:  48 * time.Hour,
-				MaxBytes:        1048576,
-			},
-			Validator: types.ValidatorParams{
-				PubKeyTypes: []string{types.ABCIPubKeyTypeDilithium},
-			},
-		},
-	}
-
-	// Add Fluxum-specific consensus parameters
-	genesis.ConsensusParams.FluentumParams = &types.FluentumParams{
-		ZKEnabled:        true,
-		QuantumEnabled:   true,
-		FreeGasThreshold: 5000000000, // 50 FLUX
-	}
-
-	// Add validators
-	for i := 0; i < numValidators; i++ {
-		nodeDir := filepath.Join("testnet", fmt.Sprintf("node%d", i))
-		valKey := privval.LoadFilePV(
-			filepath.Join(nodeDir, "config", "priv_validator_key.json"),
-			filepath.Join(nodeDir, "config", "priv_validator_state.json"),
-		)
-		genesis.Validators = append(genesis.Validators, types.GenesisValidator{
-			Address: valKey.GetPubKey().Address(),
-			PubKey:  valKey.GetPubKey(),
-			Power:   100,
-			Name:    fmt.Sprintf("Genesis Validator %d", i+1),
-		})
-	}
-
-	// Add app state
-	genesis.AppState = map[string]interface{}{
-		"flux_token": map[string]interface{}{
-			"denom":          "aflux",
-			"initial_supply": "1000000000000000000", // 1B FLUX
-		},
-		"staking": map[string]interface{}{
-			"params": map[string]interface{}{
-				"min_stake": "50000000000", // 50,000 FLUX
-			},
-		},
-	}
-
-	return genesis
 }
