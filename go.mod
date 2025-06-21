@@ -16,9 +16,6 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v8 v8.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-)
-
-require (
 	cloud.google.com/go/kms v1.15.3
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
@@ -63,9 +60,6 @@ require (
 	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.5
-)
-
-require (
 	4d63.com/gochecknoglobals v0.1.0 // indirect
 	cloud.google.com/go/compute v1.23.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -276,9 +270,8 @@ require (
 )
 
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
-
 replace github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
-
 replace github.com/fluentum-chain/dilithium => ./stubs/dilithium
-
 replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
+replace github.com/cometbft/cometbft => github.com/tendermint/tendermint v0.35.9
+replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.2
