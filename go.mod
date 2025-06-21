@@ -13,6 +13,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.50.0
 	cosmossdk.io/api v0.7.2
 	cosmossdk.io/store v1.0.2
+	cosmossdk.io/snapshots v1.0.2
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v8 v8.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
