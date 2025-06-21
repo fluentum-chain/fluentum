@@ -58,17 +58,47 @@ all: check build test install
 include tests.mk
 
 ###############################################################################
+###                              Dependencies                               ###
+###############################################################################
+
+# Ensure dependencies are properly managed
+deps:
+	@echo "--> Ensuring dependencies are up to date"
+	@go mod download
+	@go mod tidy
+	@go mod verify
+.PHONY: deps
+
+# Quick dependency check (doesn't modify files)
+deps-check:
+	@echo "--> Checking dependencies"
+	@go mod verify
+.PHONY: deps-check
+
+###############################################################################
 ###                                Build Fluentum                          ###
 ###############################################################################
 
-build:
+# Build with automatic dependency management
+build: deps
+	@echo "--> Building Fluentum Core $(VERSION)"
 	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(OUTPUT) ./cmd/fluentum/
 .PHONY: build
 
-install:
+# Build without dependency management (for CI/CD when deps are already managed)
+build-only:
+	@echo "--> Building Fluentum Core $(VERSION) (dependencies assumed to be ready)"
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(OUTPUT) ./cmd/fluentum/
+.PHONY: build-only
+
+install: deps
 	CGO_ENABLED=$(CGO_ENABLED) go install $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./cmd/fluentum
 .PHONY: install
 
+# Install without dependency management
+install-only:
+	CGO_ENABLED=$(CGO_ENABLED) go install $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./cmd/fluentum
+.PHONY: install-only
 
 ###############################################################################
 ###                                Mocks                                    ###
@@ -128,11 +158,11 @@ proto-check-breaking-ci:
 ###                              Build ABCI                                 ###
 ###############################################################################
 
-build_abci:
+build_abci: deps
 	@go build -mod=readonly -i ./abci/cmd/...
 .PHONY: build_abci
 
-install_abci:
+install_abci: deps
 	@go install -mod=readonly ./abci/cmd/...
 .PHONY: install_abci
 
@@ -142,7 +172,7 @@ install_abci:
 
 # dist builds binaries for all platforms and packages them for distribution
 # TODO add abci to these scripts
-dist:
+dist: deps
 	@BUILD_TAGS=$(BUILD_TAGS) sh -c "'$(CURDIR)/scripts/dist.sh'"
 .PHONY: dist
 
@@ -343,16 +373,62 @@ proto:
 # Help target
 .PHONY: help
 help:
-	@echo "Fluentum Core Makefile"
+	@echo "Fluentum Core - Hybrid Consensus Blockchain Platform"
 	@echo ""
-	@echo "Usage:"
-	@echo "  make build        Build the binary"
-	@echo "  make clean        Clean build artifacts"
-	@echo "  make test         Run tests"
-	@echo "  make lint         Run linter"
-	@echo "  make deps         Install dependencies"
-	@echo "  make proto        Generate protobuf files"
-	@echo "  make help         Show this help message"
+	@echo "Dependency Management:"
+	@echo "  deps                     - Download and tidy dependencies (auto-run by build)"
+	@echo "  deps-check               - Check dependencies without modifying files"
+	@echo ""
+	@echo "Build Targets:"
+	@echo "  build                    - Build binary with automatic dependency management"
+	@echo "  build-only               - Build binary (assumes deps are ready)"
+	@echo "  install                  - Install binary with automatic dependency management"
+	@echo "  install-only             - Install binary (assumes deps are ready)"
+	@echo "  clean                    - Clean build artifacts"
+	@echo ""
+	@echo "Testing & Quality:"
+	@echo "  test                     - Run tests"
+	@echo "  test-coverage            - Run tests with coverage"
+	@echo "  lint                     - Lint the code"
+	@echo "  fmt                      - Format the code"
+	@echo "  proto-gen                - Generate protobuf code"
+	@echo ""
+	@echo "Node Management:"
+	@echo "  init-node                - Initialize a new node"
+	@echo "  start                    - Start the node"
+	@echo "  start-dev                - Start the node in development mode"
+	@echo "  reset                    - Reset the node"
+	@echo "  status                   - Show node status"
+	@echo ""
+	@echo "Account & Key Management:"
+	@echo "  keys-add name=NAME       - Add a new account"
+	@echo "  keys-list                - List accounts"
+	@echo "  keys-show name=NAME      - Show account address"
+	@echo ""
+	@echo "Genesis & Chain Management:"
+	@echo "  add-genesis-account address=ADDR coins=COINS - Add genesis account"
+	@echo "  collect-gentxs           - Collect genesis transactions"
+	@echo "  validate-genesis         - Validate genesis"
+	@echo "  export                   - Export app state"
+	@echo ""
+	@echo "Query & Transaction Commands:"
+	@echo "  query-balance address=ADDR - Query account balance"
+	@echo "  tx-send from=FROM to=TO amount=AMT chain-id=CHAIN - Send tokens"
+	@echo "  tx-create-fluentum index=IDX title=TITLE body=BODY chain-id=CHAIN - Create Fluentum record"
+	@echo "  query-list-fluentum      - List Fluentum records"
+	@echo "  query-show-fluentum index=IDX - Show Fluentum record"
+	@echo "  query-fluentum-params    - Query Fluentum parameters"
+	@echo ""
+	@echo "Docker Commands:"
+	@echo "  docker-build             - Build Docker image"
+	@echo "  docker-run               - Run Docker container"
+	@echo "  docker-stop              - Stop Docker container"
+	@echo ""
+	@echo "Development Notes:"
+	@echo "  - 'build' automatically runs 'deps' to ensure dependencies are ready"
+	@echo "  - Use 'build-only' in CI/CD when dependencies are pre-managed"
+	@echo "  - Run 'deps' manually if you need to update dependencies"
+	@echo "  - Use 'deps-check' to verify dependencies without changes"
 
 # Makefile for Fluentum Cosmos SDK Integration
 
@@ -553,34 +629,59 @@ docker-stop:
 # Help
 .PHONY: help
 help:
-	@echo "Available targets:"
-	@echo "  build                    - Build the binary"
-	@echo "  install                  - Install the binary"
+	@echo "Fluentum Core - Hybrid Consensus Blockchain Platform"
+	@echo ""
+	@echo "Dependency Management:"
+	@echo "  deps                     - Download and tidy dependencies (auto-run by build)"
+	@echo "  deps-check               - Check dependencies without modifying files"
+	@echo ""
+	@echo "Build Targets:"
+	@echo "  build                    - Build binary with automatic dependency management"
+	@echo "  build-only               - Build binary (assumes deps are ready)"
+	@echo "  install                  - Install binary with automatic dependency management"
+	@echo "  install-only             - Install binary (assumes deps are ready)"
 	@echo "  clean                    - Clean build artifacts"
+	@echo ""
+	@echo "Testing & Quality:"
 	@echo "  test                     - Run tests"
 	@echo "  test-coverage            - Run tests with coverage"
 	@echo "  lint                     - Lint the code"
 	@echo "  fmt                      - Format the code"
 	@echo "  proto-gen                - Generate protobuf code"
+	@echo ""
+	@echo "Node Management:"
 	@echo "  init-node                - Initialize a new node"
 	@echo "  start                    - Start the node"
 	@echo "  start-dev                - Start the node in development mode"
+	@echo "  reset                    - Reset the node"
+	@echo "  status                   - Show node status"
+	@echo ""
+	@echo "Account & Key Management:"
 	@echo "  keys-add name=NAME       - Add a new account"
 	@echo "  keys-list                - List accounts"
 	@echo "  keys-show name=NAME      - Show account address"
+	@echo ""
+	@echo "Genesis & Chain Management:"
 	@echo "  add-genesis-account address=ADDR coins=COINS - Add genesis account"
 	@echo "  collect-gentxs           - Collect genesis transactions"
 	@echo "  validate-genesis         - Validate genesis"
 	@echo "  export                   - Export app state"
-	@echo "  reset                    - Reset the node"
-	@echo "  status                   - Show node status"
+	@echo ""
+	@echo "Query & Transaction Commands:"
 	@echo "  query-balance address=ADDR - Query account balance"
 	@echo "  tx-send from=FROM to=TO amount=AMT chain-id=CHAIN - Send tokens"
 	@echo "  tx-create-fluentum index=IDX title=TITLE body=BODY chain-id=CHAIN - Create Fluentum record"
 	@echo "  query-list-fluentum      - List Fluentum records"
 	@echo "  query-show-fluentum index=IDX - Show Fluentum record"
 	@echo "  query-fluentum-params    - Query Fluentum parameters"
+	@echo ""
+	@echo "Docker Commands:"
 	@echo "  docker-build             - Build Docker image"
 	@echo "  docker-run               - Run Docker container"
 	@echo "  docker-stop              - Stop Docker container"
-	@echo "  help                     - Show this help message"
+	@echo ""
+	@echo "Development Notes:"
+	@echo "  - 'build' automatically runs 'deps' to ensure dependencies are ready"
+	@echo "  - Use 'build-only' in CI/CD when dependencies are pre-managed"
+	@echo "  - Run 'deps' manually if you need to update dependencies"
+	@echo "  - Use 'deps-check' to verify dependencies without changes"
