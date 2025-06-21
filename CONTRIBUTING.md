@@ -1,23 +1,24 @@
 # Contributing
 
-Thank you for your interest in contributing to Tendermint! Before
+Thank you for your interest in contributing to Fluentum! Before
 contributing, it may be helpful to understand the goal of the project. The goal
-of Tendermint is to develop a BFT consensus engine robust enough to
+of Fluentum is to develop a hybrid consensus blockchain platform that combines
+DPoS and ZK-Rollups for high throughput and security, robust enough to
 support permissionless value-carrying networks. While all contributions are
 welcome, contributors should bear this goal in mind in deciding if they should
-target the main Tendermint project or a potential fork. When targeting the
-main Tendermint project, the following process leads to the best chance of
+target the main Fluentum project or a potential fork. When targeting the
+main Fluentum project, the following process leads to the best chance of
 landing changes in master.
 
 All work on the code base should be motivated by a [Github
-Issue](https://github.com/tendermint/tendermint/issues).
-[Search](https://github.com/tendermint/tendermint/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22)
+Issue](https://github.com/fluentum-chain/fluentum/issues).
+[Search](https://github.com/fluentum-chain/fluentum/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22)
 is a good place start when looking for places to contribute. If you
 would like to work on an issue which already exists, please indicate so
 by leaving a comment.
 
 All new contributions should start with a [Github
-Issue](https://github.com/tendermint/tendermint/issues/new/choose). The
+Issue](https://github.com/fluentum-chain/fluentum/issues/new/choose). The
 issue helps capture the problem you're trying to solve and allows for
 early feedback. Once the issue is created the process can proceed in different
 directions depending on how well defined the problem and potential
@@ -26,7 +27,7 @@ will indicate their support with a heartfelt emoji.
 
 If the issue would benefit from thorough discussion, maintainers may
 request that you create a [Request For
-Comment](https://github.com/tendermint/tendermint/tree/main/rfc). Discussion
+Comment](https://github.com/fluentum-chain/fluentum/tree/main/rfc). Discussion
 at the RFC stage will build collective understanding of the dimensions
 of the problems and help structure conversations around trade-offs.
 
@@ -53,26 +54,26 @@ maintainers to take a look.
 
 Each stage of the process is aimed at creating feedback cycles which align contributors and maintainers to make sure:
 
-- Contributors don’t waste their time implementing/proposing features which won’t land in master.
+- Contributors don't waste their time implementing/proposing features which won't land in master.
 - Maintainers have the necessary context in order to support and review contributions.
 
 ## Forking
 
 Please note that Go requires code to live under absolute paths, which complicates forking.
-While my fork lives at `https://github.com/ebuchman/tendermint`,
-the code should never exist at `$GOPATH/src/github.com/ebuchman/tendermint`.
+While my fork lives at `https://github.com/ebuchman/fluentum`,
+the code should never exist at `$GOPATH/src/github.com/ebuchman/fluentum`.
 Instead, we use `git remote` to add the fork as a new remote for the original repo,
-`$GOPATH/src/github.com/tendermint/tendermint`, and do all the work there.
+`$GOPATH/src/github.com/fluentum-chain/fluentum`, and do all the work there.
 
 For instance, to create a fork and work on a branch of it, I would:
 
 - Create the fork on GitHub, using the fork button.
-- Go to the original repo checked out locally (i.e. `$GOPATH/src/github.com/tendermint/tendermint`)
+- Go to the original repo checked out locally (i.e. `$GOPATH/src/github.com/fluentum-chain/fluentum`)
 - `git remote rename origin upstream`
-- `git remote add origin git@github.com:ebuchman/basecoin.git`
+- `git remote add origin git@github.com:ebuchman/fluentum.git`
 
-Now `origin` refers to my fork and `upstream` refers to the Tendermint version.
-So I can `git push -u origin master` to update my fork, and make pull requests to tendermint from there.
+Now `origin` refers to my fork and `upstream` refers to the Fluentum version.
+So I can `git push -u origin master` to update my fork, and make pull requests to fluentum from there.
 Of course, replace `ebuchman` with your git handle.
 
 To pull in updates from the origin repo, run
@@ -84,7 +85,7 @@ To pull in updates from the origin repo, run
 
 We use [go modules](https://github.com/golang/go/wiki/Modules) to manage dependencies.
 
-That said, the master branch of every Tendermint repository should just build
+That said, the master branch of every Fluentum repository should just build
 with `go get`, which means they should be kept up-to-date with their
 dependencies so we can get away with telling people they can just `go get` our
 software.
@@ -100,11 +101,11 @@ up-to-date.
 When updating dependencies, please only update the particular dependencies you
 need. Instead of running `go get -u=patch`, which will update anything,
 specify exactly the dependency you want to update, eg.
-`GO111MODULE=on go get -u github.com/tendermint/go-amino@master`.
+`GO111MODULE=on go get -u github.com/fluentum-chain/fluentum@master`.
 
 ## Protobuf
 
-We use [Protocol Buffers](https://developers.google.com/protocol-buffers) along with [gogoproto](https://github.com/gogo/protobuf) to generate code for use across Tendermint Core.
+We use [Protocol Buffers](https://developers.google.com/protocol-buffers) along with [gogoproto](https://github.com/gogo/protobuf) to generate code for use across Fluentum Core.
 
 For linting and checking breaking changes, we use [buf](https://buf.build/). If you would like to run linting and check if the changes you have made are breaking then you will need to have docker running locally. Then the linting cmd will be `make proto-lint` and the breaking changes check will be `make proto-check-breaking`.
 
@@ -113,7 +114,7 @@ We use [Docker](https://www.docker.com/) to generate the protobuf stubs. To gene
 ## Vagrant
 
 If you are a [Vagrant](https://www.vagrantup.com/) user, you can get started
-hacking Tendermint with the commands below.
+hacking Fluentum with the commands below.
 
 NOTE: In case you installed Vagrant in 2017, you might need to run
 `vagrant box update` to upgrade to the latest `ubuntu/xenial64`.
@@ -173,13 +174,13 @@ easy to reference the pull request where a change was introduced.
 
 The latest state of development is on `master`, which must never fail `make test`. _Never_ force push `master`, unless fixing broken git history (which we rarely do anyways).
 
-To begin contributing, create a development branch either on `github.com/tendermint/tendermint`, or your fork (using `git remote add origin`).
+To begin contributing, create a development branch either on `github.com/fluentum-chain/fluentum`, or your fork (using `git remote add origin`).
 
 Make changes, and before submitting a pull request, update the `CHANGELOG_PENDING.md` to record your change. Also, run either `git rebase` or `git merge` on top of the latest `master`. (Since pull requests are squash-merged, either is fine!)
 
 Update the `UPGRADING.md` if the change you've made is breaking and the
 instructions should be in place for a user on how he/she can upgrade it's
-software (ABCI application, Tendermint-based blockchain, light client, wallet).
+software (ABCI application, Fluentum-based blockchain, light client, wallet).
 
 Once you have submitted a pull request label the pull request with either `R:minor`, if the change should be included in the next minor release, or `R:major`, if the change is meant for a major release.
 
@@ -213,7 +214,7 @@ After this, you can open a PR. Please note in the PR body if there were merge co
 
 ### Git Commit Style
 
-We follow the [Go style guide on commit messages](https://tip.golang.org/doc/contribute.html#commit_messages). Write concise commits that start with the package name and have a description that finishes the sentence "This change modifies Tendermint to...". For example,
+We follow the [Go style guide on commit messages](https://tip.golang.org/doc/contribute.html#commit_messages). Write concise commits that start with the package name and have a description that finishes the sentence "This change modifies Fluentum to...". For example,
 
 ```sh
 cmd/debug: execute p.Signal only when p is not nil
@@ -328,7 +329,7 @@ Run: `make test_integrations`
 
 ### End-to-end tests
 
-End-to-end tests are used to verify a fully integrated Tendermint network.
+End-to-end tests are used to verify a fully integrated Fluentum network.
 
 See [README](./test/e2e/README.md) for details.
 
@@ -358,8 +359,8 @@ For components, that have been [formally
 verified](https://en.wikipedia.org/wiki/Formal_verification) using
 [TLA+](https://en.wikipedia.org/wiki/TLA%2B), it may be possible to generate
 tests using a combination of the [Apalache Model
-Checker](https://apalache.informal.systems/) and [tendermint-rs testgen
-util](https://github.com/informalsystems/tendermint-rs/tree/master/testgen).
+Checker](https://apalache.informal.systems/) and [fluentum-rs testgen
+util](https://github.com/informalsystems/fluentum-rs/tree/master/testgen).
 
 Now, I know there's a lot to take in. If you want to learn more, check out [
 this video](https://www.youtube.com/watch?v=aveoIMphzW8) by Andrey Kupriyanov
@@ -387,8 +388,8 @@ most probably (99.9%)*.
 
 [Jepsen](http://jepsen.io/) tests are used to verify the
 [linearizability](https://jepsen.io/consistency/models/linearizable) property
-of the Tendermint consensus. They are located in a separate repository
--> <https://github.com/tendermint/jepsen>. Please refer to its README for more
+of the Fluentum consensus. They are located in a separate repository
+-> <https://github.com/fluentum-chain/jepsen>. Please refer to its README for more
 information.
 
 ### RPC Testing

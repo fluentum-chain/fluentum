@@ -10,11 +10,11 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/tendermint/tendermint v0.35.9
 	golang.org/x/crypto v0.39.0
-	github.com/cosmos/cosmos-sdk v0.50.0
-	cosmossdk.io/api v0.7.2
-	cosmossdk.io/store v1.0.2
+	github.com/cosmos/cosmos-sdk v0.47.5
+	cosmossdk.io/api v0.3.1
+	cosmossdk.io/store v0.1.0-alpha.3
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/ibc-go/v8 v8.0.0
+	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	cloud.google.com/go/kms v1.15.3
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
