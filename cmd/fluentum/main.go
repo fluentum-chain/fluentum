@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/store"
+	"cosmossdk.io/store/snapshots"
+	snapshottypes "cosmossdk.io/store/snapshots/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -16,8 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/snapshots"
-	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -31,11 +32,10 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/fluentum-chain/fluentum/fluentum/app"
-	"github.com/fluentum-chain/fluentum/fluentum/app/params"
 )
 
 // NewRootCmd creates a new root command for the Fluentum application.
-func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
+func NewRootCmd() (*cobra.Command, app.EncodingConfig) {
 	encodingConfig := app.MakeEncodingConfig()
 
 	initClientCtx := client.Context{}.
@@ -86,7 +86,7 @@ for high throughput and security. It features:
 	return rootCmd, encodingConfig
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
@@ -170,7 +170,7 @@ func txCommand() *cobra.Command {
 }
 
 type appCreator struct {
-	encCfg params.EncodingConfig
+	encCfg app.EncodingConfig
 }
 
 func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
