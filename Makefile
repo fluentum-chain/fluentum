@@ -353,3 +353,234 @@ help:
 	@echo "  make deps         Install dependencies"
 	@echo "  make proto        Generate protobuf files"
 	@echo "  make help         Show this help message"
+
+# Makefile for Fluentum Cosmos SDK Integration
+
+# Variables
+BINARY_NAME=fluentumd
+BUILD_DIR=build
+GO=go
+DOCKER=docker
+
+# Build flags
+LDFLAGS=-ldflags "-X github.com/fluentum-chain/fluentum/version.Name=Fluentum \
+	-X github.com/fluentum-chain/fluentum/version.ServerName=fluentumd \
+	-X github.com/fluentum-chain/fluentum/version.ClientName=fluentumcli \
+	-X github.com/fluentum-chain/fluentum/version.Version=$(shell git describe --tags --always --dirty) \
+	-X github.com/fluentum-chain/fluentum/version.Commit=$(shell git log -1 --format='%H')"
+
+# Default target
+.PHONY: all
+all: build
+
+# Build the binary
+.PHONY: build
+build:
+	@echo "Building $(BINARY_NAME)..."
+	@mkdir -p $(BUILD_DIR)
+	$(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/fluentum
+
+# Install the binary
+.PHONY: install
+install:
+	@echo "Installing $(BINARY_NAME)..."
+	$(GO) install $(LDFLAGS) ./cmd/fluentum
+
+# Clean build artifacts
+.PHONY: clean
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf $(BUILD_DIR)
+	@rm -rf .fluentum
+
+# Run tests
+.PHONY: test
+test:
+	@echo "Running tests..."
+	$(GO) test -v ./...
+
+# Run tests with coverage
+.PHONY: test-coverage
+test-coverage:
+	@echo "Running tests with coverage..."
+	$(GO) test -v -coverprofile=coverage.out ./...
+	$(GO) tool cover -html=coverage.out -o coverage.html
+
+# Lint the code
+.PHONY: lint
+lint:
+	@echo "Linting code..."
+	golangci-lint run
+
+# Format the code
+.PHONY: fmt
+fmt:
+	@echo "Formatting code..."
+	$(GO) fmt ./...
+
+# Generate protobuf code
+.PHONY: proto-gen
+proto-gen:
+	@echo "Generating protobuf code..."
+	buf generate
+
+# Initialize a new node
+.PHONY: init-node
+init-node:
+	@echo "Initializing new node..."
+	./$(BUILD_DIR)/$(BINARY_NAME) init mynode --chain-id fluentum-local
+
+# Start the node
+.PHONY: start
+start:
+	@echo "Starting node..."
+	./$(BUILD_DIR)/$(BINARY_NAME) start
+
+# Start the node in development mode
+.PHONY: start-dev
+start-dev:
+	@echo "Starting node in development mode..."
+	./$(BUILD_DIR)/$(BINARY_NAME) start --log_level debug
+
+# Create a new account
+.PHONY: keys-add
+keys-add:
+	@echo "Adding new account..."
+	./$(BUILD_DIR)/$(BINARY_NAME) keys add $(name)
+
+# List accounts
+.PHONY: keys-list
+keys-list:
+	@echo "Listing accounts..."
+	./$(BUILD_DIR)/$(BINARY_NAME) keys list
+
+# Show account address
+.PHONY: keys-show
+keys-show:
+	@echo "Showing account address..."
+	./$(BUILD_DIR)/$(BINARY_NAME) keys show $(name) -a
+
+# Add genesis account
+.PHONY: add-genesis-account
+add-genesis-account:
+	@echo "Adding genesis account..."
+	./$(BUILD_DIR)/$(BINARY_NAME) add-genesis-account $(address) $(coins)
+
+# Collect genesis transactions
+.PHONY: collect-gentxs
+collect-gentxs:
+	@echo "Collecting genesis transactions..."
+	./$(BUILD_DIR)/$(BINARY_NAME) collect-gentxs
+
+# Validate genesis
+.PHONY: validate-genesis
+validate-genesis:
+	@echo "Validating genesis..."
+	./$(BUILD_DIR)/$(BINARY_NAME) validate-genesis
+
+# Export app state
+.PHONY: export
+export:
+	@echo "Exporting app state..."
+	./$(BUILD_DIR)/$(BINARY_NAME) export
+
+# Reset the node
+.PHONY: reset
+reset:
+	@echo "Resetting node..."
+	./$(BUILD_DIR)/$(BINARY_NAME) tendermint unsafe-reset-all
+
+# Show node status
+.PHONY: status
+status:
+	@echo "Showing node status..."
+	./$(BUILD_DIR)/$(BINARY_NAME) status
+
+# Query account balance
+.PHONY: query-balance
+query-balance:
+	@echo "Querying account balance..."
+	./$(BUILD_DIR)/$(BINARY_NAME) query bank balances $(address)
+
+# Send tokens
+.PHONY: tx-send
+tx-send:
+	@echo "Sending tokens..."
+	./$(BUILD_DIR)/$(BINARY_NAME) tx bank send $(from) $(to) $(amount) --chain-id $(chain-id) -y
+
+# Create Fluentum record
+.PHONY: tx-create-fluentum
+tx-create-fluentum:
+	@echo "Creating Fluentum record..."
+	./$(BUILD_DIR)/$(BINARY_NAME) tx fluentum create-fluentum $(index) $(title) $(body) --chain-id $(chain-id) -y
+
+# List Fluentum records
+.PHONY: query-list-fluentum
+query-list-fluentum:
+	@echo "Listing Fluentum records..."
+	./$(BUILD_DIR)/$(BINARY_NAME) query fluentum list-fluentum
+
+# Show Fluentum record
+.PHONY: query-show-fluentum
+query-show-fluentum:
+	@echo "Showing Fluentum record..."
+	./$(BUILD_DIR)/$(BINARY_NAME) query fluentum show-fluentum $(index)
+
+# Query Fluentum parameters
+.PHONY: query-fluentum-params
+query-fluentum-params:
+	@echo "Querying Fluentum parameters..."
+	./$(BUILD_DIR)/$(BINARY_NAME) query fluentum params
+
+# Docker build
+.PHONY: docker-build
+docker-build:
+	@echo "Building Docker image..."
+	$(DOCKER) build -t fluentum:latest .
+
+# Docker run
+.PHONY: docker-run
+docker-run:
+	@echo "Running Docker container..."
+	$(DOCKER) run -p 26656:26656 -p 26657:26657 -p 1317:1317 fluentum:latest
+
+# Docker stop
+.PHONY: docker-stop
+docker-stop:
+	@echo "Stopping Docker container..."
+	$(DOCKER) stop $$($(DOCKER) ps -q --filter ancestor=fluentum:latest)
+
+# Help
+.PHONY: help
+help:
+	@echo "Available targets:"
+	@echo "  build                    - Build the binary"
+	@echo "  install                  - Install the binary"
+	@echo "  clean                    - Clean build artifacts"
+	@echo "  test                     - Run tests"
+	@echo "  test-coverage            - Run tests with coverage"
+	@echo "  lint                     - Lint the code"
+	@echo "  fmt                      - Format the code"
+	@echo "  proto-gen                - Generate protobuf code"
+	@echo "  init-node                - Initialize a new node"
+	@echo "  start                    - Start the node"
+	@echo "  start-dev                - Start the node in development mode"
+	@echo "  keys-add name=NAME       - Add a new account"
+	@echo "  keys-list                - List accounts"
+	@echo "  keys-show name=NAME      - Show account address"
+	@echo "  add-genesis-account address=ADDR coins=COINS - Add genesis account"
+	@echo "  collect-gentxs           - Collect genesis transactions"
+	@echo "  validate-genesis         - Validate genesis"
+	@echo "  export                   - Export app state"
+	@echo "  reset                    - Reset the node"
+	@echo "  status                   - Show node status"
+	@echo "  query-balance address=ADDR - Query account balance"
+	@echo "  tx-send from=FROM to=TO amount=AMT chain-id=CHAIN - Send tokens"
+	@echo "  tx-create-fluentum index=IDX title=TITLE body=BODY chain-id=CHAIN - Create Fluentum record"
+	@echo "  query-list-fluentum      - List Fluentum records"
+	@echo "  query-show-fluentum index=IDX - Show Fluentum record"
+	@echo "  query-fluentum-params    - Query Fluentum parameters"
+	@echo "  docker-build             - Build Docker image"
+	@echo "  docker-run               - Run Docker container"
+	@echo "  docker-stop              - Stop Docker container"
+	@echo "  help                     - Show this help message"

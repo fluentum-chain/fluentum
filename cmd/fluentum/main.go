@@ -1,24 +1,55 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"os"
-	"os/signal"
-	"syscall"
+	"path/filepath"
 
-	"github.com/fluentum-chain/fluentum/fluentum/abci/myapp"
-
-	"github.com/fluentum-chain/fluentum/config"
-	"github.com/fluentum-chain/fluentum/libs/log"
-	"github.com/fluentum-chain/fluentum/node"
-	"github.com/fluentum-chain/fluentum/proxy"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/config"
+	"github.com/cosmos/cosmos-sdk/client/debug"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/snapshots"
+	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
+	"github.com/cosmos/cosmos-sdk/store"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
+	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/tendermint/tendermint/libs/log"
+	dbm "github.com/tendermint/tm-db"
+
+	"github.com/fluentum-chain/fluentum/fluentum/app"
+	"github.com/fluentum-chain/fluentum/fluentum/app/params"
 )
 
-var (
-	// RootCmd is the root command for Fluentum Core
-	RootCmd = &cobra.Command{
-		Use:   "fluentum",
+// NewRootCmd creates a new root command for the Fluentum application.
+func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
+	encodingConfig := app.MakeEncodingConfig()
+
+	initClientCtx := client.Context{}.
+		WithCodec(encodingConfig.Marshaler).
+		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+		WithTxConfig(encodingConfig.TxConfig).
+		WithLegacyAmino(encodingConfig.Amino).
+		WithInput(os.Stdin).
+		WithAccountRetriever(types.AccountRetriever{}).
+		WithHomeDir(app.DefaultNodeHome).
+		WithViper("")
+
+	rootCmd := &cobra.Command{
+		Use:   "fluentumd",
 		Short: "Fluentum Core - A hybrid consensus blockchain",
 		Long: `Fluentum Core is a blockchain platform that combines DPoS and ZK-Rollups
 for high throughput and security. It features:
@@ -27,97 +58,210 @@ for high throughput and security. It features:
 - Quantum-resistant signatures
 - Cross-chain gas abstraction
 - Hybrid liquidity routing`,
-		RunE: runNode,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// set the default command outputs
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
+
+			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
+			if err != nil {
+				return err
+			}
+
+			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
+				return err
+			}
+
+			return server.InterceptConfigsPreRunHandler(cmd, "", nil, nil)
+		},
 	}
 
-	// Configuration variables
-	homeDir string
-	p2pAddr string
-	rpcAddr string
-)
+	initRootCmd(rootCmd, encodingConfig)
 
-func init() {
-	// Add version command
-	RootCmd.AddCommand(&cobra.Command{
-		Use:   "version",
-		Short: "Show version information",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Fluentum Core v0.1.0\n")
-		},
-	})
-
-	// Add init command
-	RootCmd.AddCommand(&cobra.Command{
-		Use:   "init",
-		Short: "Initialize a new Fluentum node",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Initializing Fluentum node...")
-			// TODO: Implement node initialization
-			fmt.Println("Node initialized successfully!")
-		},
-	})
-
-	// Add testnet command
-	RootCmd.AddCommand(&cobra.Command{
-		Use:   "testnet",
-		Short: "Generate a testnet configuration",
-		RunE:  runTestnet,
-	})
-
-	// Add configuration flags
-	RootCmd.PersistentFlags().StringVar(&homeDir, "home", ".fluentum", "directory for config and data")
-	RootCmd.PersistentFlags().StringVar(&p2pAddr, "p2p.laddr", "tcp://0.0.0.0:26656", "node listen address")
-	RootCmd.PersistentFlags().StringVar(&rpcAddr, "rpc.laddr", "tcp://0.0.0.0:26657", "RPC listen address")
+	return rootCmd, encodingConfig
 }
 
-func runNode(cmd *cobra.Command, args []string) error {
-	fmt.Printf("Starting Fluentum Core node...\n")
-	fmt.Printf("Home directory: %s\n", homeDir)
-	fmt.Printf("P2P address: %s\n", p2pAddr)
-	fmt.Printf("RPC address: %s\n", rpcAddr)
+func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
+	cfg := sdk.GetConfig()
+	cfg.Seal()
 
-	// 1. Load Tendermint config
-	cfg := config.DefaultConfig()
-	cfg.SetRoot(homeDir)
-
-	// 2. Create the custom ABCI application
-	app := myapp.NewApplication()
-
-	// 3. Create Tendermint node
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-	n, err := node.NewNode(
-		cfg,
-		nil, // privValidator: nil uses default file-based
-		nil, // nodeKey: nil uses default file-based
-		proxy.NewLocalClientCreator(app),
-		node.DefaultGenesisDocProviderFunc(cfg),
-		node.DefaultDBProvider,
-		node.DefaultMetricsProvider(cfg.Instrumentation),
-		logger,
+	rootCmd.AddCommand(
+		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.MigrateGenesisCmd(),
+		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		AddGenesisAccountCmd(app.DefaultNodeHome),
+		debug.Cmd(),
+		config.Cmd(),
 	)
+
+	a := appCreator{encodingConfig}
+	server.AddCommands(rootCmd, app.DefaultNodeHome, a.newApp, a.appExport, addModuleInitFlags)
+
+	// add keybase, auxiliary RPC, query, and tx child commands
+	rootCmd.AddCommand(
+		rpc.StatusCommand(),
+		queryCommand(),
+		txCommand(),
+		keys.Commands(app.DefaultNodeHome),
+	)
+}
+
+func addModuleInitFlags(startCmd *cobra.Command) {
+	crisis.AddModuleInitFlags(startCmd)
+}
+
+func queryCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "query",
+		Aliases:                    []string{"q"},
+		Short:                      "Querying subcommands",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+
+	cmd.AddCommand(
+		authcmd.GetAccountCmd(),
+		rpc.ValidatorCommand(),
+		rpc.BlockCommand(),
+		authcmd.QueryTxsByEventsCmd(),
+		authcmd.QueryTxCmd(),
+	)
+
+	app.ModuleBasics.AddQueryCommands(cmd)
+	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
+
+	return cmd
+}
+
+func txCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "tx",
+		Short:                      "Transactions subcommands",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+
+	cmd.AddCommand(
+		authcmd.GetSignCommand(),
+		authcmd.GetSignBatchCommand(),
+		authcmd.GetMultiSignCommand(),
+		authcmd.GetMultiSignBatchCmd(),
+		authcmd.GetValidateSignaturesCommand(),
+		flags.LineBreak,
+		authcmd.GetBroadcastCommand(),
+		authcmd.GetEncodeCommand(),
+		authcmd.GetDecodeCommand(),
+		flags.LineBreak,
+	)
+
+	app.ModuleBasics.AddTxCommands(cmd)
+	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
+
+	return cmd
+}
+
+type appCreator struct {
+	encCfg params.EncodingConfig
+}
+
+func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	var cache sdk.MultiStorePersistentCache
+
+	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
+		cache = store.NewCommitKVStoreCacheManager()
+	}
+
+	skipUpgradeHeights := make(map[int64]bool)
+	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
+		skipUpgradeHeights[int64(h)] = true
+	}
+
+	pruningOpts, err := server.GetPruningOptionsFromFlags(appOpts)
 	if err != nil {
-		return fmt.Errorf("failed to create node: %w", err)
+		panic(err)
 	}
 
-	// 4. Start node
-	if err := n.Start(); err != nil {
-		return fmt.Errorf("failed to start node: %w", err)
+	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
+	snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir)
+	if err != nil {
+		panic(err)
 	}
-	defer n.Stop()
+	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
+	if err != nil {
+		panic(err)
+	}
 
-	fmt.Println("Node started successfully! Press Ctrl+C to stop.")
+	snapshotOptions := snapshottypes.NewSnapshotOptions(
+		cast.ToUint64(appOpts.Get(server.FlagStateSyncSnapshotInterval)),
+		cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent)),
+	)
 
-	// 5. Wait for signal
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
+	return app.New(
+		logger, db, traceStore, true, skipUpgradeHeights,
+		cast.ToString(appOpts.Get(flags.FlagHome)),
+		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
+		a.encCfg,
+		appOpts,
+		baseapp.SetPruning(pruningOpts),
+		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
+		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
+		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
+		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
+		baseapp.SetInterBlockCache(cache),
+		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
+		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
+		baseapp.SetSnapshotStore(snapshotStore),
+		baseapp.SetSnapshotOptions(snapshotOptions),
+		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
+		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagDisableIAVLFastNode))),
+	)
+}
 
-	fmt.Println("Shutting down node...")
-	return nil
+func (a appCreator) appExport(
+	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
+	appOpts servertypes.AppOptions,
+) (servertypes.ExportedApp, error) {
+	homePath, ok := appOpts.Get(flags.FlagHome).(string)
+	if !ok || homePath == "" {
+		return servertypes.ExportedApp{}, errors.New("application home is not set")
+	}
+
+	viperAppOpts, ok := appOpts.(*viper.Viper)
+	if !ok {
+		return servertypes.ExportedApp{}, errors.New("appOpts is not viper.Viper")
+	}
+
+	// overwrite the FlagInvCheckPeriod
+	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
+	appOpts = viperAppOpts
+
+	var FluentumApp *app.App
+	if height != -1 {
+		FluentumApp = app.New(logger, db, traceStore, false, map[int64]bool{}, homePath, uint(1), a.encCfg, appOpts)
+
+		if err := FluentumApp.LoadHeight(height); err != nil {
+			return servertypes.ExportedApp{}, err
+		}
+	} else {
+		FluentumApp = app.New(logger, db, traceStore, true, map[int64]bool{}, homePath, uint(1), a.encCfg, appOpts)
+	}
+
+	return FluentumApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
 }
 
 func main() {
-	if err := RootCmd.Execute(); err != nil {
+	rootCmd, _ := NewRootCmd()
+
+	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

@@ -10,6 +10,21 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/tendermint/tendermint v0.35.9
 	golang.org/x/crypto v0.39.0
+	github.com/cosmos/cosmos-sdk v0.50.0
+	github.com/cosmos/go-bip39 v1.0.0
+	github.com/cosmos/ibc-go/v8 v8.0.0
+	github.com/cosmos/cosmos-proto v1.0.0-beta.3
+	cosmossdk.io/api v0.7.2
+	cosmossdk.io/core v0.11.0
+	cosmossdk.io/depinject v1.0.0-alpha.4
+	cosmossdk.io/errors v1.0.1
+	cosmossdk.io/math v1.1.3
+	cosmossdk.io/store v1.0.2
+	cosmossdk.io/x/evidence v0.1.0
+	cosmossdk.io/x/feegrant v0.1.0
+	cosmossdk.io/x/nft v0.1.0
+	cosmossdk.io/x/upgrade v0.1.0
+	cosmossdk.io/x/vesting v0.1.0
 )
 
 require (
@@ -92,7 +107,6 @@ require (
 	github.com/charithe/durationcheck v0.0.9 // indirect
 	github.com/chavacava/garif v0.0.0-20220316182200-5cad0b5181d4 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
-	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/daixiang0/gci v0.4.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
