@@ -11,15 +11,10 @@ require (
 	github.com/tendermint/tendermint v0.35.9
 	golang.org/x/crypto v0.39.0
 	github.com/cosmos/cosmos-sdk v0.50.0
+	cosmossdk.io/api v0.7.2
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v8 v8.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	cosmossdk.io/api v0.7.2
-	cosmossdk.io/core v0.11.0
-	cosmossdk.io/depinject v1.0.0-alpha.4
-	cosmossdk.io/errors v1.0.1
-	cosmossdk.io/math v1.1.3
-	cosmossdk.io/store v1.0.2
 )
 
 require (
