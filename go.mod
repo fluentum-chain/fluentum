@@ -20,11 +20,6 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.1.3
 	cosmossdk.io/store v1.0.2
-	cosmossdk.io/x/evidence v0.1.0
-	cosmossdk.io/x/feegrant v0.1.0
-	cosmossdk.io/x/nft v0.1.0
-	cosmossdk.io/x/upgrade v0.1.0
-	cosmossdk.io/x/vesting v0.1.0
 )
 
 require (
