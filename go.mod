@@ -10,7 +10,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/tendermint/tendermint v0.35.9
 	golang.org/x/crypto v0.39.0
-	github.com/cosmos/cosmos-sdk v0.47.5
+	github.com/cosmos/cosmos-sdk v0.50.6
 	cosmossdk.io/api v0.3.1
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v7 v7.3.1
@@ -279,5 +279,4 @@ replace (
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 	github.com/cosmos/cosmos-sdk/api => cosmossdk.io/api v0.7.2
 	github.com/cosmos/cosmos-sdk/core => cosmossdk.io/core v0.11.0
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.6
 )
