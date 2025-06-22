@@ -408,6 +408,22 @@ func RegisterQueryServer(srv interface{}, keeper interface{}) {
 	// Stub implementation
 }
 
+// Key prefixes for the store
+const (
+	FluentumKey      = "Fluentum-value-"
+	FluentumCountKey = "Fluentum-count-"
+)
+
+// GetFluentumKey returns the key for a fluentum
+func GetFluentumKey(index string) []byte {
+	return []byte(FluentumKey + index)
+}
+
+// KeyPrefix returns the key prefix for a given key
+func KeyPrefix(p string) []byte {
+	return []byte(p)
+}
+
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
 func (m *GenesisState) String() string { return "GenesisState" }
 func (m *GenesisState) ProtoMessage()  {}
