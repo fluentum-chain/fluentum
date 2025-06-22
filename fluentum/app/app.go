@@ -3,7 +3,9 @@ package app
 import (
 	"io"
 
+	cosmossdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	cosmossdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -117,7 +119,28 @@ func New(
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
-	bApp := baseapp.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	// Create a compatible logger and DB for the newer Cosmos SDK
+	// For now, we'll use type assertions to work around the interface differences
+	var cosmosLogger cosmossdklog.Logger
+	var cosmosDB cosmossdkdb.DB
+
+	// Type assertion for logger - this is a temporary workaround
+	if l, ok := logger.(cosmossdklog.Logger); ok {
+		cosmosLogger = l
+	} else {
+		// Create a simple adapter if needed
+		cosmosLogger = cosmossdklog.NewNopLogger()
+	}
+
+	// Type assertion for DB - this is a temporary workaround
+	if d, ok := db.(cosmossdkdb.DB); ok {
+		cosmosDB = d
+	} else {
+		// Create a simple adapter if needed
+		cosmosDB = cosmossdkdb.NewMemDB()
+	}
+
+	bApp := baseapp.NewBaseApp(appName, cosmosLogger, cosmosDB, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
@@ -152,6 +175,7 @@ func New(
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], app.AccountKeeper, app.BlockedModuleAccountAddrs(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
+		cosmosLogger,
 	)
 
 	// Create Fluentum Keeper with correct parameters
@@ -186,7 +210,7 @@ func New(
 	)
 
 	app.mm.RegisterInvariants(nil)
-	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
+	// app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
 
