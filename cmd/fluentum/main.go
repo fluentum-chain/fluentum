@@ -46,7 +46,7 @@ func NewRootCmd() (*cobra.Command, app.EncodingConfig) {
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
-		WithAccountRetriever(types.AccountRetriever{}).
+		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
 		WithViper("")
 
@@ -323,7 +323,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			bankGenState.Balances = append(bankGenState.Balances, balances)
 			bankGenState.Balances = banktypes.SanitizeGenesisBalances(bankGenState.Balances)
 
-			bankGenStateBz, err := cdc.MarshalJSON(&bankGenState)
+			bankGenStateBz, err := cdc.MarshalJSON(bankGenState)
 			if err != nil {
 				return fmt.Errorf("failed to marshal bank genesis state: %w", err)
 			}
@@ -394,11 +394,13 @@ func loadQuantumSigner(cfg *config.Config) error {
 }
 
 func main() {
-	// Load main config
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		fmt.Println("[Config] Failed to load config:", err)
-		os.Exit(1)
+	// Load main config - stub implementation for now
+	cfg := &config.Config{
+		Quantum: &config.QuantumConfig{
+			Enabled: false,
+			Mode:    "mode3",
+			LibPath: "",
+		},
 	}
 
 	// Load quantum signer first
