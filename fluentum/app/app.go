@@ -183,7 +183,7 @@ func New(
 	bankStore = nil    // TODO: implement proper adapter
 
 	// Create address codec - using a simple implementation
-	addressCodec := SimpleAddressCodec{prefix: sdk.GetConfig().GetBech32AccountAddrPrefix()}
+	addressCodec := SimpleAddressCodec{Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix()}
 
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, accountStore, authtypes.ProtoBaseAccount, maccPerms,
@@ -447,7 +447,7 @@ func (b BankKeeperAdapter) GetBalance(ctx sdk.Context, addr sdk.AccAddress, deno
 
 // Simple address codec implementation
 type SimpleAddressCodec struct {
-	prefix string
+	Prefix string
 }
 
 func (c SimpleAddressCodec) StringToBytes(text string) ([]byte, error) {
