@@ -8,7 +8,6 @@ require (
 	github.com/iden3/go-merkletree v0.1.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.10.0
-	github.com/tendermint/tendermint v0.35.9
 	golang.org/x/crypto v0.39.0
 	github.com/cosmos/cosmos-sdk v0.50.6
 	github.com/cosmos/go-bip39 v1.0.0
@@ -50,7 +49,6 @@ require (
 	github.com/snikch/goodman v0.0.0-20171125024755-10e37e294daa
 	github.com/spf13/viper v1.17.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
-	github.com/tendermint/tm-db v0.6.6
 	github.com/vektra/mockery/v2 v2.14.0
 	golang.org/x/net v0.40.0
 	gonum.org/v1/gonum v0.8.2
@@ -58,6 +56,11 @@ require (
 	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.5
+	// CometBFT dependencies
+	github.com/cometbft/cometbft v0.38.6
+	github.com/cometbft/cometbft-db v0.9.0
+	// Confix for config migration
+	github.com/cometbft/confix v0.1.0
 	4d63.com/gochecknoglobals v0.1.0 // indirect
 	cloud.google.com/go/compute v1.23.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -265,8 +268,6 @@ require (
 	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20211214103731-d0ef000c54e5 // indirect
-	github.com/cometbft/cometbft v0.38.6
-	github.com/cometbft/cometbft-db v0.9.0
 )
 
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
@@ -277,7 +278,7 @@ replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 
 replace (
-	// If Fluentum still relies on Tendermint (legacy)
+	// Remove old Tendermint dependencies
 	// github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.35.9
 	// github.com/tendermint/tm-db => github.com/tendermint/tm-db v0.6.6
 

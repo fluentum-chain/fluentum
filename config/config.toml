@@ -3,7 +3,7 @@
 
 # NOTE: Any path below can be absolute (e.g. "/var/myawesomeapp/data") or
 # relative to the home directory (e.g. "data"). The home directory is
-# "$HOME/.tendermint" by default, but could be changed via $TMHOME env variable
+# "$HOME/.cometbft" by default, but could be changed via $CMTHOME env variable
 # or --home cmd flag.
 
 #######################################################################
@@ -11,7 +11,7 @@
 #######################################################################
 
 # TCP or UNIX socket address of the ABCI application,
-# or the name of an ABCI application compiled in with the Tendermint binary
+# or the name of an ABCI application compiled in with the CometBFT binary
 proxy_app = "tcp://127.0.0.1:26658"
 
 # A custom human readable name for this node
@@ -22,8 +22,8 @@ moniker = "anonymous"
 # and verifying their commits
 fast_sync = true
 
-# Database backend: goleveldb | cleveldb | boltdb | rocksdb | badgerdb
-# * goleveldb (github.com/syndtr/goleveldb - most popular implementation)
+# Database backend: pebble | cleveldb | boltdb | rocksdb | badgerdb
+# * pebble (github.com/cockroachdb/pebble - recommended for CometBFT)
 #   - pure go
 #   - stable
 # * cleveldb (uses levigo wrapper)
@@ -63,7 +63,7 @@ priv_validator_key_file = "config/priv_validator_key.json"
 # Path to the JSON file containing the last sign state of a validator
 priv_validator_state_file = "data/priv_validator_state.json"
 
-# TCP or UNIX socket address for Tendermint to listen on for
+# TCP or UNIX socket address for CometBFT to listen on for
 # connections from an external PrivValidator process
 priv_validator_laddr = ""
 
@@ -172,20 +172,20 @@ max_body_bytes = 1000000
 max_header_bytes = 1048576
 
 # The path to a file containing certificate that is used to create the HTTPS server.
-# Might be either absolute path or path related to Tendermint's config directory.
+# Might be either absolute path or path related to CometBFT's config directory.
 #
 # If the certificate is signed by a certificate authority,
 # the certFile should be the concatenation of the server's certificate, any intermediates,
 # and the CA's certificate.
 #
-# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server.
+# NOTE: both tls_cert_file and tls_key_file must be present for CometBFT to create HTTPS server.
 # Otherwise, HTTP server is run.
 tls_cert_file = ""
 
 # The path to a file containing matching private key that is used to create the HTTPS server.
-# Might be either absolute path or path related to tendermint's config directory.
+# Might be either absolute path or path related to CometBFT's config directory.
 #
-# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server.
+# NOTE: both tls_cert_file and tls_key_file must be present for CometBFT to create HTTPS server.
 # Otherwise, HTTP server is run.
 tls_key_file = ""
 
@@ -274,22 +274,36 @@ dial_timeout = 3s
 [mempool]
 
 # Mempool version to use:
-#   1) "v0" (default) - FIFO mempool.
-#   2) "v1" - prioritized mempool.
-version = "v0"
+#  1) "v0" - (default) FIFO mempool.
+#  2) "v1" - prioritized mempool.
+#  3) "nop" - no mempool (transactions are managed by the application)
+# WARNING: There's a known memory leak with the prioritized mempool
+# that the team are working on. Read more here:
+# https://github.com/fluentum-chain/fluentum/issues/8775
+version = "nop"
 
-# recheck = true
-# broadcast = true
-# wal_dir = ""
+# Recheck enables rechecking of transactions in the mempool after a block
+# is committed. This is disabled by default as it can be expensive.
+recheck = false
+
+# Broadcast enables broadcasting of transactions to other peers.
+# This is disabled by default when using nop mempool.
+broadcast = false
+
+# WalDir sets the location of the write-ahead log files.
+# If not set, WAL files are stored in the data directory.
+wal_dir = ""
 
 # Maximum number of transactions in the mempool
-size = 5000
+size = 10000
 
-# Limit the total size of all txs in the mempool. This only accounts for raw transactions (e.g. given 1MB transactions and max_txs_bytes=5MB, mempool will only accept 5 transactions).
+# Limit the total size of all txs in the mempool.
+# This only accounts for raw transactions (e.g. given 1MB transactions and
+# max_txs_bytes=5MB, mempool will only accept 5 transactions).
 max_txs_bytes = 1073741824
 
 # Size of the cache (used to filter transactions we saw earlier) in transactions
-cache_size = 10000
+cache_size = 100000
 
 # Do not remove invalid transactions from the cache (default: false)
 # Set to true if it's not possible for any invalid transaction to become
@@ -311,7 +325,7 @@ max_batch_bytes = 0
 # Note, if TTLNumBlocks is also defined, a transaction will be removed if it
 # has existed in the mempool at least TTLNumBlocks number of blocks or if it's
 # insertion time into the mempool is beyond TTLDuration.
-ttl-duration = 0s
+ttl-duration = "0s"
 
 # TTLNumBlocks, if non-zero, defines the maximum number of blocks a transaction
 # can exist for in the mempool.
@@ -394,7 +408,8 @@ timeout_precommit_delta = "500ms"
 # How long we wait after committing a block, before starting on the new
 # height (this gives us a chance to receive some more precommits, even
 # though we already have +2/3).
-timeout_commit = "1s"
+# NOTE: when modifying, make sure to update time_iota_ms genesis parameter
+timeout_commit = "5s"
 
 # How many blocks to look back to check existence of the node's consensus votes before joining consensus
 # When non-zero, the node will panic upon restart
@@ -407,14 +422,22 @@ skip_timeout_commit = false
 
 # EmptyBlocks mode and possible interval between empty blocks
 create_empty_blocks = true
-create_empty_blocks_interval = 0s
+create_empty_blocks_interval = "0s"
 
 # Reactor sleep duration parameters
 peer_gossip_sleep_duration = "100ms"
 peer_query_maj23_sleep_duration = "2s"
 
 # Signature scheme to use for consensus signing (e.g., "ecdsa", "ed25519", "quantum")
-signature_scheme = "ecdsa"
+signature_scheme = "ed25519"
+
+# Enable Proposer-Based Timestamps (PBTS)
+# This allows the proposer to include a timestamp in the block header
+# instead of using the median of the previous block's timestamps
+pbts_enable = true
+
+# PBTS timeout for proposer to include timestamp
+pbts_timeout = "2s"
 
 #######################################################
 ###         Storage Configuration Options           ###

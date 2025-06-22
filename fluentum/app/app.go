@@ -623,3 +623,25 @@ func (app *App) ProcessProposal(req abci.RequestProcessProposal) abci.ResponsePr
 	}
 	return abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}
 }
+
+// ExtendVote implements the ABCI++ ExtendVote method for CometBFT.
+// This allows the application to extend votes with custom data for side transactions.
+func (app *App) ExtendVote(req abci.RequestExtendVote) abci.ResponseExtendVote {
+	// For now, return an empty vote extension
+	// In a real implementation, you would add custom data here
+	// such as side transaction information, quantum signatures, etc.
+	return abci.ResponseExtendVote{
+		VoteExtension: []byte{}, // Empty for now, can be extended with custom data
+	}
+}
+
+// VerifyVoteExtension implements the ABCI++ VerifyVoteExtension method for CometBFT.
+// This allows the application to verify vote extensions from other validators.
+func (app *App) VerifyVoteExtension(req abci.RequestVerifyVoteExtension) abci.ResponseVerifyVoteExtension {
+	// For now, accept all vote extensions
+	// In a real implementation, you would verify the custom data here
+	// such as validating quantum signatures, side transaction data, etc.
+	return abci.ResponseVerifyVoteExtension{
+		Status: abci.ResponseVerifyVoteExtension_ACCEPT,
+	}
+}
