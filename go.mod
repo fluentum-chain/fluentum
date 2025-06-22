@@ -273,6 +273,7 @@ replace github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcre
 replace github.com/fluentum-chain/dilithium => ./stubs/dilithium
 replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.2
+replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.1
 
 replace (
 	// If Fluentum still relies on Tendermint (legacy)
