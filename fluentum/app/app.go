@@ -187,7 +187,7 @@ func New(
 
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, accountStore, authtypes.ProtoBaseAccount, maccPerms,
-		addressCodec, authtypes.NewModuleAddress(authtypes.ModuleName).String(),
+		addressCodec, authtypes.NewModuleAddress(authtypes.ModuleName).String(), "fluentum",
 	)
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
