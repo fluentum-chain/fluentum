@@ -525,7 +525,85 @@ func NewKVStoreServiceAdapter(storeKey *storetypes.KVStoreKey) cosmossdkstore.KV
 func (a *KVStoreServiceAdapter) OpenKVStore(ctx context.Context) cosmossdkstore.KVStore {
 	// Convert context.Context to sdk.Context for the underlying store
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return storetypes.KVStoreWrapper{Store: sdkCtx.KVStore(a.storeKey)}
+	underlyingStore := sdkCtx.KVStore(a.storeKey)
+	return &KVStoreWrapper{store: underlyingStore}
+}
+
+// KVStoreWrapper wraps the underlying sdk.KVStore to ensure it matches the new interface
+type KVStoreWrapper struct {
+	store sdk.KVStore
+}
+
+// Get implements cosmossdkstore.KVStore
+func (w *KVStoreWrapper) Get(key []byte) []byte {
+	return w.store.Get(key)
+}
+
+// Has implements cosmossdkstore.KVStore
+func (w *KVStoreWrapper) Has(key []byte) bool {
+	return w.store.Has(key)
+}
+
+// Set implements cosmossdkstore.KVStore
+func (w *KVStoreWrapper) Set(key, value []byte) {
+	w.store.Set(key, value)
+}
+
+// Delete implements cosmossdkstore.KVStore - returns error as required by new interface
+func (w *KVStoreWrapper) Delete(key []byte) error {
+	w.store.Delete(key)
+	return nil
+}
+
+// Iterator implements cosmossdkstore.KVStore
+func (w *KVStoreWrapper) Iterator(start, end []byte) cosmossdkstore.Iterator {
+	return &IteratorWrapper{iterator: w.store.Iterator(start, end)}
+}
+
+// ReverseIterator implements cosmossdkstore.KVStore
+func (w *KVStoreWrapper) ReverseIterator(start, end []byte) cosmossdkstore.Iterator {
+	return &IteratorWrapper{iterator: w.store.ReverseIterator(start, end)}
+}
+
+// IteratorWrapper wraps the underlying sdk.Iterator to ensure it matches the new interface
+type IteratorWrapper struct {
+	iterator sdk.Iterator
+}
+
+// Domain implements cosmossdkstore.Iterator
+func (w *IteratorWrapper) Domain() ([]byte, []byte) {
+	return w.iterator.Domain()
+}
+
+// Valid implements cosmossdkstore.Iterator
+func (w *IteratorWrapper) Valid() bool {
+	return w.iterator.Valid()
+}
+
+// Next implements cosmossdkstore.Iterator
+func (w *IteratorWrapper) Next() {
+	w.iterator.Next()
+}
+
+// Key implements cosmossdkstore.Iterator
+func (w *IteratorWrapper) Key() []byte {
+	return w.iterator.Key()
+}
+
+// Value implements cosmossdkstore.Iterator
+func (w *IteratorWrapper) Value() []byte {
+	return w.iterator.Value()
+}
+
+// Error implements cosmossdkstore.Iterator
+func (w *IteratorWrapper) Error() error {
+	return w.iterator.Error()
+}
+
+// Close implements cosmossdkstore.Iterator - returns error as required by new interface
+func (w *IteratorWrapper) Close() error {
+	w.iterator.Close()
+	return nil
 }
 
 // ExportAppStateAndValidators exports the state of the application for a genesis file.
