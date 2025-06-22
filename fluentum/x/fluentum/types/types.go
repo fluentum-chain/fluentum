@@ -1,8 +1,11 @@
 package types
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/gogo/protobuf/proto"
 )
 
 const (
@@ -23,6 +26,9 @@ var (
 	_ sdk.Msg = &MsgCreateFluentum{}
 	_ sdk.Msg = &MsgUpdateFluentum{}
 	_ sdk.Msg = &MsgDeleteFluentum{}
+
+	// ModuleCdc defines the module codec
+	ModuleCdc = codec.NewProtoCodec(types.NewInterfaceRegistry())
 )
 
 // MsgCreateFluentum defines the CreateFluentum message
@@ -31,6 +37,19 @@ type MsgCreateFluentum struct {
 	Index   string `protobuf:"bytes,2,opt,name=index,proto3" json:"index,omitempty"`
 	Title   string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	Body    string `protobuf:"bytes,4,opt,name=body,proto3" json:"body,omitempty"`
+}
+
+// ProtoMessage implements proto.Message
+func (msg *MsgCreateFluentum) ProtoMessage() {}
+
+// Reset implements proto.Message
+func (msg *MsgCreateFluentum) Reset() {
+	*msg = MsgCreateFluentum{}
+}
+
+// String implements proto.Message
+func (msg *MsgCreateFluentum) String() string {
+	return proto.CompactTextString(msg)
 }
 
 // NewMsgCreateFluentum creates a new MsgCreateFluentum instance
@@ -85,6 +104,19 @@ type MsgUpdateFluentum struct {
 	Body    string `protobuf:"bytes,4,opt,name=body,proto3" json:"body,omitempty"`
 }
 
+// ProtoMessage implements proto.Message
+func (msg *MsgUpdateFluentum) ProtoMessage() {}
+
+// Reset implements proto.Message
+func (msg *MsgUpdateFluentum) Reset() {
+	*msg = MsgUpdateFluentum{}
+}
+
+// String implements proto.Message
+func (msg *MsgUpdateFluentum) String() string {
+	return proto.CompactTextString(msg)
+}
+
 // NewMsgUpdateFluentum creates a new MsgUpdateFluentum instance
 func NewMsgUpdateFluentum(creator string, index string, title string, body string) *MsgUpdateFluentum {
 	return &MsgUpdateFluentum{
@@ -135,6 +167,19 @@ type MsgDeleteFluentum struct {
 	Index   string `protobuf:"bytes,2,opt,name=index,proto3" json:"index,omitempty"`
 }
 
+// ProtoMessage implements proto.Message
+func (msg *MsgDeleteFluentum) ProtoMessage() {}
+
+// Reset implements proto.Message
+func (msg *MsgDeleteFluentum) Reset() {
+	*msg = MsgDeleteFluentum{}
+}
+
+// String implements proto.Message
+func (msg *MsgDeleteFluentum) String() string {
+	return proto.CompactTextString(msg)
+}
+
 // NewMsgDeleteFluentum creates a new MsgDeleteFluentum instance
 func NewMsgDeleteFluentum(creator string, index string) *MsgDeleteFluentum {
 	return &MsgDeleteFluentum{
@@ -183,6 +228,19 @@ type Fluentum struct {
 	Index   string `protobuf:"bytes,2,opt,name=index,proto3" json:"index,omitempty"`
 	Title   string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	Body    string `protobuf:"bytes,4,opt,name=body,proto3" json:"body,omitempty"`
+}
+
+// ProtoMessage implements proto.Message
+func (msg *Fluentum) ProtoMessage() {}
+
+// Reset implements proto.Message
+func (msg *Fluentum) Reset() {
+	*msg = Fluentum{}
+}
+
+// String implements proto.Message
+func (msg *Fluentum) String() string {
+	return proto.CompactTextString(msg)
 }
 
 // NewFluentum creates a new Fluentum instance
