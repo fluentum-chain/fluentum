@@ -182,9 +182,8 @@ func New(
 	accountStore = nil // TODO: implement proper adapter
 	bankStore = nil    // TODO: implement proper adapter
 
-	// Create address codec - using a simple string for now
-	// TODO: implement proper address codec
-	addressCodec := sdk.GetConfig().GetBech32AccountAddrPrefix()
+	// Create address codec - using a simple implementation
+	addressCodec := SimpleAddressCodec{prefix: sdk.GetConfig().GetBech32AccountAddrPrefix()}
 
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, accountStore, authtypes.ProtoBaseAccount, maccPerms,
@@ -197,11 +196,10 @@ func New(
 	)
 
 	// Create Fluentum Keeper with correct parameters
-	fluentumKeeper := fluentumkeeper.NewKeeper(
+	app.FluentumKeeper = *fluentumkeeper.NewKeeper(
 		appCodec, keys[fluentumtypes.StoreKey], keys[fluentumtypes.MemStoreKey], app.GetSubspace(fluentumtypes.ModuleName),
 		BankKeeperAdapter{app.BankKeeper},
 	)
-	app.FluentumKeeper = fluentumKeeper
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -445,4 +443,19 @@ func (b BankKeeperAdapter) SendCoinsFromModuleToModule(ctx sdk.Context, senderMo
 
 func (b BankKeeperAdapter) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin {
 	return b.Keeper.GetBalance(ctx.Context(), addr, denom)
+}
+
+// Simple address codec implementation
+type SimpleAddressCodec struct {
+	prefix string
+}
+
+func (c SimpleAddressCodec) StringToBytes(text string) ([]byte, error) {
+	// Simple implementation - just return the bytes
+	return []byte(text), nil
+}
+
+func (c SimpleAddressCodec) BytesToString(bz []byte) (string, error) {
+	// Simple implementation - just return the string
+	return string(bz), nil
 }
