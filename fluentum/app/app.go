@@ -39,6 +39,8 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum"
 	fluentumkeeper "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/keeper"
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
+
+	cosmossdkstore "cosmossdk.io/core/store"
 )
 
 const (
@@ -172,8 +174,13 @@ func New(
 	// add keepers - simplified for compatibility
 	// For now, we'll create simple store service adapters
 	// TODO: Implement proper store service adapters
-	accountStore := store.NewKVStoreService(keys[authtypes.StoreKey])
-	bankStore := store.NewKVStoreService(keys[banktypes.StoreKey])
+	var accountStore cosmossdkstore.KVStoreService
+	var bankStore cosmossdkstore.KVStoreService
+
+	// Create simple store service adapters - this is a temporary workaround
+	// In a real implementation, you would create proper adapters that implement KVStoreService
+	accountStore = cosmossdkstore.NewKVStoreService(keys[authtypes.StoreKey])
+	bankStore = cosmossdkstore.NewKVStoreService(keys[banktypes.StoreKey])
 
 	// Create address codec
 	addressCodec := cosmossdkaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
@@ -189,11 +196,10 @@ func New(
 	)
 
 	// Create Fluentum Keeper with correct parameters
-	fluentumKeeper := fluentumkeeper.NewKeeper(
+	app.FluentumKeeper = fluentumkeeper.NewKeeper(
 		appCodec, keys[fluentumtypes.StoreKey], keys[fluentumtypes.MemStoreKey], app.GetSubspace(fluentumtypes.ModuleName),
 		BankKeeperAdapter{app.BankKeeper},
 	)
-	app.FluentumKeeper = fluentumKeeper
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -437,9 +443,4 @@ func (b BankKeeperAdapter) SendCoinsFromModuleToModule(ctx sdk.Context, senderMo
 
 func (b BankKeeperAdapter) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin {
 	return b.Keeper.GetBalance(ctx.Context(), addr, denom)
-}
-
-func ValidateGenesis(gs GenesisState, cdc codec.JSONCodec, txConfig client.TxEncodingConfig) error {
-	// Implementation of ValidateGenesis function
-	return nil // Placeholder return, actual implementation needed
 }
