@@ -216,19 +216,19 @@ func (a appCreator) NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 	)
 }
 
-// AppCreator is the interface for creating new applications
-type AppCreator interface {
-	NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application
-}
-
-// AppExporter is the interface for exporting applications
-type AppExporter interface {
-	ExportApp(logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string, appOpts servertypes.AppOptions) (servertypes.ExportedApp, error)
+// CreateApp is the method that cosmos-sdk expects for AppCreator interface
+func (a appCreator) CreateApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	return a.NewApp(logger, db, traceStore, appOpts)
 }
 
 // Implement the interfaces
 func (a appCreator) ExportApp(logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string, appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
 	return a.appExport(logger, db, traceStore, height, forZeroHeight, jailAllowedAddrs, appOpts)
+}
+
+// ExportAppState is the method that cosmos-sdk might expect for AppExporter interface
+func (a appCreator) ExportAppState(logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string, appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
+	return a.ExportApp(logger, db, traceStore, height, forZeroHeight, jailAllowedAddrs, appOpts)
 }
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
