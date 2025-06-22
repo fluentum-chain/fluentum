@@ -8,6 +8,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // GenesisState represents the genesis state of the blockchain
