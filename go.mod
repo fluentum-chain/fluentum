@@ -11,7 +11,6 @@ require (
 	github.com/tendermint/tendermint v0.35.9
 	golang.org/x/crypto v0.39.0
 	github.com/cosmos/cosmos-sdk v0.50.6
-	cosmossdk.io/store v1.1.2
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
