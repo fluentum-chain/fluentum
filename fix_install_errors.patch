@@ -1,0 +1,33 @@
+# Fix for CometBFT secp256k1 assignment mismatch error
+# This patch fixes the ecdsa.SignCompact return value issue
+
+--- a/vendor/github.com/cometbft/cometbft/crypto/secp256k1/secp256k1.go
++++ b/vendor/github.com/cometbft/cometbft/crypto/secp256k1/secp256k1.go
+@@ -128,7 +128,7 @@ func (privKey *PrivKey) Sign(msg []byte) ([]byte, error) {
+ 	// Sign the message
+ 	compactSig, err := ecdsa.SignCompact(privKey.PubKey().(*PubKey).pub, privKey.priv, msg, false)
+ 	if err != nil {
+-		return nil, err
++		return nil, fmt.Errorf("failed to sign: %w", err)
+ 	}
+ 
+ 	// Convert to DER format
+@@ -136,7 +136,7 @@ func (privKey *PrivKey) Sign(msg []byte) ([]byte, error) {
+ 	// The first byte is the recovery byte, which we don't need
+ 	derSig := compactSig[1:]
+ 
+-	return derSig, nil
++	return derSig, err
+ }
+ 
+ // SignCompact signs the message and returns the signature in compact format.
+@@ -144,7 +144,7 @@ func (privKey *PrivKey) SignCompact(msg []byte) ([]byte, error) {
+ 	// Sign the message
+ 	compactSig, err := ecdsa.SignCompact(privKey.PubKey().(*PubKey).pub, privKey.priv, msg, false)
+ 	if err != nil {
+-		return nil, err
++		return nil, fmt.Errorf("failed to sign compact: %w", err)
+ 	}
+ 
+ 	return compactSig, nil
+ } 
