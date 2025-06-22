@@ -261,6 +261,11 @@ func NewFluentum(creator string, index string, title string, body string) *Fluen
 // Params defines the parameters for the module
 type Params struct{}
 
+// ParamSetPairs implements the ParamSet interface
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{}
+}
+
 // ParamKeyTable returns the parameter key table
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable()

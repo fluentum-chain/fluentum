@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strconv"
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -93,7 +94,7 @@ func (k Keeper) GetFluentum(ctx sdk.Context, index string) (val types.Fluentum, 
 // GetAllFluentum retrieves all fluentum from the store
 func (k Keeper) GetAllFluentum(ctx sdk.Context) (list []types.Fluentum) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefix(types.FluentumKey))
+	iterator := storetypes.KVStorePrefixIterator(store, types.KeyPrefix(types.FluentumKey))
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -117,7 +118,7 @@ func (k Keeper) GetFluentumCount(ctx sdk.Context) uint64 {
 	}
 
 	// Parse bytes
-	count, err := sdk.ParseUintFromString(string(bz))
+	count, err := strconv.ParseUint(string(bz), 10, 64)
 	if err != nil {
 		// Return 0 if the parsing is failed
 		return 0
@@ -130,7 +131,7 @@ func (k Keeper) GetFluentumCount(ctx sdk.Context) uint64 {
 func (k Keeper) SetFluentumCount(ctx sdk.Context, count uint64) {
 	store := ctx.KVStore(k.storeKey)
 	byteKey := types.KeyPrefix(types.FluentumCountKey)
-	bz := []byte(sdk.Uint64ToString(count))
+	bz := []byte(strconv.FormatUint(count, 10))
 	store.Set(byteKey, bz)
 }
 
