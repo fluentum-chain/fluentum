@@ -266,7 +266,7 @@ require (
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20211214103731-d0ef000c54e5 // indirect
 	github.com/cometbft/cometbft v0.38.6
-	github.com/cometbft/cometbft-db v0.11.1
+	github.com/cometbft/cometbft-db v0.10.1
 )
 
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
@@ -289,7 +289,7 @@ replace (
 
 	// Fix CometBFT version compatibility
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.38.6
-	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.11.1
+	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.10.1
 
 	// Fix secp256k1 API compatibility for CometBFT v0.38.6
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
