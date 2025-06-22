@@ -351,7 +351,7 @@ build: build-quantum
 build-quantum:
 	@echo "Building quantum signing module..."
 	@cd $(QUANTUM_SIGNING_DIR) && \
-		go build -buildmode=plugin -o ../quantum.so .
+		go build -tags=plugin -buildmode=plugin -o ../quantum.so .
 
 # Install quantum feature
 .PHONY: install-quantum
