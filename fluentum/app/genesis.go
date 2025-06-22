@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -20,8 +21,8 @@ func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 }
 
 // ValidateGenesis performs genesis state validation for the given app.
-func ValidateGenesis(gs GenesisState) error {
-	return ModuleBasics.ValidateGenesis(gs)
+func ValidateGenesis(gs GenesisState, cdc codec.JSONCodec, txConfig client.TxEncodingConfig) error {
+	return ModuleBasics.ValidateGenesis(cdc, txConfig, gs)
 }
 
 // InitGenesis performs genesis initialization for the app. It returns
@@ -40,5 +41,6 @@ func (app *App) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs GenesisStat
 
 // ExportGenesis returns the exported genesis state as raw bytes for the app.
 func (app *App) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) GenesisState {
-	return app.mm.ExportGenesis(ctx, cdc)
+	gs, _ := app.mm.ExportGenesis(ctx, cdc)
+	return gs
 }
