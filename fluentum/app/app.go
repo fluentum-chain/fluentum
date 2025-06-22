@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
+	cosmossdkaddress "cosmossdk.io/core/address"
 	cosmossdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	cosmossdkdb "github.com/cosmos/cosmos-db"
@@ -38,8 +39,6 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum"
 	fluentumkeeper "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/keeper"
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
-
-	cosmossdkstore "cosmossdk.io/core/store"
 )
 
 const (
@@ -96,7 +95,7 @@ type App struct {
 	ParamsKeeper  paramskeeper.Keeper
 
 	// Fluentum keepers
-	FluentumKeeper fluentumkeeper.Keeper
+	FluentumKeeper *fluentumkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -173,18 +172,15 @@ func New(
 	// add keepers - simplified for compatibility
 	// For now, we'll create simple store service adapters
 	// TODO: Implement proper store service adapters
-	var accountStore cosmossdkstore.KVStoreService
-	var bankStore cosmossdkstore.KVStoreService
+	accountStore := store.NewKVStoreService(keys[authtypes.StoreKey])
+	bankStore := store.NewKVStoreService(keys[banktypes.StoreKey])
 
-	// Create simple store service adapters - this is a temporary workaround
-	// In a real implementation, you would create proper adapters that implement KVStoreService
-	accountStore = nil // TODO: implement proper adapter
-	bankStore = nil    // TODO: implement proper adapter
+	// Create address codec
+	addressCodec := cosmossdkaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
 
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, accountStore, authtypes.ProtoBaseAccount, maccPerms,
-		sdk.GetConfig().GetBech32AccountAddrPrefix(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
-		sdk.GetConfig().GetBech32AccountAddrPrefix(), // address codec
+		addressCodec, authtypes.NewModuleAddress(authtypes.ModuleName).String(),
 	)
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
@@ -197,7 +193,7 @@ func New(
 		appCodec, keys[fluentumtypes.StoreKey], keys[fluentumtypes.MemStoreKey], app.GetSubspace(fluentumtypes.ModuleName),
 		BankKeeperAdapter{app.BankKeeper},
 	)
-	app.FluentumKeeper = *fluentumKeeper
+	app.FluentumKeeper = fluentumKeeper
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -441,4 +437,9 @@ func (b BankKeeperAdapter) SendCoinsFromModuleToModule(ctx sdk.Context, senderMo
 
 func (b BankKeeperAdapter) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin {
 	return b.Keeper.GetBalance(ctx.Context(), addr, denom)
+}
+
+func ValidateGenesis(gs GenesisState, cdc codec.JSONCodec, txConfig client.TxEncodingConfig) error {
+	// Implementation of ValidateGenesis function
+	return nil // Placeholder return, actual implementation needed
 }
