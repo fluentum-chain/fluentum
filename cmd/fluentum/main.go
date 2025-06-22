@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -174,13 +174,17 @@ type appCreator struct {
 	encCfg app.EncodingConfig
 }
 
-// CreateApp implements servertypes.AppCreator interface for Cosmos SDK v0.50.6
+// Ensure appCreator implements the required interfaces
+var _ types.AppCreator = (*appCreator)(nil)
+var _ types.AppExporter = (*appCreator)(nil)
+
+// CreateApp implements types.AppCreator interface for Cosmos SDK v0.50.6
 func (a appCreator) CreateApp(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) servertypes.Application {
+	appOpts types.AppOptions,
+) types.Application {
 	return app.NewFluentumApp(
 		logger,
 		db,
@@ -191,7 +195,7 @@ func (a appCreator) CreateApp(
 	)
 }
 
-// ExportApp implements servertypes.AppExporter interface for Cosmos SDK v0.50.6
+// ExportApp implements types.AppExporter interface for Cosmos SDK v0.50.6
 func (a appCreator) ExportApp(
 	logger log.Logger,
 	db dbm.DB,
@@ -199,8 +203,8 @@ func (a appCreator) ExportApp(
 	height int64,
 	forZeroHeight bool,
 	jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions,
-) (servertypes.ExportedApp, error) {
+	appOpts types.AppOptions,
+) (types.ExportedApp, error) {
 	app := app.NewFluentumApp(
 		logger,
 		db,
@@ -210,6 +214,13 @@ func (a appCreator) ExportApp(
 		a.encCfg,
 	)
 	return app.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+}
+
+// AppBlockHeight implements types.AppExporter interface for Cosmos SDK v0.50.6
+func (a appCreator) AppBlockHeight() (int64, error) {
+	// For now, return 0 as we don't have a persistent app instance
+	// In a real implementation, you would return the actual block height
+	return 0, nil
 }
 
 // loadQuantumSigner loads the quantum signer plugin if enabled in config.
