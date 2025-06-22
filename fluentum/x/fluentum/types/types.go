@@ -407,3 +407,7 @@ const QuerierRoute = ModuleName
 func RegisterQueryServer(srv interface{}, keeper interface{}) {
 	// Stub implementation
 }
+
+func (m *GenesisState) Reset()         { *m = GenesisState{} }
+func (m *GenesisState) String() string { return "GenesisState" }
+func (m *GenesisState) ProtoMessage()  {}

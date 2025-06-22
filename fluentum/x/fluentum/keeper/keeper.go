@@ -57,3 +57,17 @@ func NewKeeper(
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
+
+// NewQuerier creates a new querier for the fluentum module
+func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) interface{} {
+	return &Querier{
+		k:                k,
+		legacyQuerierCdc: legacyQuerierCdc,
+	}
+}
+
+// Querier defines the querier for the fluentum module
+type Querier struct {
+	k                Keeper
+	legacyQuerierCdc *codec.LegacyAmino
+}

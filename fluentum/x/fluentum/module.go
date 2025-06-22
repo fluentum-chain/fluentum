@@ -124,6 +124,32 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
+// ExportGenesis returns the fluentum module's exported genesis state as raw JSON bytes.
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+	genesis := types.DefaultGenesis()
+
+	genesis.FluentumList = k.GetAllFluentum(ctx)
+	genesis.FluentumCount = k.GetFluentumCount(ctx)
+	genesis.Params = k.GetParams(ctx)
+
+	return genesis
+}
+
+// InitGenesis performs the fluentum module's genesis initialization
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+	// Set all the fluentum
+	for _, elem := range genState.FluentumList {
+		k.SetFluentum(ctx, elem)
+	}
+
+	// Set fluentum count
+	k.SetFluentumCount(ctx, genState.FluentumCount)
+
+	// Set this line to prevent genesis import which overwrites this info
+	// this line is used by starport scaffolding # genesis/module/init
+	k.SetParams(ctx, genState.Params)
+}
+
 // InitGenesis performs the fluentum module's genesis initialization It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
@@ -156,3 +182,6 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 
 // IsAppModule implements the module.AppModule interface
 func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements the module.AppModule interface
+func (am AppModule) IsOnePerModuleType() {}
