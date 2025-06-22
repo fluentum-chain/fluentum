@@ -465,10 +465,9 @@ func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs
 	// Create a simple exported app structure
 	// This is a stub implementation - in a real app, you would export the actual state
 	exportedApp := servertypes.ExportedApp{
-		AppState:        make(map[string]json.RawMessage),
-		Validators:      []abci.ValidatorUpdate{},
-		Height:          0,
-		ConsensusParams: abci.ConsensusParams{},
+		AppState:   json.RawMessage("{}"),
+		Validators: nil,
+		Height:     0,
 	}
 
 	return exportedApp, nil
