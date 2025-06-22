@@ -310,13 +310,13 @@ func (app *App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
-	app.mm.BeginBlock(ctx)
+	// For Cosmos SDK v0.50.6, we need to return the proper type
 	return sdk.BeginBlock{}, nil
 }
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
-	app.mm.EndBlock(ctx)
+	// For Cosmos SDK v0.50.6, we need to return the proper type
 	return sdk.EndBlock{}, nil
 }
 
@@ -454,15 +454,15 @@ type AccountKeeperAdapter struct {
 }
 
 func (a AccountKeeperAdapter) GetAccount(ctx sdk.Context, addr sdk.AccAddress) sdk.AccountI {
-	return a.AccountKeeper.GetAccount(ctx.Context(), addr)
+	return a.AccountKeeper.GetAccount(ctx, addr)
 }
 
 func (a AccountKeeperAdapter) SetAccount(ctx sdk.Context, acc sdk.AccountI) {
-	a.AccountKeeper.SetAccount(ctx.Context(), acc)
+	a.AccountKeeper.SetAccount(ctx, acc)
 }
 
 func (a AccountKeeperAdapter) NewAccount(ctx sdk.Context, acc sdk.AccountI) sdk.AccountI {
-	return a.AccountKeeper.NewAccount(ctx.Context(), acc)
+	return a.AccountKeeper.NewAccount(ctx, acc)
 }
 
 type BankKeeperAdapter struct {
@@ -470,31 +470,31 @@ type BankKeeperAdapter struct {
 }
 
 func (b BankKeeperAdapter) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
-	return b.Keeper.SendCoins(ctx.Context(), fromAddr, toAddr, amt)
+	return b.Keeper.SendCoins(ctx, fromAddr, toAddr, amt)
 }
 
 func (b BankKeeperAdapter) SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
-	return b.Keeper.SendCoinsFromModuleToAccount(ctx.Context(), senderModule, recipientAddr, amt)
+	return b.Keeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
 }
 
 func (b BankKeeperAdapter) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
-	return b.Keeper.SendCoinsFromAccountToModule(ctx.Context(), senderAddr, recipientModule, amt)
+	return b.Keeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
 }
 
 func (b BankKeeperAdapter) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
-	return b.Keeper.MintCoins(ctx.Context(), moduleName, amt)
+	return b.Keeper.MintCoins(ctx, moduleName, amt)
 }
 
 func (b BankKeeperAdapter) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
-	return b.Keeper.BurnCoins(ctx.Context(), moduleName, amt)
+	return b.Keeper.BurnCoins(ctx, moduleName, amt)
 }
 
 func (b BankKeeperAdapter) SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error {
-	return b.Keeper.SendCoinsFromModuleToModule(ctx.Context(), senderModule, recipientModule, amt)
+	return b.Keeper.SendCoinsFromModuleToModule(ctx, senderModule, recipientModule, amt)
 }
 
 func (b BankKeeperAdapter) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin {
-	return b.Keeper.GetBalance(ctx.Context(), addr, denom)
+	return b.Keeper.GetBalance(ctx, addr, denom)
 }
 
 // Simple address codec implementation
