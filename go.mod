@@ -283,4 +283,7 @@ replace (
 	
 	// Redirect store packages to cosmossdk.io/store where they exist in newer versions
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
+	
+	// Fix CometBFT version compatibility - use a more recent version
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.39.0
 )
