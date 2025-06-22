@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
@@ -63,7 +62,14 @@ func CmdCreateFluentum() *cobra.Command {
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	// Add transaction flags - using the new approach for Cosmos SDK v0.50.6
+	cmd.Flags().String("chain-id", "", "The network chain ID")
+	cmd.Flags().String("fees", "", "Fees to pay along with transaction")
+	cmd.Flags().String("gas", "auto", "gas limit to set per-block")
+	cmd.Flags().String("gas-adjustment", "1.3", "adjustment factor to be multiplied against the estimate returned by the tx simulation")
+	cmd.Flags().String("gas-prices", "", "Gas prices in decimal format to determine the transaction fee (e.g. 0.1uatom)")
+	cmd.Flags().String("node", "tcp://localhost:26657", "Node to connect to")
+	cmd.Flags().String("output", "text", "Output format (text|json)")
 
 	return cmd
 }
@@ -71,7 +77,7 @@ func CmdCreateFluentum() *cobra.Command {
 func CmdUpdateFluentum() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-fluentum [index] [title] [body]",
-		Short: "Update a fluentum",
+		Short: "Update fluentum",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			// Get indexes
@@ -103,7 +109,14 @@ func CmdUpdateFluentum() *cobra.Command {
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	// Add transaction flags
+	cmd.Flags().String("chain-id", "", "The network chain ID")
+	cmd.Flags().String("fees", "", "Fees to pay along with transaction")
+	cmd.Flags().String("gas", "auto", "gas limit to set per-block")
+	cmd.Flags().String("gas-adjustment", "1.3", "adjustment factor to be multiplied against the estimate returned by the tx simulation")
+	cmd.Flags().String("gas-prices", "", "Gas prices in decimal format to determine the transaction fee (e.g. 0.1uatom)")
+	cmd.Flags().String("node", "tcp://localhost:26657", "Node to connect to")
+	cmd.Flags().String("output", "text", "Output format (text|json)")
 
 	return cmd
 }
@@ -111,34 +124,37 @@ func CmdUpdateFluentum() *cobra.Command {
 func CmdDeleteFluentum() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete-fluentum [index]",
-		Short: "Delete a fluentum",
+		Short: "Delete fluentum",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			index := args[0]
 
-			// Get the client context
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// Create the message
 			msg := types.NewMsgDeleteFluentum(
 				clientCtx.GetFromAddress().String(),
 				index,
 			)
 
-			// Validate the message
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			// Generate and broadcast the transaction
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	// Add transaction flags
+	cmd.Flags().String("chain-id", "", "The network chain ID")
+	cmd.Flags().String("fees", "", "Fees to pay along with transaction")
+	cmd.Flags().String("gas", "auto", "gas limit to set per-block")
+	cmd.Flags().String("gas-adjustment", "1.3", "adjustment factor to be multiplied against the estimate returned by the tx simulation")
+	cmd.Flags().String("gas-prices", "", "Gas prices in decimal format to determine the transaction fee (e.g. 0.1uatom)")
+	cmd.Flags().String("node", "tcp://localhost:26657", "Node to connect to")
+	cmd.Flags().String("output", "text", "Output format (text|json)")
 
 	return cmd
 }

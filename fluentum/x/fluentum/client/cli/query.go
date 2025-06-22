@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
 	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
@@ -50,7 +49,9 @@ func CmdQueryParams() *cobra.Command {
 		},
 	}
 
-	flags.AddQueryFlagsToCmd(cmd)
+	// Add query flags - using the new approach for Cosmos SDK v0.50.6
+	cmd.Flags().String("node", "tcp://localhost:26657", "Node to connect to")
+	cmd.Flags().String("output", "text", "Output format (text|json)")
 
 	return cmd
 }
@@ -59,6 +60,7 @@ func CmdListFluentum() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-fluentum",
 		Short: "list all fluentum",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -85,8 +87,11 @@ func CmdListFluentum() *cobra.Command {
 		},
 	}
 
-	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
-	flags.AddQueryFlagsToCmd(cmd)
+	// Add pagination flags
+	cmd.Flags().String("node", "tcp://localhost:26657", "Node to connect to")
+	cmd.Flags().String("output", "text", "Output format (text|json)")
+	cmd.Flags().Uint64("limit", 100, "Query number of fluentum per page")
+	cmd.Flags().String("page-key", "", "Query pagination page-key")
 
 	return cmd
 }
@@ -104,8 +109,10 @@ func CmdShowFluentum() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
+			argIndex := args[0]
+
 			params := &types.QueryGetFluentumRequest{
-				Index: args[0],
+				Index: argIndex,
 			}
 
 			res, err := queryClient.Fluentum(cmd.Context(), params)
@@ -117,7 +124,9 @@ func CmdShowFluentum() *cobra.Command {
 		},
 	}
 
-	flags.AddQueryFlagsToCmd(cmd)
+	// Add query flags
+	cmd.Flags().String("node", "tcp://localhost:26657", "Node to connect to")
+	cmd.Flags().String("output", "text", "Output format (text|json)")
 
 	return cmd
 }
