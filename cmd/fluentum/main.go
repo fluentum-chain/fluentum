@@ -23,7 +23,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -178,13 +177,8 @@ type appCreator struct {
 	encCfg app.EncodingConfig
 }
 
-func (a appCreator) NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	// var cache sdk.MultiStorePersistentCache // Removed - not available in v0.50.6
-
-	// if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
-	// 	cache = store.NewCommitKVStoreCacheManager()
-	// }
-
+// CreateApp implements servertypes.AppCreator interface for Cosmos SDK v0.50.6
+func (a appCreator) CreateApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
 		skipUpgradeHeights[int64(h)] = true
@@ -194,9 +188,6 @@ func (a appCreator) NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 	if err != nil {
 		panic(err)
 	}
-
-	// snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
-	// snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir) // Removed - not available in v0.50.6
 
 	return app.New(
 		logger, db, traceStore, true, skipUpgradeHeights,
@@ -209,26 +200,60 @@ func (a appCreator) NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
 		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
-		// baseapp.SetInterBlockCache(cache), // cache not defined
 		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
 		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
-		// baseapp.SetSnapshot(snapshotStore, snapshotOptions), // snapshotStore and snapshotOptions not defined
 	)
 }
 
-// CreateApp is the method that cosmos-sdk expects for AppCreator interface
-func (a appCreator) CreateApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	return a.NewApp(logger, db, traceStore, appOpts)
-}
-
-// Implement the interfaces
+// ExportApp implements servertypes.AppExporter interface for Cosmos SDK v0.50.6
 func (a appCreator) ExportApp(logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string, appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
 	return a.appExport(logger, db, traceStore, height, forZeroHeight, jailAllowedAddrs, appOpts)
 }
 
-// ExportAppState is the method that cosmos-sdk might expect for AppExporter interface
-func (a appCreator) ExportAppState(logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string, appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
-	return a.ExportApp(logger, db, traceStore, height, forZeroHeight, jailAllowedAddrs, appOpts)
+func (a appCreator) appExport(
+	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
+	appOpts servertypes.AppOptions,
+) (servertypes.ExportedApp, error) {
+	homePath, ok := appOpts.Get(flags.FlagHome).(string)
+	if !ok || homePath == "" {
+		return servertypes.ExportedApp{}, errors.New("application home is not set")
+	}
+
+	viperAppOpts, ok := appOpts.(*viper.Viper)
+	if !ok {
+		return servertypes.ExportedApp{}, errors.New("appOpts is not viper.Viper")
+	}
+
+	// overwrite the FlagInvCheckPeriod
+	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
+	appOpts = viperAppOpts
+
+	var FluentumApp *app.App
+	if height != -1 {
+		FluentumApp = app.New(logger, db, traceStore, false, map[int64]bool{}, homePath, uint(1), a.encCfg, appOpts)
+
+		if err := FluentumApp.LoadHeight(height); err != nil {
+			return servertypes.ExportedApp{}, err
+		}
+	} else {
+		FluentumApp = app.New(logger, db, traceStore, true, map[int64]bool{}, homePath, uint(1), a.encCfg, appOpts)
+	}
+
+	return FluentumApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+}
+
+// loadQuantumSigner loads the quantum signer plugin if enabled in config.
+func loadQuantumSigner(cfg *config.Config) error {
+	if !cfg.Quantum.Enabled {
+		return nil
+	}
+
+	if err := plugin.LoadQuantumSigner(cfg.Quantum.LibPath); err != nil {
+		return fmt.Errorf("failed to load quantum signer: %v", err)
+	}
+
+	fmt.Println("[Quantum] Quantum signing enabled", "mode", cfg.Quantum.Mode)
+	return nil
 }
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
@@ -252,18 +277,6 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
-				// attempt to lookup address from the keybase
-				// kb, err := client.NewKeyringFromHome(clientCtx, cmd.Flags()) // Removed - not available in v0.50.6
-				// if err != nil {
-				// 	return err
-				// }
-
-				// info, err := kb.Key(args[0])
-				// if err != nil {
-				// 	return fmt.Errorf("failed to get address from Keybase: %w", err)
-				// }
-
-				// addr = info.GetAddress()
 				return fmt.Errorf("invalid address: %s", args[0])
 			}
 
@@ -345,52 +358,6 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
-}
-
-func (a appCreator) appExport(
-	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions,
-) (servertypes.ExportedApp, error) {
-	homePath, ok := appOpts.Get(flags.FlagHome).(string)
-	if !ok || homePath == "" {
-		return servertypes.ExportedApp{}, errors.New("application home is not set")
-	}
-
-	viperAppOpts, ok := appOpts.(*viper.Viper)
-	if !ok {
-		return servertypes.ExportedApp{}, errors.New("appOpts is not viper.Viper")
-	}
-
-	// overwrite the FlagInvCheckPeriod
-	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
-	appOpts = viperAppOpts
-
-	var FluentumApp *app.App
-	if height != -1 {
-		FluentumApp = app.New(logger, db, traceStore, false, map[int64]bool{}, homePath, uint(1), a.encCfg, appOpts)
-
-		if err := FluentumApp.LoadHeight(height); err != nil {
-			return servertypes.ExportedApp{}, err
-		}
-	} else {
-		FluentumApp = app.New(logger, db, traceStore, true, map[int64]bool{}, homePath, uint(1), a.encCfg, appOpts)
-	}
-
-	return FluentumApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
-}
-
-// loadQuantumSigner loads the quantum signer plugin if enabled in config.
-func loadQuantumSigner(cfg *config.Config) error {
-	if !cfg.Quantum.Enabled {
-		return nil
-	}
-
-	if err := plugin.LoadQuantumSigner(cfg.Quantum.LibPath); err != nil {
-		return fmt.Errorf("failed to load quantum signer: %v", err)
-	}
-
-	fmt.Println("[Quantum] Quantum signing enabled", "mode", cfg.Quantum.Mode)
-	return nil
 }
 
 func main() {
