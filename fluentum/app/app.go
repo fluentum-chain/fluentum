@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 
-	cosmossdkaddress "cosmossdk.io/core/address"
 	cosmossdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	cosmossdkdb "github.com/cosmos/cosmos-db"
@@ -97,7 +96,7 @@ type App struct {
 	ParamsKeeper  paramskeeper.Keeper
 
 	// Fluentum keepers
-	FluentumKeeper *fluentumkeeper.Keeper
+	FluentumKeeper fluentumkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -179,11 +178,13 @@ func New(
 
 	// Create simple store service adapters - this is a temporary workaround
 	// In a real implementation, you would create proper adapters that implement KVStoreService
-	accountStore = cosmossdkstore.NewKVStoreService(keys[authtypes.StoreKey])
-	bankStore = cosmossdkstore.NewKVStoreService(keys[banktypes.StoreKey])
+	// For now, we'll use nil and handle this properly later
+	accountStore = nil // TODO: implement proper adapter
+	bankStore = nil    // TODO: implement proper adapter
 
-	// Create address codec
-	addressCodec := cosmossdkaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	// Create address codec - using a simple string for now
+	// TODO: implement proper address codec
+	addressCodec := sdk.GetConfig().GetBech32AccountAddrPrefix()
 
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, accountStore, authtypes.ProtoBaseAccount, maccPerms,
@@ -196,10 +197,11 @@ func New(
 	)
 
 	// Create Fluentum Keeper with correct parameters
-	app.FluentumKeeper = fluentumkeeper.NewKeeper(
+	fluentumKeeper := fluentumkeeper.NewKeeper(
 		appCodec, keys[fluentumtypes.StoreKey], keys[fluentumtypes.MemStoreKey], app.GetSubspace(fluentumtypes.ModuleName),
 		BankKeeperAdapter{app.BankKeeper},
 	)
+	app.FluentumKeeper = fluentumKeeper
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
