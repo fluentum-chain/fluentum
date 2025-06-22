@@ -144,20 +144,19 @@ func New(
 	// set the BaseApp's parameter store
 	// bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
 
-	// add keepers
+	// add keepers - simplified for compatibility
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, keys[authtypes.StoreKey], authtypes.ProtoBaseAccount, maccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
-		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 	)
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], app.AccountKeeper, app.BlockedModuleAccountAddrs(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
 	)
 
-	// Create Fluentum Keeper
+	// Create Fluentum Keeper with correct parameters
 	app.FluentumKeeper = fluentumkeeper.NewKeeper(
-		appCodec, keys[fluentumtypes.StoreKey], app.GetSubspace(fluentumtypes.ModuleName),
+		appCodec, keys[fluentumtypes.StoreKey], keys[fluentumtypes.MemStoreKey], app.GetSubspace(fluentumtypes.ModuleName),
 		app.BankKeeper,
 	)
 
@@ -165,7 +164,7 @@ func New(
 	// must be passed by reference here.
 
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.AccountKeeper, nil, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
+		genutil.NewAppModule(app.AccountKeeper, nil, nil, encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
 		params.NewAppModule(app.ParamsKeeper),
