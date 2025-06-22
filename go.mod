@@ -274,3 +274,10 @@ replace github.com/fluentum-chain/dilithium => ./stubs/dilithium
 replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
 replace github.com/cometbft/cometbft => github.com/tendermint/tendermint v0.35.9
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.2
+
+replace (
+	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
+	github.com/cosmos/cosmos-sdk/api => cosmossdk.io/api v0.7.2
+	github.com/cosmos/cosmos-sdk/core => cosmossdk.io/core v0.11.0
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.6
+)
