@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/gogo/protobuf/proto"
 )
@@ -278,7 +279,7 @@ func (m *QueryParamsResponse) String() string { return "QueryParamsResponse" }
 func (m *QueryParamsResponse) ProtoMessage()  {}
 
 type QueryAllFluentumRequest struct {
-	Pagination *PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllFluentumRequest) Reset()         { *m = QueryAllFluentumRequest{} }
@@ -286,8 +287,8 @@ func (m *QueryAllFluentumRequest) String() string { return "QueryAllFluentumRequ
 func (m *QueryAllFluentumRequest) ProtoMessage()  {}
 
 type QueryAllFluentumResponse struct {
-	Fluentum   []*Fluentum   `protobuf:"bytes,1,rep,name=fluentum,proto3" json:"fluentum,omitempty"`
-	Pagination *PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Fluentum   []*Fluentum         `protobuf:"bytes,1,rep,name=fluentum,proto3" json:"fluentum,omitempty"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllFluentumResponse) Reset()         { *m = QueryAllFluentumResponse{} }
@@ -309,28 +310,6 @@ type QueryGetFluentumResponse struct {
 func (m *QueryGetFluentumResponse) Reset()         { *m = QueryGetFluentumResponse{} }
 func (m *QueryGetFluentumResponse) String() string { return "QueryGetFluentumResponse" }
 func (m *QueryGetFluentumResponse) ProtoMessage()  {}
-
-// PageRequest and PageResponse for pagination
-type PageRequest struct {
-	Key        []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Offset     uint64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit      uint64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
-	CountTotal bool   `protobuf:"varint,4,opt,name=count_total,json=countTotal,proto3" json:"count_total,omitempty"`
-	Reverse    bool   `protobuf:"varint,5,opt,name=reverse,proto3" json:"reverse,omitempty"`
-}
-
-func (m *PageRequest) Reset()         { *m = PageRequest{} }
-func (m *PageRequest) String() string { return "PageRequest" }
-func (m *PageRequest) ProtoMessage()  {}
-
-type PageResponse struct {
-	NextKey []byte `protobuf:"bytes,1,opt,name=next_key,json=nextKey,proto3" json:"next_key,omitempty"`
-	Total   uint64 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
-}
-
-func (m *PageResponse) Reset()         { *m = PageResponse{} }
-func (m *PageResponse) String() string { return "PageResponse" }
-func (m *PageResponse) ProtoMessage()  {}
 
 // Stub query client interface
 type QueryClient interface {
@@ -355,7 +334,7 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 func (c *queryClient) FluentumAll(ctx context.Context, in *QueryAllFluentumRequest, opts ...interface{}) (*QueryAllFluentumResponse, error) {
 	return &QueryAllFluentumResponse{
 		Fluentum:   []*Fluentum{},
-		Pagination: &PageResponse{},
+		Pagination: &query.PageResponse{},
 	}, nil
 }
 
