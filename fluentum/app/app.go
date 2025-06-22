@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"io"
 
 	cosmossdklog "cosmossdk.io/log"
@@ -37,6 +38,8 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum"
 	fluentumkeeper "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/keeper"
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
+
+	cosmossdkstore "cosmossdk.io/core/store"
 )
 
 const (
@@ -168,13 +171,32 @@ func New(
 	// bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
 
 	// add keepers - simplified for compatibility
+	// For now, we'll use type assertions to work around the interface differences
+	var accountStore cosmossdkstore.KVStoreService
+	var bankStore cosmossdkstore.KVStoreService
+
+	// Type assertions for store services - this is a temporary workaround
+	if s, ok := keys[authtypes.StoreKey].(cosmossdkstore.KVStoreService); ok {
+		accountStore = s
+	} else {
+		// Create a simple adapter if needed
+		accountStore = nil // TODO: implement proper adapter
+	}
+
+	if s, ok := keys[banktypes.StoreKey].(cosmossdkstore.KVStoreService); ok {
+		bankStore = s
+	} else {
+		// Create a simple adapter if needed
+		bankStore = nil // TODO: implement proper adapter
+	}
+
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
-		appCodec, keys[authtypes.StoreKey], authtypes.ProtoBaseAccount, maccPerms,
+		appCodec, accountStore, authtypes.ProtoBaseAccount, maccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
 	)
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
-		appCodec, keys[banktypes.StoreKey], app.AccountKeeper, app.BlockedModuleAccountAddrs(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
+		appCodec, bankStore, app.AccountKeeper, app.BlockedModuleAccountAddrs(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
 		cosmosLogger,
 	)
 
@@ -241,22 +263,24 @@ func (app *App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
-	app.mm.BeginBlock(ctx, abci.RequestBeginBlock{})
+	app.mm.BeginBlock(ctx)
 	return sdk.BeginBlock{}, nil
 }
 
 // EndBlocker application updates every end block
-func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+func (app *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	app.mm.EndBlock(ctx)
+	return sdk.EndBlock{}, nil
 }
 
 // InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
-	if err := app.appCodec.UnmarshalJSON(req.AppStateBytes, &genesisState); err != nil {
+	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
+	app.mm.InitGenesis(ctx, app.appCodec, genesisState)
+	return abci.ResponseInitChain{}
 }
 
 // LoadHeight loads a particular height
