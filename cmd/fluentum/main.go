@@ -178,6 +178,10 @@ type appCreator struct {
 	encCfg app.EncodingConfig
 }
 
+// Ensure appCreator implements the required interfaces
+var _ servertypes.AppCreator = appCreator{}
+var _ servertypes.AppExporter = appCreator{}
+
 func (a appCreator) NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
 	// var cache sdk.MultiStorePersistentCache // Removed - not available in v0.50.6
 

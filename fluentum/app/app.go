@@ -459,3 +459,17 @@ func (c SimpleAddressCodec) BytesToString(bz []byte) (string, error) {
 	// Simple implementation - just return the string
 	return string(bz), nil
 }
+
+// ExportAppStateAndValidators exports the state of the application for a genesis file.
+func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs []string) (servertypes.ExportedApp, error) {
+	// Create a simple exported app structure
+	// This is a stub implementation - in a real app, you would export the actual state
+	exportedApp := servertypes.ExportedApp{
+		AppState:        make(map[string]json.RawMessage),
+		Validators:      []abci.ValidatorUpdate{},
+		Height:          0,
+		ConsensusParams: abci.ConsensusParams{},
+	}
+
+	return exportedApp, nil
+}
