@@ -181,7 +181,7 @@ func New(
 	// Create Fluentum Keeper with correct parameters
 	app.FluentumKeeper = fluentumkeeper.NewKeeper(
 		appCodec, keys[fluentumtypes.StoreKey], keys[fluentumtypes.MemStoreKey], app.GetSubspace(fluentumtypes.ModuleName),
-		app.BankKeeper,
+		BankKeeperAdapter{app.BankKeeper},
 	)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -192,7 +192,7 @@ func New(
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
 		params.NewAppModule(app.ParamsKeeper),
-		fluentum.NewAppModule(appCodec, app.FluentumKeeper, app.AccountKeeper, app.BankKeeper),
+		fluentum.NewAppModule(appCodec, app.FluentumKeeper, AccountKeeperAdapter{app.AccountKeeper}, BankKeeperAdapter{app.BankKeeper}),
 	)
 
 	app.mm.SetOrderBeginBlockers(
@@ -375,4 +375,53 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(fluentumtypes.ModuleName)
 
 	return paramsKeeper
+}
+
+// Adapter types to bridge interface differences
+type AccountKeeperAdapter struct {
+	authkeeper.AccountKeeper
+}
+
+func (a AccountKeeperAdapter) GetAccount(ctx sdk.Context, addr sdk.AccAddress) sdk.AccountI {
+	return a.AccountKeeper.GetAccount(ctx.Context(), addr)
+}
+
+func (a AccountKeeperAdapter) SetAccount(ctx sdk.Context, acc sdk.AccountI) {
+	a.AccountKeeper.SetAccount(ctx.Context(), acc)
+}
+
+func (a AccountKeeperAdapter) NewAccount(ctx sdk.Context, acc sdk.AccountI) sdk.AccountI {
+	return a.AccountKeeper.NewAccount(ctx.Context(), acc)
+}
+
+type BankKeeperAdapter struct {
+	bankkeeper.Keeper
+}
+
+func (b BankKeeperAdapter) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
+	return b.Keeper.SendCoins(ctx.Context(), fromAddr, toAddr, amt)
+}
+
+func (b BankKeeperAdapter) SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
+	return b.Keeper.SendCoinsFromModuleToAccount(ctx.Context(), senderModule, recipientAddr, amt)
+}
+
+func (b BankKeeperAdapter) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
+	return b.Keeper.SendCoinsFromAccountToModule(ctx.Context(), senderAddr, recipientModule, amt)
+}
+
+func (b BankKeeperAdapter) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
+	return b.Keeper.MintCoins(ctx.Context(), moduleName, amt)
+}
+
+func (b BankKeeperAdapter) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
+	return b.Keeper.BurnCoins(ctx.Context(), moduleName, amt)
+}
+
+func (b BankKeeperAdapter) SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error {
+	return b.Keeper.SendCoinsFromModuleToModule(ctx.Context(), senderModule, recipientModule, amt)
+}
+
+func (b BankKeeperAdapter) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin {
+	return b.Keeper.GetBalance(ctx.Context(), addr, denom)
 }
