@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	"../features/quantum_signing"
-	"../features/state_sync"
-	"../features/zk_rollup"
+	"github.com/fluentum-chain/fluentum/fluentum/features/quantum_signing"
+	"github.com/fluentum-chain/fluentum/fluentum/features/state_sync"
+	"github.com/fluentum-chain/fluentum/fluentum/features/zk_rollup"
 )
 
 // Feature interface that all features must implement
