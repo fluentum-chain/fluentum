@@ -46,6 +46,10 @@ var Routes = map[string]*rpc.RPCFunc{
 
 	// evidence API
 	"broadcast_evidence": rpc.NewRPCFunc(BroadcastEvidence, "evidence"),
+
+	// quantum API
+	"quantum_reload": rpc.NewRPCFunc(QuantumReload, ""),
+	"quantum_status": rpc.NewRPCFunc(QuantumStatus, ""),
 }
 
 // AddUnsafeRoutes adds unsafe routes.

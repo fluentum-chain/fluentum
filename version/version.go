@@ -1,5 +1,11 @@
 package version
 
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
 var TMCoreSemVer = TMVersionDefault
 
 const (
@@ -36,3 +42,63 @@ var GoVersion = ""
 
 // BuildTags are the build tags used
 var BuildTags = ""
+
+// parseVersion parses a semantic version string and returns major, minor, patch
+func parseVersion(v string) (major, minor, patch int, err error) {
+	// Remove 'v' prefix if present
+	v = strings.TrimPrefix(v, "v")
+
+	parts := strings.Split(v, ".")
+	if len(parts) < 3 {
+		return 0, 0, 0, fmt.Errorf("invalid version format: %s", v)
+	}
+
+	major, err = strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("invalid major version: %s", parts[0])
+	}
+
+	minor, err = strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("invalid minor version: %s", parts[1])
+	}
+
+	patch, err = strconv.Atoi(parts[2])
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("invalid patch version: %s", parts[2])
+	}
+
+	return major, minor, patch, nil
+}
+
+// Compatible checks if the current version is compatible with the required minimum version
+func Compatible(minVersion string) bool {
+	currentMajor, currentMinor, currentPatch, err := parseVersion(Version)
+	if err != nil {
+		// If we can't parse current version, assume incompatible
+		return false
+	}
+
+	minMajor, minMinor, minPatch, err := parseVersion(minVersion)
+	if err != nil {
+		// If we can't parse minimum version, assume incompatible
+		return false
+	}
+
+	// Major version must match exactly
+	if currentMajor != minMajor {
+		return false
+	}
+
+	// Current minor must be >= minimum minor
+	if currentMinor < minMinor {
+		return false
+	}
+
+	// If minor versions match, current patch must be >= minimum patch
+	if currentMinor == minMinor && currentPatch < minPatch {
+		return false
+	}
+
+	return true
+}

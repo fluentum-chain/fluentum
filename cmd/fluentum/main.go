@@ -31,7 +31,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/fluentum/app"
+	"github.com/fluentum-chain/fluentum/fluentum/core"
+	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
 )
 
 // NewRootCmd creates a new root command for the Fluentum application.
@@ -396,7 +399,60 @@ func (a appCreator) appExport(
 	return FluentumApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
 }
 
+// loadQuantumSigner loads the quantum signer plugin if enabled in config.
+func loadQuantumSigner(cfg *config.Config) error {
+	if !cfg.Quantum.Enabled {
+		return nil
+	}
+
+	if err := plugin.LoadQuantumSigner(cfg.Quantum.LibPath); err != nil {
+		return fmt.Errorf("failed to load quantum signer: %v", err)
+	}
+
+	fmt.Println("[Quantum] Quantum signing enabled", "mode", cfg.Quantum.Mode)
+	return nil
+}
+
 func main() {
+	// Load main config
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		fmt.Println("[Config] Failed to load config:", err)
+		os.Exit(1)
+	}
+
+	// Load quantum signer first
+	if err := loadQuantumSigner(cfg); err != nil {
+		fmt.Println("[Quantum] Quantum load failed:", err)
+	}
+
+	// Load and start modular features
+	featureConfigPath := "config/features.toml"
+	nodeVersion := "v0.1.0" // TODO: dynamically set from build/version
+	featureLoader := core.NewFeatureLoader(featureConfigPath, nodeVersion)
+
+	if err := featureLoader.LoadConfiguration(); err != nil {
+		fmt.Println("[FeatureLoader] Failed to load feature configuration:", err)
+		os.Exit(1)
+	}
+
+	if err := featureLoader.ValidateConfiguration(); err != nil {
+		fmt.Println("[FeatureLoader] Feature configuration invalid:", err)
+		os.Exit(1)
+	}
+
+	if err := featureLoader.InitializeFeatures(); err != nil {
+		fmt.Println("[FeatureLoader] Failed to initialize features:", err)
+		os.Exit(1)
+	}
+
+	if err := featureLoader.StartFeatures(); err != nil {
+		fmt.Println("[FeatureLoader] Failed to start features:", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("[FeatureLoader] Features loaded and started:", featureLoader.GetFeatureStatus())
+
 	rootCmd, _ := NewRootCmd()
 
 	if err := rootCmd.Execute(); err != nil {

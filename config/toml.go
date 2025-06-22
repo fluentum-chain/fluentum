@@ -450,11 +450,11 @@ wal_file = "{{ js .Consensus.WalPath }}"
 timeout_propose = "{{ .Consensus.TimeoutPropose }}"
 # How much timeout_propose increases with each round
 timeout_propose_delta = "{{ .Consensus.TimeoutProposeDelta }}"
-# How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
+# How long we wait after receiving +2/3 prevotes for "anything" (ie. not a single block or nil)
 timeout_prevote = "{{ .Consensus.TimeoutPrevote }}"
 # How much the timeout_prevote increases with each round
 timeout_prevote_delta = "{{ .Consensus.TimeoutPrevoteDelta }}"
-# How long we wait after receiving +2/3 precommits for “anything” (ie. not a single block or nil)
+# How long we wait after receiving +2/3 precommits for "anything" (ie. not a single block or nil)
 timeout_precommit = "{{ .Consensus.TimeoutPrecommit }}"
 # How much the timeout_precommit increases with each round
 timeout_precommit_delta = "{{ .Consensus.TimeoutPrecommitDelta }}"
@@ -479,6 +479,9 @@ create_empty_blocks_interval = "{{ .Consensus.CreateEmptyBlocksInterval }}"
 # Reactor sleep duration parameters
 peer_gossip_sleep_duration = "{{ .Consensus.PeerGossipSleepDuration }}"
 peer_query_maj23_sleep_duration = "{{ .Consensus.PeerQueryMaj23SleepDuration }}"
+
+# Signature scheme to use for consensus signing (e.g., "ecdsa", "ed25519", "quantum")
+signature_scheme = "{{ .Consensus.SignatureScheme }}"
 
 #######################################################
 ###         Storage Configuration Options           ###
@@ -534,6 +537,20 @@ max_open_connections = {{ .Instrumentation.MaxOpenConnections }}
 
 # Instrumentation namespace
 namespace = "{{ .Instrumentation.Namespace }}"
+
+#######################################################
+###         Quantum Configuration Options           ###
+#######################################################
+[quantum]
+
+# Whether quantum cryptography features are enabled
+enabled = {{ .Quantum.Enabled }}
+
+# Path to the quantum signing plugin library
+lib_path = "{{ .Quantum.LibPath }}"
+
+# Quantum signature mode (e.g., "dilithium3", "dilithium5", "falcon512", etc.)
+mode = "{{ .Quantum.Mode }}"
 `
 
 /****** these are for test settings ***********/

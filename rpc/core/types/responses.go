@@ -249,3 +249,16 @@ type ResultEvent struct {
 	Data   types.TMEventData   `json:"data"`
 	Events map[string][]string `json:"events"`
 }
+
+// ResultQuantumReload represents the result of reloading a quantum signer
+type ResultQuantumReload struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error,omitempty"`
+}
+
+// ResultQuantumStatus represents the current quantum signing status
+type ResultQuantumStatus struct {
+	Enabled    bool   `json:"enabled"`
+	SignerName string `json:"signer_name"`
+	Mode       string `json:"mode,omitempty"`
+}

@@ -284,6 +284,9 @@ replace (
 	// Redirect store packages to cosmossdk.io/store where they exist in newer versions
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 	
-	// Fix CometBFT version compatibility - use a more recent version
-	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.39.0
+	// Fix CometBFT version compatibility
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.38.6
+	
+	// Fix secp256k1 API compatibility for CometBFT v0.38.6
+	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
 )

@@ -1,0 +1,7 @@
+{
+    "name": "quantum_signing",
+    "min_core_version": "v0.6.0",
+    "api_version": "1.0",
+    "checksum": "sha256:abc123...",
+    "supported_modes": ["dilithium2", "dilithium3", "dilithium5"]
+} 

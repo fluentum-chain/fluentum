@@ -1,0 +1,64 @@
+# Fluentum Features Configuration
+# This file configures the modular features for the Fluentum node
+
+[features]
+# Global feature settings
+enabled = true
+auto_reload = false
+check_compatibility = true
+
+# Quantum Signing Feature Configuration
+[features.quantum_signing]
+enabled = true
+# CRYSTALS-Dilithium mode (1, 3, or 5)
+dilithium_mode = 3
+# Enable quantum-resistant block headers
+quantum_headers = true
+# Performance monitoring
+enable_metrics = true
+# Latency threshold for quantum signatures (in milliseconds)
+max_latency_ms = 50
+
+# State Sync Feature Configuration
+[features.state_sync]
+enabled = false
+# Enable fast state synchronization
+fast_sync = true
+# State sync chunk size
+chunk_size = 1000
+# Maximum concurrent sync requests
+max_concurrent = 10
+# State sync timeout (in seconds)
+timeout_seconds = 30
+
+# ZK Rollup Feature Configuration
+[features.zk_rollup]
+enabled = false
+# Enable zero-knowledge proof generation
+enable_proofs = true
+# ZK proof verification
+enable_verification = true
+# Batch size for ZK proofs
+batch_size = 100
+# Proof generation timeout (in seconds)
+proof_timeout = 60
+
+# Feature Distribution Settings
+[features.distribution]
+# Git submodule management
+use_git_submodules = true
+# Feature update mechanism
+auto_update = false
+# Feature repository URL
+repository_url = "https://github.com/fluentum-chain/fluentum-features"
+# Feature branch
+branch = "main"
+
+# Feature Version Compatibility
+[features.compatibility]
+# Minimum node version required
+min_node_version = "v0.1.0"
+# Maximum node version supported
+max_node_version = "v1.0.0"
+# Feature API version
+api_version = "v1.0.0" 

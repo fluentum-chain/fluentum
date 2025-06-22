@@ -77,6 +77,7 @@ type Config struct {
 	Storage         *StorageConfig         `mapstructure:"storage"`
 	TxIndex         *TxIndexConfig         `mapstructure:"tx_index"`
 	Instrumentation *InstrumentationConfig `mapstructure:"instrumentation"`
+	Quantum         *QuantumConfig         `mapstructure:"quantum"`
 }
 
 // DefaultConfig returns a default configuration for a Tendermint node
@@ -92,6 +93,7 @@ func DefaultConfig() *Config {
 		Storage:         DefaultStorageConfig(),
 		TxIndex:         DefaultTxIndexConfig(),
 		Instrumentation: DefaultInstrumentationConfig(),
+		Quantum:         DefaultQuantumConfig(),
 	}
 }
 
@@ -108,6 +110,7 @@ func TestConfig() *Config {
 		Storage:         TestStorageConfig(),
 		TxIndex:         TestTxIndexConfig(),
 		Instrumentation: TestInstrumentationConfig(),
+		Quantum:         TestQuantumConfig(),
 	}
 }
 
@@ -147,6 +150,9 @@ func (cfg *Config) ValidateBasic() error {
 	}
 	if err := cfg.Instrumentation.ValidateBasic(); err != nil {
 		return fmt.Errorf("error in [instrumentation] section: %w", err)
+	}
+	if err := cfg.Quantum.ValidateBasic(); err != nil {
+		return fmt.Errorf("error in [quantum] section: %w", err)
 	}
 	return nil
 }
@@ -524,7 +530,7 @@ type P2PConfig struct { //nolint: maligned
 	ExternalAddress string `mapstructure:"external_address"`
 
 	// Comma separated list of seed nodes to connect to
-	// We only use these if we can’t connect to peers in the addrbook
+	// We only use these if we can't connect to peers in the addrbook
 	Seeds string `mapstructure:"seeds"`
 
 	// Comma separated list of nodes to keep persistent connections to
@@ -923,11 +929,11 @@ type ConsensusConfig struct {
 	TimeoutPropose time.Duration `mapstructure:"timeout_propose"`
 	// How much timeout_propose increases with each round
 	TimeoutProposeDelta time.Duration `mapstructure:"timeout_propose_delta"`
-	// How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
+	// How long we wait after receiving +2/3 prevotes for "anything" (ie. not a single block or nil)
 	TimeoutPrevote time.Duration `mapstructure:"timeout_prevote"`
 	// How much the timeout_prevote increases with each round
 	TimeoutPrevoteDelta time.Duration `mapstructure:"timeout_prevote_delta"`
-	// How long we wait after receiving +2/3 precommits for “anything” (ie. not a single block or nil)
+	// How long we wait after receiving +2/3 precommits for "anything" (ie. not a single block or nil)
 	TimeoutPrecommit time.Duration `mapstructure:"timeout_precommit"`
 	// How much the timeout_precommit increases with each round
 	TimeoutPrecommitDelta time.Duration `mapstructure:"timeout_precommit_delta"`
@@ -949,6 +955,9 @@ type ConsensusConfig struct {
 	PeerQueryMaj23SleepDuration time.Duration `mapstructure:"peer_query_maj23_sleep_duration"`
 
 	DoubleSignCheckHeight int64 `mapstructure:"double_sign_check_height"`
+
+	// Signature scheme to use for consensus signing (e.g., "ecdsa", "ed25519", "quantum")
+	SignatureScheme string `mapstructure:"signature_scheme"`
 }
 
 // DefaultConsensusConfig returns a default configuration for the consensus service
@@ -968,6 +977,7 @@ func DefaultConsensusConfig() *ConsensusConfig {
 		PeerGossipSleepDuration:     100 * time.Millisecond,
 		PeerQueryMaj23SleepDuration: 2000 * time.Millisecond,
 		DoubleSignCheckHeight:       int64(0),
+		SignatureScheme:             "ecdsa",
 	}
 }
 
@@ -986,6 +996,7 @@ func TestConsensusConfig() *ConsensusConfig {
 	cfg.PeerGossipSleepDuration = 5 * time.Millisecond
 	cfg.PeerQueryMaj23SleepDuration = 250 * time.Millisecond
 	cfg.DoubleSignCheckHeight = int64(0)
+	cfg.SignatureScheme = "ecdsa"
 	return cfg
 }
 
@@ -1186,6 +1197,51 @@ func TestInstrumentationConfig() *InstrumentationConfig {
 func (cfg *InstrumentationConfig) ValidateBasic() error {
 	if cfg.MaxOpenConnections < 0 {
 		return errors.New("max_open_connections can't be negative")
+	}
+	return nil
+}
+
+//-----------------------------------------------------------------------------
+// QuantumConfig
+
+// QuantumConfig defines the configuration for quantum cryptography features.
+type QuantumConfig struct {
+	// Whether quantum cryptography features are enabled
+	Enabled bool `mapstructure:"enabled"`
+
+	// Path to the quantum signing plugin library
+	LibPath string `mapstructure:"lib_path"`
+
+	// Quantum signature mode (e.g., "dilithium3", "dilithium5", "falcon512", etc.)
+	Mode string `mapstructure:"mode"`
+}
+
+// DefaultQuantumConfig returns a default configuration for quantum cryptography.
+func DefaultQuantumConfig() *QuantumConfig {
+	return &QuantumConfig{
+		Enabled: false,
+		LibPath: "/usr/local/lib/fluentum/quantum.so",
+		Mode:    "dilithium3",
+	}
+}
+
+// TestQuantumConfig returns a test configuration for quantum cryptography.
+func TestQuantumConfig() *QuantumConfig {
+	return &QuantumConfig{
+		Enabled: false,
+		LibPath: "/tmp/quantum_test.so",
+		Mode:    "dilithium3",
+	}
+}
+
+// ValidateBasic performs basic validation (checking param bounds, etc.) and
+// returns an error if any check fails.
+func (cfg *QuantumConfig) ValidateBasic() error {
+	if cfg.Enabled && cfg.LibPath == "" {
+		return errors.New("quantum.lib_path must be set when quantum.enabled is true")
+	}
+	if cfg.Enabled && cfg.Mode == "" {
+		return errors.New("quantum.mode must be set when quantum.enabled is true")
 	}
 	return nil
 }

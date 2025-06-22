@@ -52,7 +52,7 @@ endif
 # allow users to pass additional flags via the conventional LDFLAGS variable
 LD_FLAGS += $(LDFLAGS)
 
-all: check build test install
+all: check build test install features
 .PHONY: all
 
 include tests.mk
@@ -326,22 +326,95 @@ BINARY_NAME := fluentum
 MAIN_PACKAGE := ./cmd/fluentum
 LDFLAGS := -X github.com/kellyadamtan/tendermint/version.Version=$(VERSION)
 
+# Feature directories
+FEATURES_DIR := fluentum/features
+QUANTUM_SIGNING_DIR := $(FEATURES_DIR)/quantum_signing
+STATE_SYNC_DIR := $(FEATURES_DIR)/state_sync
+ZK_ROLLUP_DIR := $(FEATURES_DIR)/zk_rollup
+
+# Quantum Feature Build System Integration
+QUANTUM_FEATURE := features/quantum_signing/quantum.so
+
 # Default target
 .PHONY: all
-all: clean build
+all: clean build features
 
 # Build the binary
 .PHONY: build
-build:
+build: build-quantum
 	@echo "Building Fluentum Core $(VERSION)..."
 	@mkdir -p $(BUILD_DIR)
-	@go build -o $(BUILD_DIR)/$(BINARY_NAME) -ldflags "$(LDFLAGS)" $(MAIN_PACKAGE)
+	@go build -tags=plugins -o $(BUILD_DIR)/$(BINARY_NAME) -ldflags "$(LDFLAGS)" $(MAIN_PACKAGE)
+
+# Build quantum signing module
+.PHONY: build-quantum
+build-quantum:
+	@echo "Building quantum signing module..."
+	@cd features/quantum_signing && \
+		go build -buildmode=plugin -o ../quantum.so .
+
+# Install quantum feature
+.PHONY: install-quantum
+install-quantum: build-quantum
+	cp $(QUANTUM_FEATURE) $(GOPATH)/bin/
+
+# Build all features
+.PHONY: features
+features: feature-quantum-signing feature-state-sync feature-zk-rollup
+	@echo "All features built successfully!"
+
+# Build quantum signing feature
+.PHONY: feature-quantum-signing
+feature-quantum-signing:
+	@echo "Building Quantum Signing Feature..."
+	@cd $(QUANTUM_SIGNING_DIR) && chmod +x build.sh && ./build.sh
+	@echo "Quantum Signing Feature built successfully!"
+
+# Build state sync feature
+.PHONY: feature-state-sync
+feature-state-sync:
+	@echo "Building State Sync Feature..."
+	@cd $(STATE_SYNC_DIR) && chmod +x build.sh && ./build.sh
+	@echo "State Sync Feature built successfully!"
+
+# Build ZK rollup feature
+.PHONY: feature-zk-rollup
+feature-zk-rollup:
+	@echo "Building ZK Rollup Feature..."
+	@cd $(ZK_ROLLUP_DIR) && chmod +x build.sh && ./build.sh
+	@echo "ZK Rollup Feature built successfully!"
+
+# Build specific feature
+.PHONY: feature
+feature:
+	@if [ -z "$(FEATURE)" ]; then \
+		echo "Error: FEATURE variable not set. Usage: make feature FEATURE=quantum_signing"; \
+		exit 1; \
+	fi
+	@echo "Building $(FEATURE) feature..."
+	@cd $(FEATURES_DIR)/$(FEATURE) && chmod +x build.sh && ./build.sh
+	@echo "$(FEATURE) feature built successfully!"
+
+# Test all features
+.PHONY: test-features
+test-features:
+	@echo "Testing all features..."
+	@cd $(QUANTUM_SIGNING_DIR) && go test -v ./...
+	@cd $(STATE_SYNC_DIR) && go test -v ./...
+	@cd $(ZK_ROLLUP_DIR) && go test -v ./...
+	@echo "All feature tests completed!"
 
 # Clean build artifacts
 .PHONY: clean
 clean:
 	@echo "Cleaning build artifacts..."
 	@rm -rf $(BUILD_DIR)
+	@echo "Cleaning feature build artifacts..."
+	@find $(FEATURES_DIR) -name "*.exe" -delete
+	@find $(FEATURES_DIR) -name "quantum_signing" -delete
+	@find $(FEATURES_DIR) -name "state_sync" -delete
+	@find $(FEATURES_DIR) -name "zk_rollup" -delete
+	@find $(FEATURES_DIR) -name "*.so" -delete
 
 # Run tests
 .PHONY: test
@@ -354,13 +427,6 @@ test:
 lint:
 	@echo "Running linter..."
 	@golangci-lint run
-
-# Install dependencies
-.PHONY: deps
-deps:
-	@echo "Installing dependencies..."
-	@go mod download
-	@go mod tidy
 
 # Generate protobuf files
 .PHONY: proto

@@ -202,6 +202,72 @@ make test
 ./build/fluentum node
 ```
 
+## 🧩 Modular Feature System
+
+Fluentum supports a **modular feature system** for advanced capabilities like quantum signing, state sync, and zk-rollup. Each feature is an independent Go module and can be enabled, disabled, or updated independently.
+
+### Directory Structure
+
+```
+fluentum/
+└── features/
+    ├── quantum_signing/   # CRYSTALS-Dilithium quantum signatures
+    ├── state_sync/        # Fast state synchronization
+    └── zk_rollup/         # Zero-knowledge rollup
+```
+
+Each feature contains:
+- `go.mod` — Go module definition
+- `feature.go` — Feature implementation
+- `build.sh` — Build/test script
+
+### Build & Test Features
+
+Build all features:
+```bash
+make features
+```
+
+Build a specific feature:
+```bash
+make feature FEATURE=quantum_signing
+```
+
+Test all features:
+```bash
+make test-features
+```
+
+### Runtime Configuration
+
+Features are configured in `config/features.toml`:
+```toml
+[features.quantum_signing]
+enabled = true
+# CRYSTALS-Dilithium mode (1, 3, or 5)
+dilithium_mode = 3
+quantum_headers = true
+max_latency_ms = 50
+
+[features.state_sync]
+enabled = false
+fast_sync = true
+chunk_size = 1000
+
+[features.zk_rollup]
+enabled = false
+enable_proofs = true
+batch_size = 100
+```
+
+- Enable/disable features by setting `enabled = true/false`.
+- Tune feature-specific parameters as needed.
+
+### Live Reloading & Version Compatibility
+- Features are loaded and started at node startup.
+- Hot reloading and version compatibility checks are supported.
+- Feature updates can be distributed via Git submodules.
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for:
