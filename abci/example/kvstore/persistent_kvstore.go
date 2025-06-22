@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	"github.com/fluentum-chain/fluentum/abci/example/code"
 	"github.com/fluentum-chain/fluentum/abci/types"
@@ -37,7 +37,7 @@ type PersistentKVStoreApplication struct {
 
 func NewPersistentKVStoreApplication(dbDir string) *PersistentKVStoreApplication {
 	name := "kvstore"
-	db, err := dbm.NewGoLevelDB(name, dbDir)
+	db, err := dbm.NewPebbleDB(name, dbDir)
 	if err != nil {
 		panic(err)
 	}

@@ -16,7 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	abci "github.com/fluentum-chain/fluentum/abci/types"
 	bcv0 "github.com/fluentum-chain/fluentum/blockchain/v0"

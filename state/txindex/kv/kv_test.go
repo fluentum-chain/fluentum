@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	db "github.com/tendermint/tm-db"
+	db "github.com/cometbft/cometbft-db"
 
 	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
@@ -429,7 +429,7 @@ func benchmarkTxIndex(txsCount int64, b *testing.B) {
 	require.NoError(b, err)
 	defer os.RemoveAll(dir)
 
-	store, err := db.NewDB("tx_index", "goleveldb", dir)
+	store, err := db.NewDB("tx_index", "pebble", dir)
 	require.NoError(b, err)
 	indexer := NewTxIndex(store)
 

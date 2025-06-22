@@ -92,8 +92,8 @@ moniker = "{{ .BaseConfig.Moniker }}"
 # and verifying their commits
 fast_sync = {{ .BaseConfig.FastSyncMode }}
 
-# Database backend: goleveldb | cleveldb | boltdb | rocksdb | badgerdb
-# * goleveldb (github.com/syndtr/goleveldb - most popular implementation)
+# Database backend: pebble | cleveldb | boltdb | rocksdb | badgerdb
+# * pebble (github.com/cockroachdb/pebble - recommended for CometBFT)
 #   - pure go
 #   - stable
 # * cleveldb (uses levigo wrapper)

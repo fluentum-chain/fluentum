@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	cfg "github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/crypto"

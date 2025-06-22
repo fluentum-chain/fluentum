@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
@@ -20,7 +20,7 @@ func BenchmarkTxSearch(b *testing.B) {
 		b.Errorf("failed to create temporary directory: %s", err)
 	}
 
-	db, err := dbm.NewGoLevelDB("benchmark_tx_search_test", dbDir)
+	db, err := dbm.NewPebbleDB("benchmark_tx_search_test", dbDir)
 	if err != nil {
 		b.Errorf("failed to create database: %s", err)
 	}

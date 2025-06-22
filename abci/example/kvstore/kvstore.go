@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	"github.com/fluentum-chain/fluentum/abci/example/code"
 	"github.com/fluentum-chain/fluentum/abci/types"

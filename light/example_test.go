@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
 	"github.com/fluentum-chain/fluentum/libs/log"
@@ -45,7 +45,7 @@ func ExampleClient_Update() {
 		stdlog.Fatal(err)
 	}
 
-	db, err := dbm.NewGoLevelDB("light-client-db", dbDir)
+	db, err := dbm.NewPebbleDB("light-client-db", dbDir)
 	if err != nil {
 		stdlog.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func ExampleClient_VerifyLightBlockAtHeight() {
 		stdlog.Fatal(err)
 	}
 
-	db, err := dbm.NewGoLevelDB("light-client-db", dbDir)
+	db, err := dbm.NewPebbleDB("light-client-db", dbDir)
 	if err != nil {
 		stdlog.Fatal(err)
 	}

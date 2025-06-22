@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	db "github.com/cometbft/cometbft-db"
 	"github.com/stretchr/testify/require"
-	db "github.com/tendermint/tm-db"
 
 	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
@@ -15,6 +15,8 @@ import (
 )
 
 func TestBlockIndexer(t *testing.T) {
+	dir, err := db.NewDB("blockstore", "pebble", "")
+	require.NoError(t, err)
 	store := db.NewPrefixDB(db.NewMemDB(), []byte("block_events"))
 	indexer := blockidxkv.New(store)
 

@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/gogo/protobuf/proto"
-	dbm "github.com/tendermint/tm-db"
 
 	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/pubsub/query"

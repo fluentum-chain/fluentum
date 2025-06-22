@@ -1,7 +1,7 @@
 package state
 
 import (
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	abci "github.com/fluentum-chain/fluentum/abci/types"
 	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"

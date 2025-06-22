@@ -5,9 +5,9 @@ import (
 	stdlog "log"
 	"os"
 
+	"github.com/cometbft/cometbft/abci/server"
+	tmlog "github.com/cometbft/cometbft/libs/log"
 	"github.com/fluentum-chain/fluentum/fluentum/abci/example/counter"
-	"github.com/tendermint/tendermint/abci/server"
-	tmlog "github.com/tendermint/tendermint/libs/log"
 )
 
 func main() {

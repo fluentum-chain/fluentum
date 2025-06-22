@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	"github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/light"

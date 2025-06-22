@@ -9,14 +9,14 @@ import (
 	"strconv"
 	"strings"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	"github.com/fluentum-chain/fluentum/store"
 	"github.com/fluentum-chain/fluentum/test/loadtime/report"
 )
 
 var (
-	db     = flag.String("database-type", "goleveldb", "the type of database holding the blockstore")
+	db     = flag.String("database-type", "pebble", "the type of database holding the blockstore")
 	dir    = flag.String("data-dir", "", "path to the directory containing the tendermint databases")
 	csvOut = flag.String("csv", "", "dump the extracted latencies as raw csv for use in additional tooling")
 )

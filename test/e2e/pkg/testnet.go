@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fluentum-chain/fluentum/crypto/secp256k1"
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
+	"github.com/fluentum-chain/fluentum/crypto/secp256k1"
 	rpchttp "github.com/fluentum-chain/fluentum/rpc/client/http"
 	mcs "github.com/fluentum-chain/fluentum/test/maverick/consensus"
 )
@@ -144,7 +144,7 @@ func LoadTestnet(manifest Manifest, fname string, ifd InfrastructureData) (*Test
 			IP:               ind.IPAddress,
 			ProxyPort:        proxyPortGen.Next(),
 			Mode:             ModeValidator,
-			Database:         "goleveldb",
+			Database:         "pebble",
 			ABCIProtocol:     Protocol(testnet.ABCIProtocol),
 			PrivvalProtocol:  ProtocolFile,
 			StartAt:          nodeManifest.StartAt,
@@ -310,7 +310,7 @@ func (n Node) Validate(testnet Testnet) error {
 		return fmt.Errorf("invalid mempool version %q", n.Mempool)
 	}
 	switch n.Database {
-	case "goleveldb", "cleveldb", "boltdb", "rocksdb", "badgerdb":
+	case "pebble", "cleveldb", "boltdb", "rocksdb", "badgerdb":
 	default:
 		return fmt.Errorf("invalid database setting %q", n.Database)
 	}

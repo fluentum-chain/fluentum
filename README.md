@@ -322,6 +322,28 @@ This project is licensed under the **Apache License 2.0** - see the [LICENSE](LI
 - **Discord**: [Fluentum Community](https://discord.gg/fluentum)
 - **Twitter**: [@FluentumChain](https://twitter.com/FluentumChain)
 
+## Migration to CometBFT and Cosmos SDK v0.47+
+
+### Config Migration (Confix)
+- Install confix: `go get github.com/cosmos/confix@latest`
+- To migrate or update your config file, run:
+  ```sh
+  confix merge --config config/config.toml --template config/config.template.toml --output config/config.toml
+  ```
+- Use confix for all future config merges/updates.
+
+### Database Backend Update
+- The default database backend is now `pebble` for CometBFT compatibility.
+- If you have existing data, migrate it with:
+  ```sh
+  appd migrate --db-backend pebble
+  ```
+  (Replace `appd` with your binary name.)
+- Update your `config.toml` to:
+  ```toml
+  db_backend = "pebble"
+  ```
+
 ---
 
 <div align="center">

@@ -265,6 +265,8 @@ require (
 	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20211214103731-d0ef000c54e5 // indirect
+	github.com/cometbft/cometbft v0.38.6
+	github.com/cometbft/cometbft-db v0.11.1
 )
 
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
@@ -276,17 +278,19 @@ replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 
 replace (
 	// If Fluentum still relies on Tendermint (legacy)
-	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.35.9
-	
+	// github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.35.9
+	// github.com/tendermint/tm-db => github.com/tendermint/tm-db v0.6.6
+
 	// Ensure Cosmos SDK uses a compatible version
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.6  // works with Tendermint 0.35.x
-	
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.6  // works with CometBFT 0.38.x
+
 	// Redirect store packages to cosmossdk.io/store where they exist in newer versions
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
-	
+
 	// Fix CometBFT version compatibility
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.38.6
-	
+	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.11.1
+
 	// Fix secp256k1 API compatibility for CometBFT v0.38.6
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
 )

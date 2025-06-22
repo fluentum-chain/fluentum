@@ -5,9 +5,9 @@ package main
 import (
 	"io"
 
+	dbm "github.com/cometbft/cometbft-db"
+	tmlog "github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/server/types"
-	tmlog "github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 )

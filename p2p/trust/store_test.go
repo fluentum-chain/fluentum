@@ -8,9 +8,9 @@ import (
 	"os"
 	"testing"
 
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/fluentum-chain/fluentum/libs/log"
 )
@@ -20,7 +20,7 @@ func TestTrustMetricStoreSaveLoad(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(dir)
 
-	historyDB, err := dbm.NewDB("trusthistory", "goleveldb", dir)
+	historyDB, err := dbm.NewDB("trusthistory", "pebble", dir)
 	require.NoError(t, err)
 
 	// 0 peers saved

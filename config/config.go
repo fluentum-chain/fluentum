@@ -181,8 +181,8 @@ type BaseConfig struct { //nolint: maligned
 	// and verifying their commits
 	FastSyncMode bool `mapstructure:"fast_sync"`
 
-	// Database backend: goleveldb | cleveldb | boltdb | rocksdb
-	// * goleveldb (github.com/syndtr/goleveldb - most popular implementation)
+	// Database backend: pebble | cleveldb | boltdb | rocksdb
+	// * pebble (github.com/cockroachdb/pebble - recommended for CometBFT)
 	//   - pure go
 	//   - stable
 	// * cleveldb (uses levigo wrapper)
@@ -249,7 +249,7 @@ func DefaultBaseConfig() BaseConfig {
 		LogFormat:          LogFormatPlain,
 		FastSyncMode:       true,
 		FilterPeers:        false,
-		DBBackend:          "goleveldb",
+		DBBackend:          "pebble",
 		DBPath:             "data",
 	}
 }

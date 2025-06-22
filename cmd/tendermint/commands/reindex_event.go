@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/spf13/cobra"
-	dbm "github.com/tendermint/tm-db"
 
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	tmcfg "github.com/fluentum-chain/fluentum/config"

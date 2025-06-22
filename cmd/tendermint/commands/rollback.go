@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	cfg "github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/os"

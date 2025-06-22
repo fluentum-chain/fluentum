@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strconv"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	"github.com/fluentum-chain/fluentum/light/store"

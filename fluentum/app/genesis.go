@@ -3,13 +3,13 @@ package app
 import (
 	"encoding/json"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // GenesisState represents the genesis state of the blockchain

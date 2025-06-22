@@ -8,6 +8,10 @@ import (
 	"cosmossdk.io/core/store"
 	cosmossdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmos "github.com/cometbft/cometbft/libs/os"
 	cosmossdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -34,10 +38,6 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/spf13/cast"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
 
 	// Fluentum modules
 	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum"
@@ -577,4 +577,49 @@ func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs
 	}
 
 	return exportedApp, nil
+}
+
+// PrepareProposal implements the ABCI++ PrepareProposal method for CometBFT.
+func (app *App) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePrepareProposal {
+	maxTxBytes := req.MaxTxBytes
+	var totalBytes int64
+	var selectedTxs [][]byte
+
+	txDecoder := app.BaseApp.TxDecoder()
+
+	for _, txBytes := range req.Txs {
+		// Optionally decode and filter invalid txs
+		_, err := txDecoder(txBytes)
+		if err != nil {
+			// Skip invalid txs
+			continue
+		}
+		if maxTxBytes > 0 && totalBytes+int64(len(txBytes)) > maxTxBytes {
+			break
+		}
+		selectedTxs = append(selectedTxs, txBytes)
+		totalBytes += int64(len(txBytes))
+	}
+
+	return abci.ResponsePrepareProposal{
+		Txs: selectedTxs,
+	}
+}
+
+// ProcessProposal implements the ABCI++ ProcessProposal method for CometBFT.
+func (app *App) ProcessProposal(req abci.RequestProcessProposal) abci.ResponseProcessProposal {
+	txDecoder := app.BaseApp.TxDecoder()
+	for _, txBytes := range req.Txs {
+		// Decode the tx
+		tx, err := txDecoder(txBytes)
+		if err != nil {
+			return abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}
+		}
+		// Validate the tx (simulate CheckTx)
+		_, err = app.BaseApp.ValidateTx(tx)
+		if err != nil {
+			return abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}
+		}
+	}
+	return abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}
 }
