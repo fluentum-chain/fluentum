@@ -179,11 +179,10 @@ func New(
 	var accountStore cosmossdkstore.KVStoreService
 	var bankStore cosmossdkstore.KVStoreService
 
-	// Create simple store service adapters - this is a temporary workaround
-	// In a real implementation, you would create proper adapters that implement KVStoreService
-	// For now, we'll use nil and handle this properly later
-	accountStore = nil // TODO: implement proper adapter
-	bankStore = nil    // TODO: implement proper adapter
+	// Create proper store service adapters for Cosmos SDK v0.50.6
+	// These adapters bridge the old KVStore interface to the new KVStoreService interface
+	accountStore = NewKVStoreServiceAdapter(keys[authtypes.StoreKey])
+	bankStore = NewKVStoreServiceAdapter(keys[banktypes.StoreKey])
 
 	// Create address codec - using a simple implementation
 	addressCodec := SimpleAddressCodec{Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix()}
@@ -272,8 +271,13 @@ func NewFluentumApp(
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
 
 	// Create base app options
+	pruningOpts, err := server.GetPruningOptionsFromFlags(appOpts)
+	if err != nil {
+		panic(err)
+	}
+
 	baseAppOptions := []func(*baseapp.BaseApp){
-		baseapp.SetPruning(server.GetPruningOptionsFromFlags(appOpts)),
+		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
 		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
@@ -502,8 +506,23 @@ func (c SimpleAddressCodec) StringToBytes(text string) ([]byte, error) {
 }
 
 func (c SimpleAddressCodec) BytesToString(bz []byte) (string, error) {
-	// Simple implementation - just return the string
-	return string(bz), nil
+	return sdk.Bech32ifyAddressBytes(c.Prefix, bz)
+}
+
+// KVStoreServiceAdapter adapts the old KVStore interface to the new KVStoreService interface
+// This is needed for Cosmos SDK v0.50.6 compatibility
+type KVStoreServiceAdapter struct {
+	storeKey *storetypes.KVStoreKey
+}
+
+// NewKVStoreServiceAdapter creates a new KVStoreService adapter
+func NewKVStoreServiceAdapter(storeKey *storetypes.KVStoreKey) cosmossdkstore.KVStoreService {
+	return &KVStoreServiceAdapter{storeKey: storeKey}
+}
+
+// OpenKVStore implements cosmossdkstore.KVStoreService
+func (a *KVStoreServiceAdapter) OpenKVStore(ctx sdk.Context) cosmossdkstore.KVStore {
+	return ctx.KVStore(a.storeKey)
 }
 
 // ExportAppStateAndValidators exports the state of the application for a genesis file.

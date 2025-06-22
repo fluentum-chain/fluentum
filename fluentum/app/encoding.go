@@ -36,6 +36,7 @@ type EncodingConfig struct {
 }
 
 // MakeEncodingConfig creates an EncodingConfig for testing
+// This follows the recommended pattern for Cosmos SDK v0.50.6
 func MakeEncodingConfig() EncodingConfig {
 	amino := codec.NewLegacyAmino()
 	interfaceRegistry := codectypes.NewInterfaceRegistry()
@@ -53,4 +54,13 @@ func MakeEncodingConfig() EncodingConfig {
 	RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	return encodingConfig
+}
+
+// MakeTestEncodingConfig creates an EncodingConfig for testing
+// This is the recommended pattern for Cosmos SDK v0.50.6 testing
+func MakeTestEncodingConfig() EncodingConfig {
+	// For now, we'll use the same implementation as MakeEncodingConfig
+	// In a full implementation with cosmos-sdk/testutil, this would use:
+	// encCfg := moduletestutil.MakeTestEncodingConfig(ModuleBasics)
+	return MakeEncodingConfig()
 }
