@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -65,8 +64,8 @@ var (
 )
 
 var (
-	_ runtime.AppI            = (*App)(nil)
-	_ servertypes.Application = (*App)(nil)
+// _ runtime.AppI            = (*App)(nil)
+// _ servertypes.Application = (*App)(nil)
 )
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -123,11 +122,11 @@ func New(
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
-	keys := sdk.NewKVStoreKeys(
+	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, paramstypes.StoreKey, fluentumtypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := sdk.NewMemoryStoreKeys()
+	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
+	memKeys := storetypes.NewMemoryStoreKeys()
 
 	app := &App{
 		BaseApp:           bApp,
@@ -143,12 +142,13 @@ func New(
 	app.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
-	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
+	// bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
 
 	// add keepers
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, keys[authtypes.StoreKey], authtypes.ProtoBaseAccount, maccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
+		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 	)
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
@@ -217,8 +217,9 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 func (app *App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
 // BeginBlocker application updates every begin block
-func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	return app.mm.BeginBlock(ctx, req)
+func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
+	app.mm.BeginBlock(ctx, abci.RequestBeginBlock{})
+	return sdk.BeginBlock{}, nil
 }
 
 // EndBlocker application updates every end block
