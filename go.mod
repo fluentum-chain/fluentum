@@ -281,4 +281,7 @@ replace (
 	
 	// Ensure Cosmos SDK uses a compatible version
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.6  // works with Tendermint 0.35.x
+	
+	// Redirect store packages to cosmossdk.io/store where they exist in newer versions
+	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 )
