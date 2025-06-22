@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 
@@ -521,8 +522,87 @@ func NewKVStoreServiceAdapter(storeKey *storetypes.KVStoreKey) cosmossdkstore.KV
 }
 
 // OpenKVStore implements cosmossdkstore.KVStoreService
-func (a *KVStoreServiceAdapter) OpenKVStore(ctx sdk.Context) cosmossdkstore.KVStore {
-	return ctx.KVStore(a.storeKey)
+func (a *KVStoreServiceAdapter) OpenKVStore(ctx context.Context) cosmossdkstore.KVStore {
+	// Convert context.Context to sdk.Context for the underlying store
+	sdkCtx := ctx.(sdk.Context)
+	return &KVStoreAdapter{store: sdkCtx.KVStore(a.storeKey)}
+}
+
+// KVStoreAdapter adapts the old KVStore interface to the new cosmossdkstore.KVStore interface
+type KVStoreAdapter struct {
+	store sdk.KVStore
+}
+
+// Get implements cosmossdkstore.KVStore
+func (a *KVStoreAdapter) Get(key []byte) []byte {
+	return a.store.Get(key)
+}
+
+// Has implements cosmossdkstore.KVStore
+func (a *KVStoreAdapter) Has(key []byte) bool {
+	return a.store.Has(key)
+}
+
+// Set implements cosmossdkstore.KVStore
+func (a *KVStoreAdapter) Set(key, value []byte) {
+	a.store.Set(key, value)
+}
+
+// Delete implements cosmossdkstore.KVStore
+func (a *KVStoreAdapter) Delete(key []byte) error {
+	a.store.Delete(key)
+	return nil
+}
+
+// Iterator implements cosmossdkstore.KVStore
+func (a *KVStoreAdapter) Iterator(start, end []byte) cosmossdkstore.Iterator {
+	return &IteratorAdapter{iterator: a.store.Iterator(start, end)}
+}
+
+// ReverseIterator implements cosmossdkstore.KVStore
+func (a *KVStoreAdapter) ReverseIterator(start, end []byte) cosmossdkstore.Iterator {
+	return &IteratorAdapter{iterator: a.store.ReverseIterator(start, end)}
+}
+
+// IteratorAdapter adapts the old Iterator interface to the new cosmossdkstore.Iterator interface
+type IteratorAdapter struct {
+	iterator sdk.Iterator
+}
+
+// Domain implements cosmossdkstore.Iterator
+func (a *IteratorAdapter) Domain() ([]byte, []byte) {
+	return a.iterator.Domain()
+}
+
+// Valid implements cosmossdkstore.Iterator
+func (a *IteratorAdapter) Valid() bool {
+	return a.iterator.Valid()
+}
+
+// Next implements cosmossdkstore.Iterator
+func (a *IteratorAdapter) Next() {
+	a.iterator.Next()
+}
+
+// Key implements cosmossdkstore.Iterator
+func (a *IteratorAdapter) Key() []byte {
+	return a.iterator.Key()
+}
+
+// Value implements cosmossdkstore.Iterator
+func (a *IteratorAdapter) Value() []byte {
+	return a.iterator.Value()
+}
+
+// Error implements cosmossdkstore.Iterator
+func (a *IteratorAdapter) Error() error {
+	return a.iterator.Error()
+}
+
+// Close implements cosmossdkstore.Iterator
+func (a *IteratorAdapter) Close() error {
+	a.iterator.Close()
+	return nil
 }
 
 // ExportAppStateAndValidators exports the state of the application for a genesis file.
