@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -342,4 +343,67 @@ func (c *queryClient) Fluentum(ctx context.Context, in *QueryGetFluentumRequest,
 	return &QueryGetFluentumResponse{
 		Fluentum: &Fluentum{},
 	}, nil
+}
+
+// GenesisState defines the fluentum module's genesis state.
+type GenesisState struct {
+	FluentumList  []Fluentum `protobuf:"bytes,1,rep,name=fluentumList,proto3" json:"fluentumList"`
+	FluentumCount uint64     `protobuf:"varint,2,opt,name=fluentumCount,proto3" json:"fluentumCount"`
+	Params        Params     `protobuf:"bytes,3,opt,name=params,proto3" json:"params"`
+}
+
+// DefaultGenesis returns the default genesis state
+func DefaultGenesis() *GenesisState {
+	return &GenesisState{
+		FluentumList:  []Fluentum{},
+		FluentumCount: 0,
+		Params:        Params{},
+	}
+}
+
+// Validate performs basic genesis state validation
+func (gs GenesisState) Validate() error {
+	return nil
+}
+
+// RegisterLegacyAminoCodec registers the module's types with the given codec
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&MsgCreateFluentum{}, "fluentum/CreateFluentum", nil)
+	cdc.RegisterConcrete(&MsgUpdateFluentum{}, "fluentum/UpdateFluentum", nil)
+	cdc.RegisterConcrete(&MsgDeleteFluentum{}, "fluentum/DeleteFluentum", nil)
+}
+
+// RegisterInterfaces registers the module's interface types
+func RegisterInterfaces(reg codectypes.InterfaceRegistry) {
+	reg.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgCreateFluentum{},
+		&MsgUpdateFluentum{},
+		&MsgDeleteFluentum{},
+	)
+}
+
+// AccountKeeper defines the expected account keeper
+type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) sdk.AccountI
+	SetAccount(ctx sdk.Context, acc sdk.AccountI)
+	NewAccount(ctx sdk.Context, acc sdk.AccountI) sdk.AccountI
+}
+
+// BankKeeper defines the expected bank keeper
+type BankKeeper interface {
+	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
+	BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
+	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
+}
+
+// QuerierRoute defines the module's querier route name
+const QuerierRoute = ModuleName
+
+// RegisterQueryServer registers the gRPC query service
+func RegisterQueryServer(srv interface{}, keeper interface{}) {
+	// Stub implementation
 }

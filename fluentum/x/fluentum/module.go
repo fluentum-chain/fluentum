@@ -114,7 +114,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 func (AppModule) QuerierRoute() string { return types.QuerierRoute }
 
 // LegacyQuerierHandler returns the fluentum module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) interface{} {
 	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
@@ -153,3 +153,6 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
+
+// IsAppModule implements the module.AppModule interface
+func (am AppModule) IsAppModule() {}
