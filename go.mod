@@ -31,7 +31,7 @@ require (
 	github.com/go-logfmt/logfmt v0.6.0
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.5.3
+	github.com/golang/protobuf v1.5.4
 	github.com/golangci/golangci-lint v1.47.0
 	github.com/google/orderedcode v0.0.1
 	github.com/google/uuid v1.4.0
@@ -271,7 +271,7 @@ replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
 replace github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
 replace github.com/fluentum-chain/dilithium => ./stubs/dilithium
 replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
-replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.3
+replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 
 replace (

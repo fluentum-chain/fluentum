@@ -1,10 +1,11 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -91,7 +92,7 @@ func (msg *MsgCreateFluentum) GetSignBytes() []byte {
 func (msg *MsgCreateFluentum) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return fmt.Errorf("invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -156,7 +157,7 @@ func (msg *MsgUpdateFluentum) GetSignBytes() []byte {
 func (msg *MsgUpdateFluentum) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return fmt.Errorf("invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -217,7 +218,7 @@ func (msg *MsgDeleteFluentum) GetSignBytes() []byte {
 func (msg *MsgDeleteFluentum) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return fmt.Errorf("invalid creator address (%s)", err)
 	}
 	return nil
 }
