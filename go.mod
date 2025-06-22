@@ -10,7 +10,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/tendermint/tendermint v0.35.9
 	golang.org/x/crypto v0.39.0
-	github.com/cosmos/cosmos-sdk v0.50.6
+	github.com/cosmos/cosmos-sdk v0.45.16
 	cosmossdk.io/api v0.3.1
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v7 v7.3.1
@@ -272,10 +272,16 @@ replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
 replace github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
 replace github.com/fluentum-chain/dilithium => ./stubs/dilithium
 replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
-replace github.com/cometbft/cometbft => github.com/tendermint/tendermint v0.35.9
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.2
 
 replace (
+	// If Fluentum still relies on Tendermint (legacy)
+	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.35.9
+	
+	// Ensure Cosmos SDK uses a compatible version
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.45.16  // works with Tendermint 0.35.x
+	
+	// Cosmos SDK module redirects to cosmossdk.io
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 	github.com/cosmos/cosmos-sdk/api => cosmossdk.io/api v0.7.2
 	github.com/cosmos/cosmos-sdk/core => cosmossdk.io/core v0.11.0
