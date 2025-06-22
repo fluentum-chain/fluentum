@@ -333,7 +333,7 @@ STATE_SYNC_DIR := $(FEATURES_DIR)/state_sync
 ZK_ROLLUP_DIR := $(FEATURES_DIR)/zk_rollup
 
 # Quantum Feature Build System Integration
-QUANTUM_FEATURE := features/quantum_signing/quantum.so
+QUANTUM_FEATURE := $(QUANTUM_SIGNING_DIR)/quantum.so
 
 # Default target
 .PHONY: all
@@ -350,7 +350,7 @@ build: build-quantum
 .PHONY: build-quantum
 build-quantum:
 	@echo "Building quantum signing module..."
-	@cd features/quantum_signing && \
+	@cd $(QUANTUM_SIGNING_DIR) && \
 		go build -buildmode=plugin -o ../quantum.so .
 
 # Install quantum feature
