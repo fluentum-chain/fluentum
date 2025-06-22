@@ -523,16 +523,15 @@ func NewKVStoreServiceAdapter(storeKey *storetypes.KVStoreKey) cosmossdkstore.KV
 }
 
 // OpenKVStore implements cosmossdkstore.KVStoreService
-func (a *KVStoreServiceAdapter) OpenKVStore(ctx context.Context) cosmossdkstore.KVStore {
+func (a *KVStoreServiceAdapter) OpenKVStore(ctx context.Context) store.KVStore {
 	// Convert context.Context to sdk.Context for the underlying store
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	underlyingStore := sdkCtx.KVStore(a.storeKey)
-	return &KVStoreWrapper{store: underlyingStore}
+	return &KVStoreWrapper{store: sdkCtx.KVStore(a.storeKey)}
 }
 
-// KVStoreWrapper wraps the underlying sdk.KVStore to ensure it matches the new interface
+// KVStoreWrapper wraps the underlying storetypes.KVStore to ensure it matches the new interface
 type KVStoreWrapper struct {
-	store sdk.KVStore
+	store storetypes.KVStore
 }
 
 // Get implements cosmossdkstore.KVStore
