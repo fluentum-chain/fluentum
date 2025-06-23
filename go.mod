@@ -7,6 +7,9 @@ toolchain go1.24.4
 require (
 	cloud.google.com/go/kms v1.15.5
 	cosmossdk.io/log v1.3.1
+	cosmossdk.io/store v1.0.2
+	cosmossdk.io/core v1.0.0
+	cosmossdk.io/api v0.7.0
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
 	github.com/Workiva/go-datastructures v1.1.5
@@ -63,9 +66,6 @@ require (
 	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.6
-	cosmossdk.io/store v1.0.2
-	cosmossdk.io/core v1.0.0
-	cosmossdk.io/api v0.7.0
 )
 
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
@@ -79,19 +79,3 @@ replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
-
-replace (
-	cosmossdk.io/core => github.com/cosmos/cosmos-sdk/core v0.11.0
-	cosmossdk.io/db => github.com/cosmos/cosmos-sdk/db v0.11.0
-	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
-	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.0
-	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.8.0
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.5
-	golang.org/x/text => golang.org/x/text v0.14.0
-	google.golang.org/genproto => google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f
-	google.golang.org/genproto/googleapis/rpc => google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f
-)
-
-replace cosmossdk.io/store => github.com/cosmos/cosmos-sdk/store v0.47.12
-
-replace cosmossdk.io/api => github.com/cosmos/cosmos-sdk/api v0.7.0
