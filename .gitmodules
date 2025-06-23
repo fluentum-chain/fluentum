@@ -1,0 +1,3 @@
+[submodule "crypto/dilithium"]
+	path = crypto/dilithium
+	url = https://github.com/fluentum-chain/dilithium 
