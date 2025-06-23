@@ -6,10 +6,6 @@ toolchain go1.24.4
 
 require (
 	cloud.google.com/go/kms v1.15.5
-	cosmossdk.io/log v1.3.1
-	cosmossdk.io/store v1.0.2
-	cosmossdk.io/core v1.0.0
-	cosmossdk.io/api v0.7.0
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
 	github.com/Workiva/go-datastructures v1.1.5
@@ -21,7 +17,7 @@ require (
 	github.com/cometbft/cometbft v0.38.6
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.50.6
+	github.com/cosmos/cosmos-sdk v1.0.0
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/creachadair/taskgroup v0.13.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
