@@ -286,18 +286,17 @@ replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 
 replace (
-	// Add cosmossdk.io dependencies with compatible versions
-	cosmossdk.io/core => cosmossdk.io/core v0.11.0
-	// Fix secp256k1 API compatibility for CometBFT v0.37.4
-	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
-
+	// Ensure Cosmos SDK uses a compatible version for CometBFT v0.37.2
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.12
+	
 	// Fix CometBFT version compatibility
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.8.0
-	// Remove old Tendermint dependencies
-	// github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.35.9
-	// github.com/tendermint/tm-db => github.com/tendermint/tm-db v0.6.6
-
-	// Use a more compatible Cosmos SDK version
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.5
+	
+	// Fix secp256k1 API compatibility for CometBFT v0.37.2
+	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
+	
+	// Redirect cosmossdk.io packages to GitHub
+	cosmossdk.io/core => github.com/cosmos/cosmos-sdk/core v0.11.0
+	cosmossdk.io/db => github.com/cosmos/cosmos-sdk/db v0.11.0
 )
