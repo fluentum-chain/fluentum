@@ -17,7 +17,7 @@ require (
 	github.com/cometbft/cometbft v0.38.6
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v1.0.0
+	github.com/cosmos/cosmos-sdk v0.50.6
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/creachadair/taskgroup v0.13.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
