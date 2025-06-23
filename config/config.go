@@ -1214,23 +1214,33 @@ type QuantumConfig struct {
 
 	// Quantum signature mode (e.g., "dilithium3", "dilithium5", "falcon512", etc.)
 	Mode string `mapstructure:"mode"`
+
+	// Feature flag: enable Dilithium signatures after governance vote
+	EnableDilithium bool `mapstructure:"enable_dilithium"`
+
+	// Red team simulation mode: monitor|active
+	RedteamMode string `mapstructure:"redteam_mode"`
 }
 
 // DefaultQuantumConfig returns a default configuration for quantum cryptography.
 func DefaultQuantumConfig() *QuantumConfig {
 	return &QuantumConfig{
-		Enabled: false,
-		LibPath: "/usr/local/lib/fluentum/quantum.so",
-		Mode:    "dilithium3",
+		Enabled:         false,
+		LibPath:         "",
+		Mode:            "dilithium3",
+		EnableDilithium: false,
+		RedteamMode:     "monitor",
 	}
 }
 
 // TestQuantumConfig returns a test configuration for quantum cryptography.
 func TestQuantumConfig() *QuantumConfig {
 	return &QuantumConfig{
-		Enabled: false,
-		LibPath: "/tmp/quantum_test.so",
-		Mode:    "dilithium3",
+		Enabled:         true,
+		LibPath:         "testlib.so",
+		Mode:            "dilithium3",
+		EnableDilithium: true,
+		RedteamMode:     "active",
 	}
 }
 
