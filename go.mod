@@ -16,6 +16,7 @@ require (
 	github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
+	github.com/cosmos/cosmos-sdk v0.47.12
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/creachadair/taskgroup v0.13.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
@@ -59,6 +60,11 @@ require (
 	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.5
+	// Add cosmossdk.io dependencies
+	cosmossdk.io/core v0.11.0
+	cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
+	cosmossdk.io/log v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
+	cosmossdk.io/db v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 )
 
 require (
@@ -286,15 +292,21 @@ replace (
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
 
 	// Fix CometBFT version compatibility
-	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.4
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.8.0
 	// Remove old Tendermint dependencies
 	// github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.35.9
 	// github.com/tendermint/tm-db => github.com/tendermint/tm-db v0.6.6
 
-	// Ensure Cosmos SDK uses a compatible version for CometBFT v0.37.4
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.12
+	// Use a more compatible Cosmos SDK version
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.5
+
+	// Add cosmossdk.io dependencies with compatible versions
+	cosmossdk.io/core => cosmossdk.io/core v0.11.0
+	cosmossdk.io/store => cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
+	cosmossdk.io/log => cosmossdk.io/log v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
+	cosmossdk.io/db => cosmossdk.io/db v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 
 	// Redirect store packages to cosmossdk.io/store where they exist in newer versions
-	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
+	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 )
