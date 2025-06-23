@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go/kms v1.15.5
 	// Add cosmossdk.io dependencies with compatible versions
 	cosmossdk.io/log v1.3.1
-	cosmossdk.io/store v0.1.0-alpha.3
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
 	github.com/Workiva/go-datastructures v1.1.5
@@ -294,8 +293,9 @@ replace (
 	// Fix secp256k1 API compatibility
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
 	
-	// Use compatible cosmossdk.io/store version
-	cosmossdk.io/store => cosmossdk.io/store v0.1.0-alpha.3
+	// Pin google.golang.org/genproto to avoid Go 1.23+ requirement
+	google.golang.org/genproto => google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f
+	google.golang.org/genproto/googleapis/rpc => google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f
 	
 	// Redirect cosmossdk.io packages to GitHub
 	cosmossdk.io/core => github.com/cosmos/cosmos-sdk/core v0.11.0
