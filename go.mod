@@ -1,6 +1,6 @@
 module github.com/fluentum-chain/fluentum
 
-go 1.20.14
+go 1.20
 
 require (
 	cloud.google.com/go/kms v1.15.5
@@ -13,14 +13,10 @@ require (
 	github.com/bufbuild/buf v1.15.1
 	github.com/cloudflare/circl v1.3.7
 	// CometBFT dependencies
-	github.com/cometbft/cometbft v0.37.4
+	github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db v0.8.0
-	// Confix for config migration
-	github.com/cometbft/confix v0.1.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.47.12
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/creachadair/taskgroup v0.13.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/fluentum-chain/dilithium v0.0.0-00010101000000-000000000000
@@ -55,11 +51,13 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	github.com/vektra/mockery/v2 v2.23.1
 	golang.org/x/crypto v0.39.0
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	golang.org/x/net v0.40.0
+	golang.org/x/sys v0.15.0
 	gonum.org/v1/gonum v0.12.0
 	google.golang.org/api v0.155.0
 	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80
-	google.golang.org/grpc v1.62.1
+	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.5
 )
 
@@ -251,12 +249,10 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	golang.org/x/tools v0.33.0 // indirect
