@@ -60,6 +60,9 @@ require (
 	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.5
+	// Add cosmossdk.io dependencies
+	cosmossdk.io/log v1.6.0
+	cosmossdk.io/store v1.1.2
 )
 
 require (
@@ -285,8 +288,6 @@ replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 replace (
 	// Add cosmossdk.io dependencies with compatible versions
 	cosmossdk.io/core => cosmossdk.io/core v0.11.0
-	cosmossdk.io/log => github.com/cosmos/cosmos-sdk v0.47.12
-	cosmossdk.io/store => github.com/cosmos/cosmos-sdk v0.47.12
 	// Fix secp256k1 API compatibility for CometBFT v0.37.4
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
 
@@ -300,5 +301,3 @@ replace (
 	// Use a more compatible Cosmos SDK version
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.5
 )
-
-replace cosmossdk.io/db => github.com/cosmos/cosmos-sdk v0.47.12
