@@ -14,7 +14,7 @@ require (
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/bufbuild/buf v1.15.1
 	github.com/cloudflare/circl v1.3.7
-	github.com/cometbft/cometbft v0.38.6
+	github.com/cometbft/cometbft v0.38.17
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.50.6
