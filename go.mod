@@ -1,6 +1,6 @@
 module github.com/fluentum-chain/fluentum
 
-go 1.24.4
+go 1.20.14
 
 require (
 	cloud.google.com/go/kms v1.15.5

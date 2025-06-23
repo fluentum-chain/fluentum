@@ -1,6 +1,6 @@
 # Fluentum Core
 
-[![Go Version](https://img.shields.io/badge/Go-1.24.4+-blue.svg)](https://golang.org/)
+[![Go Version](https://img.shields.io/badge/Go-1.20.14-blue.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![Commits](https://img.shields.io/badge/Commits-8,761+-orange.svg)](https://github.com/fluentum-chain/fluentum/commits/main)
 [![Code Size](https://img.shields.io/badge/Size-~150MB-lightgrey.svg)](https://github.com/fluentum-chain/fluentum)
@@ -86,10 +86,21 @@ fluentum/
 └── 📁 networks/           # Network configurations
 ```
 
-## 🛠️ Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-- **Go**: 1.24.4 or later
+```bash
+# Verify Go version (must be 1.20.14 for Cosmos SDK v0.47.x)
+go version
+# Expected: go version go1.20.14 linux/amd64
+
+# Install if needed
+wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+```
+
+- **Go**: 1.20.14 (required for Cosmos SDK v0.47.x compatibility)
 - **Git**: Latest version
 - **System**: Ubuntu 20.04+ (recommended) or Windows/macOS
 
@@ -423,3 +434,18 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 [Website](https://fluentum.tech) • [Documentation](https://docs.fluentum.tech) • [Community](https://t.me/fluentum)
 
 </div>
+
+## 📋 System Requirements
+
+### Development Environment
+- **Go**: 1.20.14 (required for Cosmos SDK v0.47.x compatibility)
+- **Git**: Latest version
+- **Make**: Build system
+- **Docker**: For containerized development (optional)
+
+### Production Server
+- **OS**: Ubuntu 20.04+ / CentOS 8+ / RHEL 8+
+- **Go**: 1.20.14 (required)
+- **Memory**: 8GB+ RAM
+- **Storage**: 100GB+ SSD
+- **Network**: Stable internet connection

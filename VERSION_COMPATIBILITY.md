@@ -8,6 +8,7 @@ This document outlines the version compatibility changes made to ensure Fluentum
 - **CometBFT**: v0.37.4
 - **cometbft-db**: v0.8.0
 - **Cosmos SDK**: v0.47.x
+- **Go**: 1.20.x (recommended: 1.20.14)
 
 ## 🔄 Changes Made
 
@@ -44,7 +45,26 @@ replace (
 
 ## 🚀 Server Deployment Steps
 
-### 1. Update Dependencies
+### 1. Install Go 1.20.14 (Required)
+```bash
+# For Ubuntu/Debian
+wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+source ~/.bashrc
+
+# For CentOS/RHEL
+wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+source ~/.bashrc
+
+# Verify installation
+go version
+# Expected: go version go1.20.14 linux/amd64
+```
+
+### 2. Update Dependencies
 ```bash
 # Navigate to project directory
 cd /path/to/fluentum
@@ -58,7 +78,7 @@ go mod download
 go mod verify
 ```
 
-### 2. Verify Compatibility
+### 3. Verify Compatibility
 ```bash
 # Check that all dependencies are compatible
 go list -m all | grep -E "(cometbft|cosmos-sdk)"
@@ -69,7 +89,7 @@ go list -m all | grep -E "(cometbft|cosmos-sdk)"
 # github.com/cosmos/cosmos-sdk v0.47.12
 ```
 
-### 3. Build and Test
+### 4. Build and Test
 ```bash
 # Clean build
 make clean
@@ -113,6 +133,7 @@ make test
 ## 🔍 Verification Checklist
 
 ### Pre-Deployment
+- [ ] Go 1.20.14 installed: `go version`
 - [ ] `go mod tidy` runs without errors
 - [ ] All tests pass: `make test`
 - [ ] Build succeeds: `make build`

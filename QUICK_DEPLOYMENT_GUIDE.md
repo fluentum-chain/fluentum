@@ -1,6 +1,25 @@
 # 🚀 Fluentum Quick Deployment Guide
 
-This guide provides the essential steps for deploying Fluentum to mainnet.
+## 📋 Prerequisites
+
+### 1. Install Go 1.20.14 (Required)
+```bash
+# Run the installation script
+chmod +x scripts/install_go.sh
+./scripts/install_go.sh
+
+# Or install manually
+wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+source ~/.bashrc
+
+# Verify installation
+go version
+# Expected: go version go1.20.14 linux/amd64
+```
+
+### 2. System Requirements
 
 ## 📋 Pre-Flight Checklist
 
