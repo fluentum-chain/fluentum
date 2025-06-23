@@ -4,9 +4,9 @@ go 1.20
 
 require (
 	cloud.google.com/go/kms v1.15.5
-	// Add cosmossdk.io dependencies
+	// Add cosmossdk.io dependencies with compatible versions
 	cosmossdk.io/log v1.3.1
-	cosmossdk.io/store v1.0.2
+	cosmossdk.io/store v0.1.0-alpha.3
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
 	github.com/Workiva/go-datastructures v1.1.5
@@ -15,11 +15,11 @@ require (
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/bufbuild/buf v1.15.1
 	github.com/cloudflare/circl v1.3.7
-	// CometBFT dependencies
-	github.com/cometbft/cometbft v0.37.2
-	github.com/cometbft/cometbft-db v0.8.0
+	// CometBFT dependencies - using older compatible version
+	github.com/cometbft/cometbft v0.36.0
+	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.47.12
+	github.com/cosmos/cosmos-sdk v0.46.15
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/creachadair/taskgroup v0.13.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
@@ -286,15 +286,16 @@ replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 
 replace (
-	// Ensure Cosmos SDK uses a compatible version for CometBFT v0.37.2
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.12
+	// Use older, more compatible versions
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.15
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.36.0
+	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.7.0
 	
-	// Fix CometBFT version compatibility
-	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.2
-	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.8.0
-	
-	// Fix secp256k1 API compatibility for CometBFT v0.37.2
+	// Fix secp256k1 API compatibility
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
+	
+	// Use compatible cosmossdk.io/store version
+	cosmossdk.io/store => cosmossdk.io/store v0.1.0-alpha.3
 	
 	// Redirect cosmossdk.io packages to GitHub
 	cosmossdk.io/core => github.com/cosmos/cosmos-sdk/core v0.11.0
