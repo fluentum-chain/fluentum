@@ -63,6 +63,7 @@ require (
 	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.6
+	cosmossdk.io/store v1.0.2
 )
 
 require cosmossdk.io/core v1.0.0 // indirect
