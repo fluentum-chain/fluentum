@@ -1,13 +1,13 @@
-# 🔧 Version Compatibility Update for CometBFT v0.38.6
+# 🔧 Version Compatibility Update for CometBFT v0.37.4
 
-This document outlines the version compatibility changes made to ensure Fluentum works correctly with CometBFT v0.38.6.
+This document outlines the version compatibility changes made to ensure Fluentum works correctly with CometBFT v0.37.4.
 
 ## 📋 Compatibility Requirements
 
 ### Target Versions
-- **CometBFT**: v0.38.6
-- **cometbft-db**: v0.8.0 (not v0.9.0)
-- **Cosmos SDK**: v0.47.x (not v0.50.x)
+- **CometBFT**: v0.37.4
+- **cometbft-db**: v0.8.0
+- **Cosmos SDK**: v0.47.x
 
 ## 🔄 Changes Made
 
@@ -16,26 +16,28 @@ This document outlines the version compatibility changes made to ensure Fluentum
 #### Before (Incompatible)
 ```go
 github.com/cosmos/cosmos-sdk v0.50.6
+github.com/cometbft/cometbft v0.38.6
 github.com/cometbft/cometbft-db v0.9.0
 ```
 
 #### After (Compatible)
 ```go
 github.com/cosmos/cosmos-sdk v0.47.12
+github.com/cometbft/cometbft v0.37.4
 github.com/cometbft/cometbft-db v0.8.0
 ```
 
 ### Updated Replace Directives
 ```go
 replace (
-    // Ensure Cosmos SDK uses a compatible version for CometBFT v0.38.6
+    // Ensure Cosmos SDK uses a compatible version for CometBFT v0.37.4
     github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.12
     
     // Fix CometBFT version compatibility
-    github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.38.6
+    github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.4
     github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.8.0
     
-    // Fix secp256k1 API compatibility for CometBFT v0.38.6
+    // Fix secp256k1 API compatibility for CometBFT v0.37.4
     github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
 )
 ```
@@ -62,7 +64,7 @@ go mod verify
 go list -m all | grep -E "(cometbft|cosmos-sdk)"
 
 # Expected output should show:
-# github.com/cometbft/cometbft v0.38.6
+# github.com/cometbft/cometbft v0.37.4
 # github.com/cometbft/cometbft-db v0.8.0
 # github.com/cosmos/cosmos-sdk v0.47.12
 ```
@@ -84,21 +86,21 @@ make test
 
 ### Why These Changes Were Necessary
 
-1. **CometBFT v0.38.6 Compatibility**
-   - Requires cometbft-db v0.8.0, not v0.9.0
+1. **CometBFT v0.37.4 Compatibility**
+   - Requires cometbft-db v0.8.0
    - Cosmos SDK v0.50.x introduces breaking changes
-   - v0.47.x is the last stable version for CometBFT v0.38.x
+   - v0.47.x is the correct version for CometBFT v0.37.x
 
 2. **API Compatibility**
-   - Cosmos SDK v0.50.x has different store interfaces
-   - IBC v7.3.1 should work with v0.47.x
-   - Protobuf and gRPC versions need to be compatible
+   - Cosmos SDK v0.47.x has stable store interfaces
+   - IBC v7.3.1 works well with v0.47.x
+   - Protobuf and gRPC versions are compatible
 
 ### Potential Issues to Watch For
 
 1. **Store Interface Changes**
-   - Cosmos SDK v0.47.x uses different store patterns
-   - May need to update store-related code
+   - Cosmos SDK v0.47.x uses stable store patterns
+   - Should be compatible with existing code
 
 2. **IBC Compatibility**
    - IBC v7.3.1 should work with Cosmos SDK v0.47.x
@@ -125,13 +127,13 @@ make test
 ## 📚 Additional Resources
 
 ### Official Compatibility Matrix
-- [CometBFT v0.38.x Compatibility](https://docs.cometbft.com/v0.38/)
+- [CometBFT v0.37.x Compatibility](https://docs.cometbft.com/v0.37/)
 - [Cosmos SDK v0.47.x Documentation](https://docs.cosmos.network/v0.47/)
 - [IBC v7.x Compatibility](https://ibc.cosmos.network/)
 
 ### Migration Guides
 - [Cosmos SDK v0.47.x Migration Guide](https://docs.cosmos.network/v0.47/migrations/upgrading)
-- [CometBFT v0.38.x Migration Guide](https://docs.cometbft.com/v0.38/migrations/)
+- [CometBFT v0.37.x Migration Guide](https://docs.cometbft.com/v0.37/migrations/)
 
 ## 🚨 Rollback Plan
 
@@ -145,7 +147,7 @@ If compatibility issues arise:
    ```
 
 2. **Alternative Versions**
-   - Consider CometBFT v0.37.x if v0.38.6 has issues
+   - Consider CometBFT v0.36.x if v0.37.4 has issues
    - Use Cosmos SDK v0.46.x as fallback
 
 3. **Contact Support**
@@ -157,4 +159,4 @@ If compatibility issues arise:
 
 **✅ Version compatibility update completed!**
 
-The project is now configured for CometBFT v0.38.6 with compatible dependencies. Run `go mod tidy` on the server to finalize the changes. 
+The project is now configured for CometBFT v0.37.4 with compatible dependencies. Run `go mod tidy` on the server to finalize the changes. 

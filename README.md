@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![Commits](https://img.shields.io/badge/Commits-8,761+-orange.svg)](https://github.com/fluentum-chain/fluentum/commits/main)
 [![Code Size](https://img.shields.io/badge/Size-~150MB-lightgrey.svg)](https://github.com/fluentum-chain/fluentum)
-[![CometBFT](https://img.shields.io/badge/CometBFT-v0.38.6-blue.svg)](https://cometbft.com/)
+[![CometBFT](https://img.shields.io/badge/CometBFT-v0.37.4-blue.svg)](https://cometbft.com/)
 [![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.47.12-green.svg)](https://cosmos.network/)
 [![Mainnet Ready](https://img.shields.io/badge/Mainnet-Ready-brightgreen.svg)](FINAL_CHECKLIST.md)
 
@@ -12,7 +12,7 @@
 
 ## 🚀 Overview
 
-Fluentum Core is a production-ready blockchain platform that combines **Delegated Proof of Stake (DPoS)** with **Zero-Knowledge Rollups (ZK-Rollups)** for unprecedented performance and security. Built on **CometBFT v0.38.6** consensus with quantum-resistant cryptography and cross-chain capabilities.
+Fluentum Core is a production-ready blockchain platform that combines **Delegated Proof of Stake (DPoS)** with **Zero-Knowledge Rollups (ZK-Rollups)** for unprecedented performance and security. Built on **CometBFT v0.37.4** consensus with quantum-resistant cryptography and cross-chain capabilities.
 
 ### Key Differentiators
 
@@ -26,12 +26,12 @@ Fluentum Core is a production-ready blockchain platform that combines **Delegate
 
 ## 🔄 Migration to CometBFT
 
-This project has been successfully migrated from Tendermint Core to **CometBFT v0.38.6** with **Cosmos SDK v0.47.12**. 
+This project has been successfully migrated from Tendermint Core to **CometBFT v0.37.4** with **Cosmos SDK v0.47.12**. 
 
 ### Key Migration Changes
 
-- ✅ **CometBFT v0.38.6**: Drop-in replacement for Tendermint v0.34+
-- ✅ **Cosmos SDK v0.47.12**: Compatible SDK version for CometBFT v0.38.6
+- ✅ **CometBFT v0.37.4**: Drop-in replacement for Tendermint v0.34+
+- ✅ **Cosmos SDK v0.47.12**: Compatible SDK version for CometBFT v0.37.4
 - ✅ **cometbft-db v0.8.0**: Compatible database backend
 - ✅ **ABCI++ Support**: `PrepareProposal`, `ProcessProposal`, `ExtendVote`, `VerifyVoteExtension`
 - ✅ **Proposer-Based Timestamps (PBTS)**: Enhanced timestamp handling
@@ -51,7 +51,7 @@ chmod +x scripts/migrate-config.sh
 
 # Manual migration
 go install github.com/cometbft/confix@latest
-confix migrate --home ~/.cometbft --target-version v0.38.6
+confix migrate --home ~/.cometbft --target-version v0.37.4
 ```
 
 For detailed migration instructions, see [Migration Guide](#migration-guide) below.
@@ -67,7 +67,7 @@ For detailed migration instructions, see [Migration Guide](#migration-guide) bel
 | **Directories** | 319 |
 | **Git Commits** | 8,761+ |
 | **Languages** | Go (82.2%), Solidity (2.6%), TeX (6.7%) |
-| **CometBFT Version** | v0.38.6 |
+| **CometBFT Version** | v0.37.4 |
 | **Cosmos SDK Version** | v0.47.12 |
 | **cometbft-db Version** | v0.8.0 |
 
@@ -201,7 +201,7 @@ export CMTHOME="$HOME/.cometbft"
 export TMHOME="$HOME/.tendermint"
 
 # 3. Migrate configuration
-confix migrate --home $CMTHOME --target-version v0.38.6
+confix migrate --home $CMTHOME --target-version v0.37.4
 
 # 4. Update dependencies
 go mod tidy
@@ -301,7 +301,7 @@ The application implements all ABCI++ methods for enhanced functionality:
 
 | Component | Description | Status |
 |-----------|-------------|--------|
-| **Consensus Engine** | CometBFT v0.38.6 + Hybrid DPoS | ✅ Production |
+| **Consensus Engine** | CometBFT v0.37.4 + Hybrid DPoS | ✅ Production |
 | **Quantum Crypto** | Dilithium signatures | ✅ Implemented |
 | **Cross-Chain Bridge** | EVM/SVM interoperability | 🔄 Development |
 | **Privacy Layer** | ZK-proof integration | 🔄 Development |
@@ -311,7 +311,7 @@ The application implements all ABCI++ methods for enhanced functionality:
 
 ### Technology Stack
 
-- **Consensus**: CometBFT v0.38.6 + Custom DPoS
+- **Consensus**: CometBFT v0.37.4 + Custom DPoS
 - **Application Framework**: Cosmos SDK v0.47.12
 - **Database**: cometbft-db v0.8.0
 - **Cryptography**: Dilithium, Ed25519, Secp256k1
