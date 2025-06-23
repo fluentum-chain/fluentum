@@ -4,6 +4,10 @@ go 1.20
 
 require (
 	cloud.google.com/go/kms v1.15.5
+	// Add cosmossdk.io dependencies
+	cosmossdk.io/core v0.11.0
+	cosmossdk.io/log v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
+	cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
 	github.com/Workiva/go-datastructures v1.1.5
@@ -60,11 +64,6 @@ require (
 	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.5
-	// Add cosmossdk.io dependencies
-	cosmossdk.io/core v0.11.0
-	cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
-	cosmossdk.io/log v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
-	cosmossdk.io/db v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 )
 
 require (
@@ -288,6 +287,10 @@ replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 
 replace (
+	// Add cosmossdk.io dependencies with compatible versions
+	cosmossdk.io/core => cosmossdk.io/core v0.11.0
+	cosmossdk.io/log => github.com/cosmos/cosmos-sdk/log v0.1.0-alpha.1
+	cosmossdk.io/store => github.com/cosmos/cosmos-sdk/store v0.1.0-alpha.1
 	// Fix secp256k1 API compatibility for CometBFT v0.37.4
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
 
@@ -301,12 +304,8 @@ replace (
 	// Use a more compatible Cosmos SDK version
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.5
 
-	// Add cosmossdk.io dependencies with compatible versions
-	cosmossdk.io/core => cosmossdk.io/core v0.11.0
-	cosmossdk.io/store => cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
-	cosmossdk.io/log => cosmossdk.io/log v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
-	cosmossdk.io/db => cosmossdk.io/db v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
-
 	// Redirect store packages to cosmossdk.io/store where they exist in newer versions
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 )
+
+replace cosmossdk.io/db => github.com/cosmos/cosmos-sdk/db v0.1.0-alpha.1
