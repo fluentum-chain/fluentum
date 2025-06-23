@@ -14,11 +14,11 @@ require (
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/bufbuild/buf v1.15.1
 	github.com/cloudflare/circl v1.3.7
-	// CometBFT dependencies - using older compatible version
-	github.com/cometbft/cometbft v0.36.0
-	github.com/cometbft/cometbft-db v0.7.0
+	// CometBFT dependencies - using valid version
+	github.com/cometbft/cometbft v0.37.0
+	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.46.15
+	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/creachadair/taskgroup v0.13.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
@@ -57,6 +57,7 @@ require (
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	golang.org/x/net v0.19.0
 	golang.org/x/sys v0.15.0
+	golang.org/x/text v0.14.0
 	gonum.org/v1/gonum v0.12.0
 	google.golang.org/api v0.154.0
 	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f
@@ -257,7 +258,6 @@ require (
 	golang.org/x/oauth2 v0.25.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/tools v0.31.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
@@ -285,13 +285,16 @@ replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 
 replace (
-	// Use older, more compatible versions
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.15
-	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.36.0
-	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.7.0
+	// Use compatible versions
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.5
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.0
+	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.8.0
 	
 	// Fix secp256k1 API compatibility
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
+	
+	// Pin golang.org/x/text to Go 1.20 compatible version
+	golang.org/x/text => golang.org/x/text v0.14.0
 	
 	// Pin google.golang.org/genproto to avoid Go 1.23+ requirement
 	google.golang.org/genproto => google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f
