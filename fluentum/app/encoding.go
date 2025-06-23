@@ -1,11 +1,11 @@
 package app
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"cosmossdk.io/client"
+	"cosmossdk.io/codec"
+	codectypes "cosmossdk.io/codec/types"
+	sdk "cosmossdk.io/types"
+	"cosmossdk.io/x/auth/tx"
 
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
 )

@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"cosmossdk.io/codec"
+	"cosmossdk.io/codec/types"
+	codectypes "cosmossdk.io/codec/types"
+	sdk "cosmossdk.io/types"
+	"cosmossdk.io/types/query"
+	paramtypes "cosmossdk.io/x/params/types"
 	"github.com/gogo/protobuf/proto"
 )
 

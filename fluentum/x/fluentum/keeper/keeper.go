@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"cosmossdk.io/codec"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	sdk "cosmossdk.io/types"
+	paramtypes "cosmossdk.io/x/params/types"
 
 	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
 )

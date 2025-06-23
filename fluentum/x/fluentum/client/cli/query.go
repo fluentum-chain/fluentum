@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	"cosmossdk.io/client"
 	"github.com/spf13/cobra"
 
 	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
