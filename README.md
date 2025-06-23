@@ -509,3 +509,11 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 | **1.22+** | v0.38+ | v0.50+ | v1.71+ | ✅ Supported |
 
 **Note**: The project is currently configured for Go 1.20 compatibility. To use newer dependencies, upgrade Go and run `go mod tidy`.
+
+## 🧬 Quantum Migration Path
+
+```mermaid
+graph LR
+    A["ECDSA Validators"] --> B["Hybrid ECDSA+Dilithium"]
+    B --> C["Dilithium-Only"]
+```

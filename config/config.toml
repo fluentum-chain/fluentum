@@ -506,4 +506,7 @@ enabled = false
 lib_path = "/usr/local/lib/fluentum/quantum.so"
 
 # Quantum signature mode (e.g., "dilithium3", "dilithium5", "falcon512", etc.)
-mode = "dilithium3" 
+mode = "dilithium3"
+
+enable_dilithium = false  # Set true after governance vote
+redteam_mode = "monitor"  # Options: monitor|active 

@@ -16,7 +16,7 @@ type Tree interface {
 	Set(key []byte, value []byte) (updated bool)
 	Remove(key []byte) (value []byte, removed bool)
 	HashWithCount() (hash []byte, count int)
-	Hash() (hash []byte)
+	Hash() ([]byte, error)
 	Save() (hash []byte)
 	Load(hash []byte)
 	Copy() Tree
