@@ -64,9 +64,9 @@ require (
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.36.6
 	cosmossdk.io/store v1.0.2
+	cosmossdk.io/core v1.0.0
+	cosmossdk.io/api v0.7.0
 )
-
-require cosmossdk.io/core v1.0.0 // indirect
 
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
 
