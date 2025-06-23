@@ -291,3 +291,14 @@ func parseTx(tx []byte) (string, string, error) {
 	}
 	return string(parts[0]), string(parts[1]), nil
 }
+
+func (app *Application) FinalizeBlock(req abci.RequestFinalizeBlock) abci.ResponseFinalizeBlock {
+	results := make([]abci.ResponseDeliverTx, len(req.Txs))
+	for i, tx := range req.Txs {
+		results[i] = app.DeliverTx(abci.RequestDeliverTx{Tx: tx})
+	}
+	return abci.ResponseFinalizeBlock{
+		TxResults: results,
+		Events:    []abci.Event{}, // Add block-level events if needed
+	}
+}

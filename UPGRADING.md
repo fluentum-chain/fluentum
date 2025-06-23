@@ -766,3 +766,10 @@ multiple validator sets at once to accomodate this delay.
 The `ConsensusParams.BlockSize.MaxTxs` was removed in favour of
 `ConsensusParams.BlockSize.MaxBytes`, which is now enforced. This means blocks
 are limitted only by byte-size, not by number of transactions.
+
+## Migration to Cosmos SDK v0.50.x, CometBFT v0.38.x, IAVL v1.0, and ABCI++
+
+- Update all dependencies in `go.mod` as described in the README and VERSION_COMPATIBILITY.md.
+- Refactor ABCI application logic to use `FinalizeBlock` instead of `DeliverTx`.
+- Use `iavl.NewMutableTree(db, cacheSize, true)` for IAVL v1.0+.
+- Run `go mod tidy` after all changes.

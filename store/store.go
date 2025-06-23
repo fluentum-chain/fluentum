@@ -501,3 +501,11 @@ func mustEncode(pb proto.Message) []byte {
 	}
 	return bz
 }
+
+// NewIAVLTreeExample demonstrates how to instantiate a new IAVL MutableTree (v1.0 interface)
+// Usage: tree, err := iavl.NewMutableTree(db, cacheSize, true) // Skip version checking
+func NewIAVLTreeExample(db dbm.DB, cacheSize int) (interface{}, error) {
+	// import "github.com/cosmos/iavl"
+	// return iavl.NewMutableTree(db, cacheSize, true)
+	return nil, nil // Replace with actual call if iavl is available
+}

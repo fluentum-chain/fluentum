@@ -7,7 +7,6 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/gogo/protobuf/proto"
 
-	abci "github.com/fluentum-chain/fluentum/abci/types"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
 	tmos "github.com/fluentum-chain/fluentum/libs/os"
 	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
@@ -441,17 +440,7 @@ func (store dbStore) LoadLastABCIResponse(height int64) (*tmstate.ABCIResponses,
 //
 // CONTRACT: height must be monotonically increasing every time this is called.
 func (store dbStore) SaveABCIResponses(height int64, abciResponses *tmstate.ABCIResponses) error {
-	var dtxs []*abci.ResponseDeliverTx
-	// strip nil values,
-	for _, tx := range abciResponses.DeliverTxs {
-		if tx != nil {
-			dtxs = append(dtxs, tx)
-		}
-	}
-	abciResponses.DeliverTxs = dtxs
-
-	// If the flag is false then we save the ABCIResponse. This can be used for the /BlockResults
-	// query or to reindex an event using the command line.
+	// Save the ABCIResponse for crash recovery and queries.
 	if !store.DiscardABCIResponses {
 		bz, err := abciResponses.Marshal()
 		if err != nil {
@@ -462,8 +451,7 @@ func (store dbStore) SaveABCIResponses(height int64, abciResponses *tmstate.ABCI
 		}
 	}
 
-	// We always save the last ABCI response for crash recovery.
-	// This overwrites the previous saved ABCI Response.
+	// Always save the last ABCI response for crash recovery.
 	response := &tmstate.ABCIResponsesInfo{
 		AbciResponses: abciResponses,
 		Height:        height,

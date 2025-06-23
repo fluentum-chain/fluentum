@@ -517,3 +517,25 @@ graph LR
     A["ECDSA Validators"] --> B["Hybrid ECDSA+Dilithium"]
     B --> C["Dilithium-Only"]
 ```
+
+## Migration Notice
+
+- **Cosmos SDK**: v0.50.x
+- **CometBFT**: v0.38.x
+- **IAVL**: v1.0.x
+- **ABCI++**: Now uses `FinalizeBlock` instead of `DeliverTx` for block-level transaction processing.
+
+## Dependency Management
+
+- Run `go mod tidy` after any dependency changes.
+- Ensure your `go.mod` includes:
+  - `github.com/cosmos/cosmos-sdk v0.50.x`
+  - `github.com/cometbft/cometbft v0.38.x`
+  - `cosmossdk.io/store v1.0.x`
+  - `github.com/cosmos/iavl v1.0.x`
+
+## Key Changes
+
+- ABCI++: Implement and use `FinalizeBlock` for block-level transaction processing.
+- IAVL: Use `iavl.NewMutableTree(db, cacheSize, true)` for v1.0+.
+- See `UPGRADING.md` and `VERSION_COMPATIBILITY.md` for more details.

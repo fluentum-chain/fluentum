@@ -1,7 +1,6 @@
 package state
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -263,74 +262,25 @@ func execBlockOnProxyApp(
 	store Store,
 	initialHeight int64,
 ) (*tmstate.ABCIResponses, error) {
-	var validTxs, invalidTxs = 0, 0
-
-	txIndex := 0
-	abciResponses := new(tmstate.ABCIResponses)
-	dtxs := make([]*abci.ResponseDeliverTx, len(block.Txs))
-	abciResponses.DeliverTxs = dtxs
-
-	// Execute transactions and get hash.
-	proxyCb := func(req *abci.Request, res *abci.Response) {
-		if r, ok := res.Value.(*abci.Response_DeliverTx); ok {
-			// TODO: make use of res.Log
-			// TODO: make use of this info
-			// Blocks may include invalid txs.
-			txRes := r.DeliverTx
-			if txRes.Code == abci.CodeTypeOK {
-				validTxs++
-			} else {
-				logger.Debug("invalid tx", "code", txRes.Code, "log", txRes.Log)
-				invalidTxs++
-			}
-
-			abciResponses.DeliverTxs[txIndex] = txRes
-			txIndex++
-		}
-	}
-	proxyAppConn.SetResponseCallback(proxyCb)
-
-	commitInfo := getBeginBlockValidatorInfo(block, store, initialHeight)
-
-	byzVals := make([]abci.Evidence, 0)
-	for _, evidence := range block.Evidence.Evidence {
-		byzVals = append(byzVals, evidence.ABCI()...)
+	// Prepare FinalizeBlock request
+	finalizeReq := abci.RequestFinalizeBlock{
+		Txs: block.Txs,
+		// TODO: Fill in other required fields (e.g., proposer, time, etc.)
 	}
 
-	// Begin block
-	var err error
-	pbh := block.Header.ToProto()
-	if pbh == nil {
-		return nil, errors.New("nil header")
-	}
-
-	abciResponses.BeginBlock, err = proxyAppConn.BeginBlockSync(abci.RequestBeginBlock{
-		Hash:                block.Hash(),
-		Header:              *pbh,
-		LastCommitInfo:      commitInfo,
-		ByzantineValidators: byzVals,
-	})
+	// Call FinalizeBlock once for the block
+	finalizeResp, err := proxyAppConn.FinalizeBlockSync(finalizeReq)
 	if err != nil {
-		logger.Error("error in proxyAppConn.BeginBlock", "err", err)
+		logger.Error("error in proxyAppConn.FinalizeBlock", "err", err)
 		return nil, err
 	}
 
-	// run txs of block
-	for _, tx := range block.Txs {
-		proxyAppConn.DeliverTxAsync(abci.RequestDeliverTx{Tx: tx})
-		if err := proxyAppConn.Error(); err != nil {
-			return nil, err
-		}
+	// Adapt response to ABCIResponses structure
+	abciResponses := &tmstate.ABCIResponses{
+		FinalizeBlock: finalizeResp,
+		// TODO: Map other fields as needed
 	}
 
-	// End block.
-	abciResponses.EndBlock, err = proxyAppConn.EndBlockSync(abci.RequestEndBlock{Height: block.Height})
-	if err != nil {
-		logger.Error("error in proxyAppConn.EndBlock", "err", err)
-		return nil, err
-	}
-
-	logger.Info("executed block", "height", block.Height, "num_valid_txs", validTxs, "num_invalid_txs", invalidTxs)
 	return abciResponses, nil
 }
 

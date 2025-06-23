@@ -268,6 +268,12 @@ go get github.com/cometbft/cometbft-db@v0.8.0
 go mod tidy
 ```
 
+## Migration Notes
+
+- ABCI++: `DeliverTx` replaced by `FinalizeBlock`.
+- IAVL: Use `NewMutableTree(db, cacheSize, true)` for v1.0+.
+- Run `go mod tidy` after dependency changes.
+
 ---
 
 **✅ Version compatibility guide updated!**

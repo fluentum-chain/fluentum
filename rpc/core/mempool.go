@@ -181,3 +181,5 @@ func CheckTx(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultCheckTx, error) 
 	}
 	return &ctypes.ResultCheckTx{ResponseCheckTx: *res}, nil
 }
+
+// TODO: Update broadcast and result logic for FinalizeBlock block-level responses

@@ -65,6 +65,8 @@ require (
 	google.golang.org/protobuf v1.36.6
 )
 
+require cosmossdk.io/core v1.0.0 // indirect
+
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
 
 replace github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
@@ -91,4 +93,4 @@ replace (
 
 replace cosmossdk.io/store => github.com/cosmos/cosmos-sdk/store v0.47.12
 
-replace github.com/confio/ics23/go => github.com/cosmos/ics23/go v0.10.0
+replace cosmossdk.io/api => github.com/cosmos/cosmos-sdk/api v0.7.0

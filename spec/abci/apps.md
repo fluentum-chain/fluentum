@@ -669,3 +669,7 @@ Once the state machine has been restored and Tendermint has gathered this additi
 information, it transitions to block sync (if enabled) to fetch any remaining blocks up the chain
 head, and then transitions to regular consensus operation. At this point the node operates like
 any other node, apart from having a truncated block history at the height of the restored snapshot.
+
+## ABCI++ Migration Note
+
+As of Cosmos SDK v0.50.x and CometBFT v0.38.x, DeliverTx is replaced by FinalizeBlock. Applications must implement block-level transaction processing using FinalizeBlock.

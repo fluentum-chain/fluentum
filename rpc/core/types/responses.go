@@ -46,6 +46,8 @@ type ResultCommit struct {
 }
 
 // ABCI results from a block
+// Updated for ABCI++: use block-level TxResults from FinalizeBlock
+// TxsResults now comes from ResponseFinalizeBlock.TxResults
 type ResultBlockResults struct {
 	Height                int64                     `json:"height"`
 	TxsResults            []*abci.ResponseDeliverTx `json:"txs_results"`

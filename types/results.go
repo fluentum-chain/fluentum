@@ -5,27 +5,49 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 )
 
-// ABCIResults wraps the deliver tx results to return a proof.
-type ABCIResults []*abci.ResponseDeliverTx
-
-// NewResults strips non-deterministic fields from ResponseDeliverTx responses
-// and returns ABCIResults.
-func NewResults(responses []*abci.ResponseDeliverTx) ABCIResults {
-	res := make(ABCIResults, len(responses))
-	for i, d := range responses {
-		res[i] = deterministicResponseDeliverTx(d)
-	}
-	return res
+// ABCIResults wraps the finalize block results to return a proof.
+type ABCIResults struct {
+	FinalizeBlock *abci.ResponseFinalizeBlock
+	// TODO: Add other fields as needed
 }
 
-// Hash returns a merkle hash of all results.
+// NewResults now takes a ResponseFinalizeBlock
+func NewResults(response *abci.ResponseFinalizeBlock) ABCIResults {
+	return ABCIResults{
+		FinalizeBlock: response,
+	}
+}
+
+// Hash returns a merkle hash of all results (update as needed for block-level)
 func (a ABCIResults) Hash() []byte {
-	return merkle.HashFromByteSlices(a.toByteSlices())
+	if a.FinalizeBlock == nil || len(a.FinalizeBlock.TxResults) == 0 {
+		return nil
+	}
+	bzs := make([][]byte, len(a.FinalizeBlock.TxResults))
+	for i, res := range a.FinalizeBlock.TxResults {
+		bz, err := res.Marshal()
+		if err != nil {
+			panic(err)
+		}
+		bzs[i] = bz
+	}
+	return merkle.HashFromByteSlices(bzs)
 }
 
 // ProveResult returns a merkle proof of one result from the set
 func (a ABCIResults) ProveResult(i int) merkle.Proof {
-	_, proofs := merkle.ProofsFromByteSlices(a.toByteSlices())
+	if a.FinalizeBlock == nil || len(a.FinalizeBlock.TxResults) == 0 {
+		panic("no tx results")
+	}
+	bzs := make([][]byte, len(a.FinalizeBlock.TxResults))
+	for i, res := range a.FinalizeBlock.TxResults {
+		bz, err := res.Marshal()
+		if err != nil {
+			panic(err)
+		}
+		bzs[i] = bz
+	}
+	_, proofs := merkle.ProofsFromByteSlices(bzs)
 	return *proofs[i]
 }
 
