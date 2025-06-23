@@ -289,8 +289,8 @@ replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 replace (
 	// Add cosmossdk.io dependencies with compatible versions
 	cosmossdk.io/core => cosmossdk.io/core v0.11.0
-	cosmossdk.io/log => github.com/cosmos/cosmos-sdk/log v0.1.0-alpha.1
-	cosmossdk.io/store => github.com/cosmos/cosmos-sdk/store v0.1.0-alpha.1
+	cosmossdk.io/log => github.com/cosmos/cosmos-sdk v0.47.12
+	cosmossdk.io/store => github.com/cosmos/cosmos-sdk v0.47.12
 	// Fix secp256k1 API compatibility for CometBFT v0.37.4
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
 
@@ -308,4 +308,4 @@ replace (
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 )
 
-replace cosmossdk.io/db => github.com/cosmos/cosmos-sdk/db v0.1.0-alpha.1
+replace cosmossdk.io/db => github.com/cosmos/cosmos-sdk v0.47.12
