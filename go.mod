@@ -4,10 +4,6 @@ go 1.20
 
 require (
 	cloud.google.com/go/kms v1.15.5
-	// Add cosmossdk.io dependencies
-	cosmossdk.io/core v0.11.0
-	cosmossdk.io/log v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
-	cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
 	github.com/Workiva/go-datastructures v1.1.5
@@ -303,9 +299,6 @@ replace (
 
 	// Use a more compatible Cosmos SDK version
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.5
-
-	// Redirect store packages to cosmossdk.io/store where they exist in newer versions
-	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v0.1.0-alpha.1.0.20231114093138-ebda6a8b9ba4
 )
 
 replace cosmossdk.io/db => github.com/cosmos/cosmos-sdk v0.47.12
