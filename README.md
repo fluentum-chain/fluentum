@@ -5,7 +5,8 @@
 [![Commits](https://img.shields.io/badge/Commits-8,761+-orange.svg)](https://github.com/fluentum-chain/fluentum/commits/main)
 [![Code Size](https://img.shields.io/badge/Size-~150MB-lightgrey.svg)](https://github.com/fluentum-chain/fluentum)
 [![CometBFT](https://img.shields.io/badge/CometBFT-v0.38.6-blue.svg)](https://cometbft.com/)
-[![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.50.6-green.svg)](https://cosmos.network/)
+[![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.47.12-green.svg)](https://cosmos.network/)
+[![Mainnet Ready](https://img.shields.io/badge/Mainnet-Ready-brightgreen.svg)](FINAL_CHECKLIST.md)
 
 > **Next-Generation Hybrid Blockchain Platform** - High-performance, quantum-resistant, and privacy-enabled blockchain with cross-chain interoperability.
 
@@ -25,12 +26,13 @@ Fluentum Core is a production-ready blockchain platform that combines **Delegate
 
 ## 🔄 Migration to CometBFT
 
-This project has been successfully migrated from Tendermint Core to **CometBFT v0.38.6** with **Cosmos SDK v0.50.6**. 
+This project has been successfully migrated from Tendermint Core to **CometBFT v0.38.6** with **Cosmos SDK v0.47.12**. 
 
 ### Key Migration Changes
 
 - ✅ **CometBFT v0.38.6**: Drop-in replacement for Tendermint v0.34+
-- ✅ **Cosmos SDK v0.50.6**: Latest SDK with AutoCLI and PBTS
+- ✅ **Cosmos SDK v0.47.12**: Compatible SDK version for CometBFT v0.38.6
+- ✅ **cometbft-db v0.8.0**: Compatible database backend
 - ✅ **ABCI++ Support**: `PrepareProposal`, `ProcessProposal`, `ExtendVote`, `VerifyVoteExtension`
 - ✅ **Proposer-Based Timestamps (PBTS)**: Enhanced timestamp handling
 - ✅ **Nop Mempool**: Application-managed transaction handling
@@ -66,7 +68,8 @@ For detailed migration instructions, see [Migration Guide](#migration-guide) bel
 | **Git Commits** | 8,761+ |
 | **Languages** | Go (82.2%), Solidity (2.6%), TeX (6.7%) |
 | **CometBFT Version** | v0.38.6 |
-| **Cosmos SDK Version** | v0.50.6 |
+| **Cosmos SDK Version** | v0.47.12 |
+| **cometbft-db Version** | v0.8.0 |
 
 ### Architecture Components
 
@@ -136,6 +139,36 @@ make build
 
 # Show all commands
 ./build/fluentumd --help
+```
+
+## 🚀 Mainnet Deployment
+
+### Production Readiness
+
+Fluentum Core is now **mainnet-ready** with comprehensive deployment documentation:
+
+- **[FINAL_CHECKLIST.md](FINAL_CHECKLIST.md)** - Complete deployment checklist
+- **[QUICK_DEPLOYMENT_GUIDE.md](QUICK_DEPLOYMENT_GUIDE.md)** - Essential deployment steps
+- **[DEPLOYMENT_SUMMARY.md](DEPLOYMENT_SUMMARY.md)** - Overview of all resources
+- **[VERSION_COMPATIBILITY.md](VERSION_COMPATIBILITY.md)** - Version compatibility guide
+
+### Deployment Scripts
+
+- **[scripts/backup_fluentum.sh](scripts/backup_fluentum.sh)** - Linux/macOS backup automation
+- **[scripts/backup_fluentum.ps1](scripts/backup_fluentum.ps1)** - Windows PowerShell backup
+- **[scripts/health_check.sh](scripts/health_check.sh)** - Node health verification
+
+### Quick Deployment
+
+```bash
+# 1. Follow the quick deployment guide
+# See: QUICK_DEPLOYMENT_GUIDE.md
+
+# 2. Run backup before deployment
+./scripts/backup_fluentum.sh
+
+# 3. Deploy and verify
+./scripts/health_check.sh
 ```
 
 ## 🔄 Migration Guide
@@ -279,7 +312,8 @@ The application implements all ABCI++ methods for enhanced functionality:
 ### Technology Stack
 
 - **Consensus**: CometBFT v0.38.6 + Custom DPoS
-- **Application Framework**: Cosmos SDK v0.50.6
+- **Application Framework**: Cosmos SDK v0.47.12
+- **Database**: cometbft-db v0.8.0
 - **Cryptography**: Dilithium, Ed25519, Secp256k1
 - **Smart Contracts**: Solidity (EVM) + Rust (SVM)
 - **Networking**: P2P with libp2p
@@ -288,9 +322,20 @@ The application implements all ABCI++ methods for enhanced functionality:
 
 ## 📚 Documentation
 
+### Core Documentation
+- **[FINAL_CHECKLIST.md](FINAL_CHECKLIST.md)** - Complete deployment checklist
+- **[QUICK_DEPLOYMENT_GUIDE.md](QUICK_DEPLOYMENT_GUIDE.md)** - Essential deployment steps
+- **[DEPLOYMENT_SUMMARY.md](DEPLOYMENT_SUMMARY.md)** - Overview of all resources
+- **[VERSION_COMPATIBILITY.md](VERSION_COMPATIBILITY.md)** - Version compatibility guide
+
+### Setup and Configuration
 - **[Migration Guide](#migration-guide)** - CometBFT migration instructions
 - **[Ubuntu Installation Guide](INSTALL_UBUNTU.md)** - Detailed Ubuntu setup
+- **[Mainnet Setup Guide](MAINNET_SETUP.md)** - Production deployment
+- **[Server Setup Guide](SERVER_SETUP.md)** - Server configuration
 - **[Configuration Guide](docs/configuration.md)** - Node configuration
+
+### Technical Documentation
 - **[API Documentation](docs/api.md)** - RPC and gRPC APIs
 - **[Architecture Specs](docs/introduction/architecture.md)** - Technical architecture
 - **[Smart Contracts](contracts/)** - Solidity contract documentation

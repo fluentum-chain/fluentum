@@ -9,7 +9,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.39.0
-	github.com/cosmos/cosmos-sdk v0.50.6
+	github.com/cosmos/cosmos-sdk v0.47.12
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
@@ -58,7 +58,7 @@ require (
 	google.golang.org/protobuf v1.36.5
 	// CometBFT dependencies
 	github.com/cometbft/cometbft v0.38.6
-	github.com/cometbft/cometbft-db v0.9.0
+	github.com/cometbft/cometbft-db v0.8.0
 	// Confix for config migration
 	github.com/cometbft/confix v0.1.0
 	4d63.com/gochecknoglobals v0.1.0 // indirect
@@ -282,15 +282,15 @@ replace (
 	// github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.35.9
 	// github.com/tendermint/tm-db => github.com/tendermint/tm-db v0.6.6
 
-	// Ensure Cosmos SDK uses a compatible version
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.6  // works with CometBFT 0.38.x
+	// Ensure Cosmos SDK uses a compatible version for CometBFT v0.38.6
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.47.12
 
 	// Redirect store packages to cosmossdk.io/store where they exist in newer versions
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 
 	// Fix CometBFT version compatibility
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.38.6
-	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.9.0
+	github.com/cometbft/cometbft-db => github.com/cometbft/cometbft-db v0.8.0
 
 	// Fix secp256k1 API compatibility for CometBFT v0.38.6
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.2.1
