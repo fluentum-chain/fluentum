@@ -1,8 +1,4 @@
 version: v2
-build:
-  roots:
-    - proto
-    - third_party/proto
 lint:
   use:
     - BASIC
