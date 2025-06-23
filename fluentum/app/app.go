@@ -17,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/core/store"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -44,6 +43,7 @@ import (
 	fluentumkeeper "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/keeper"
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
 
+	"cosmossdk.io/core/store"
 	cosmossdkstore "cosmossdk.io/core/store"
 )
 
