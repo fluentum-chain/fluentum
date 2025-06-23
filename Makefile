@@ -341,7 +341,7 @@ all: clean build features
 
 # Build the binary
 .PHONY: build
-build: build-quantum
+build:
 	@echo "Building Fluentum Core $(VERSION)..."
 	@mkdir -p $(BUILD_DIR)
 	@go build -tags=plugins -o $(BUILD_DIR)/$(BINARY_NAME) -ldflags "$(LDFLAGS)" $(MAIN_PACKAGE)
