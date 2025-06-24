@@ -12,7 +12,6 @@ import (
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
-	tmcrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
@@ -79,14 +78,7 @@ func PartFromProto(pb *tmproto.Part) (*Part, error) {
 	}
 
 	part := new(Part)
-	// Convert from external protobuf type to local protobuf type
-	localProof := &tmcrypto.Proof{
-		Total:    pb.Proof.Total,
-		Index:    pb.Proof.Index,
-		LeafHash: pb.Proof.LeafHash,
-		Aunts:    pb.Proof.Aunts,
-	}
-	proof, err := merkle.ProofFromProto(localProof)
+	proof, err := merkle.ProofFromProto(&pb.Proof)
 	if err != nil {
 		return nil, err
 	}

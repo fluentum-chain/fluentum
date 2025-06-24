@@ -9,7 +9,6 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
-	tmcrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
@@ -138,15 +137,7 @@ func (tp TxProof) ToProto() tmproto.TxProof {
 }
 
 func TxProofFromProto(pb tmproto.TxProof) (TxProof, error) {
-	// Convert from external protobuf type to local protobuf type
-	localProof := &tmcrypto.Proof{
-		Total:    pb.Proof.Total,
-		Index:    pb.Proof.Index,
-		LeafHash: pb.Proof.LeafHash,
-		Aunts:    pb.Proof.Aunts,
-	}
-
-	pbProof, err := merkle.ProofFromProto(localProof)
+	pbProof, err := merkle.ProofFromProto(pb.Proof)
 	if err != nil {
 		return TxProof{}, err
 	}
