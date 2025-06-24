@@ -5,26 +5,21 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 )
 
-// ABCIResults wraps the finalize block results to return a proof.
-type ABCIResults struct {
-	FinalizeBlock *abci.ResponseFinalizeBlock
-	// TODO: Add other fields as needed
+// ABCIResults wraps the deliver tx results to return a proof.
+type ABCIResults []*abci.ResponseDeliverTx
+
+// NewResults creates a new ABCIResults from deliver tx responses
+func NewResults(responses []*abci.ResponseDeliverTx) ABCIResults {
+	return ABCIResults(responses)
 }
 
-// NewResults now takes a ResponseFinalizeBlock
-func NewResults(response *abci.ResponseFinalizeBlock) ABCIResults {
-	return ABCIResults{
-		FinalizeBlock: response,
-	}
-}
-
-// Hash returns a merkle hash of all results (update as needed for block-level)
+// Hash returns a merkle hash of all results
 func (a ABCIResults) Hash() []byte {
-	if a.FinalizeBlock == nil || len(a.FinalizeBlock.TxResults) == 0 {
+	if len(a) == 0 {
 		return nil
 	}
-	bzs := make([][]byte, len(a.FinalizeBlock.TxResults))
-	for i, res := range a.FinalizeBlock.TxResults {
+	bzs := make([][]byte, len(a))
+	for i, res := range a {
 		bz, err := res.Marshal()
 		if err != nil {
 			panic(err)
@@ -36,11 +31,11 @@ func (a ABCIResults) Hash() []byte {
 
 // ProveResult returns a merkle proof of one result from the set
 func (a ABCIResults) ProveResult(i int) merkle.Proof {
-	if a.FinalizeBlock == nil || len(a.FinalizeBlock.TxResults) == 0 {
+	if len(a) == 0 {
 		panic("no tx results")
 	}
-	bzs := make([][]byte, len(a.FinalizeBlock.TxResults))
-	for i, res := range a.FinalizeBlock.TxResults {
+	bzs := make([][]byte, len(a))
+	for i, res := range a {
 		bz, err := res.Marshal()
 		if err != nil {
 			panic(err)

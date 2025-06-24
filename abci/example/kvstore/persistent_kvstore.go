@@ -37,7 +37,7 @@ type PersistentKVStoreApplication struct {
 
 func NewPersistentKVStoreApplication(dbDir string) *PersistentKVStoreApplication {
 	name := "kvstore"
-	db, err := dbm.NewPebbleDB(name, dbDir)
+	db, err := dbm.NewDB(name, "pebble", dbDir)
 	if err != nil {
 		panic(err)
 	}
@@ -283,15 +283,4 @@ func (app *PersistentKVStoreApplication) updateValidator(v types.ValidatorUpdate
 	app.ValUpdates = append(app.ValUpdates, v)
 
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK}
-}
-
-func (app *PersistentKVStoreApplication) FinalizeBlock(req types.RequestFinalizeBlock) types.ResponseFinalizeBlock {
-	results := make([]types.ResponseDeliverTx, len(req.Txs))
-	for i, tx := range req.Txs {
-		results[i] = app.DeliverTx(types.RequestDeliverTx{Tx: tx})
-	}
-	return types.ResponseFinalizeBlock{
-		TxResults: results,
-		Events:    []types.Event{}, // Add block-level events if needed
-	}
 }
