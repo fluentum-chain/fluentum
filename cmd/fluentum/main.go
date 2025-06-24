@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -30,6 +31,10 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+	tmos "github.com/fluentum-chain/fluentum/libs/os"
+	"github.com/fluentum-chain/fluentum/node"
+	"github.com/fluentum-chain/fluentum/privval"
+	"github.com/fluentum-chain/fluentum/proxy"
 )
 
 // NewRootCmd creates a new root command for the Fluentum application.
@@ -423,58 +428,74 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	// Create app creator
 	appCreator := appCreator{encCfg: encodingConfig}
 
-	// Create server context
-	serverCtx := server.NewDefaultContext()
-	serverCtx.Config.SetRoot(homeDir)
+	// Load Tendermint configuration
+	tmConfig := config.DefaultConfig()
+	tmConfig.SetRoot(homeDir)
 
 	// Configure the server
-	serverCtx.Config.Moniker = moniker
-	serverCtx.Config.RPC.ListenAddress = rpcAddress
-	serverCtx.Config.P2P.ListenAddress = p2pAddress
-	serverCtx.Config.P2P.Seeds = seeds
-	serverCtx.Config.P2P.PersistentPeers = persistentPeers
+	tmConfig.Moniker = moniker
+	tmConfig.RPC.ListenAddress = rpcAddress
+	tmConfig.P2P.ListenAddress = p2pAddress
+	tmConfig.P2P.Seeds = seeds
+	tmConfig.P2P.PersistentPeers = persistentPeers
 
 	// Configure consensus for testnet mode
 	if testnetMode {
-		serverCtx.Config.Consensus.TimeoutCommit = "1s"
-		serverCtx.Config.Consensus.TimeoutPropose = "1s"
-		serverCtx.Config.Consensus.CreateEmptyBlocks = true
-		serverCtx.Config.Consensus.CreateEmptyBlocksInterval = "10s"
+		tmConfig.Consensus.TimeoutCommit = time.Second
+		tmConfig.Consensus.TimeoutPropose = time.Second
+		tmConfig.Consensus.CreateEmptyBlocks = true
+		tmConfig.Consensus.CreateEmptyBlocksInterval = 10 * time.Second
 		logger.Info("Configured for testnet mode with faster block times")
 	}
 
-	// Create app options
-	appOpts := server.DefaultStartOptions()
-	appOpts.AppCreator = appCreator
-	appOpts.AppCreatorOpts = []interface{}{encodingConfig}
-
-	// Configure API
-	if apiEnabled {
-		appOpts.APIEnable = true
-		appOpts.APIAddress = apiAddress
-		appOpts.APISwagger = true
-		logger.Info("API server enabled", "address", apiAddress)
+	// Load or generate node key
+	nodeKey, err := node.LoadOrGenNodeKey(tmConfig.NodeKeyFile())
+	if err != nil {
+		return fmt.Errorf("failed to load or generate node key: %w", err)
 	}
 
-	// Configure gRPC
-	if grpcEnabled {
-		appOpts.GRPCEnable = true
-		appOpts.GRPCAddress = grpcAddress
-		logger.Info("gRPC server enabled", "address", grpcAddress)
+	// Load or generate private validator
+	privValidator := privval.LoadOrGenFilePV(tmConfig.PrivValidatorKeyFile(), tmConfig.PrivValidatorStateFile())
+
+	// Create a temporary app instance for the client creator
+	// We'll use a simple app options map for now
+	appOpts := map[string]interface{}{
+		"home": homeDir,
 	}
 
-	// Configure gRPC-Web
-	if grpcWebEnabled {
-		appOpts.GRPCWebEnable = true
-		appOpts.GRPCWebAddress = grpcWebAddress
-		logger.Info("gRPC-Web server enabled", "address", grpcWebAddress)
+	// Create the application instance
+	app := appCreator.CreateApp(logger, nil, nil, appOpts)
+
+	// Create the Tendermint node
+	n, err := node.NewNode(tmConfig,
+		privValidator,
+		nodeKey,
+		proxy.NewLocalClientCreator(app),
+		node.DefaultGenesisDocProviderFunc(tmConfig),
+		node.DefaultDBProvider,
+		node.DefaultMetricsProvider(tmConfig.Instrumentation),
+		logger,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create node: %w", err)
 	}
 
-	// Start the server
-	logger.Info("Starting server...")
-	if err := server.Start(serverCtx, appOpts); err != nil {
-		return fmt.Errorf("failed to start server: %w", err)
+	// Start the node
+	logger.Info("Starting Tendermint node...")
+	if err := n.Start(); err != nil {
+		return fmt.Errorf("failed to start node: %w", err)
 	}
+
+	logger.Info("Started node", "nodeInfo", n.Switch().NodeInfo())
+
+	// Stop upon receiving SIGTERM or CTRL-C.
+	tmos.TrapSignal(logger, func() {
+		if n.IsRunning() {
+			if err := n.Stop(); err != nil {
+				logger.Error("unable to stop the node", "error", err)
+			}
+		}
+	})
 
 	// Wait for interrupt signal
 	logger.Info("Fluentum node is running. Press Ctrl+C to exit.")
