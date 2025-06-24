@@ -17,7 +17,7 @@ import (
 
 	"github.com/fluentum-chain/fluentum/abci/example/code"
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/mempool"

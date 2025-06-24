@@ -15,7 +15,7 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/evidence"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/libs/service"

@@ -11,7 +11,7 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/google/orderedcode"
 
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
 	"github.com/fluentum-chain/fluentum/state/indexer"
 	"github.com/fluentum-chain/fluentum/types"

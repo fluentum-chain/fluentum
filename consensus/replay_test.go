@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	cfg "github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/crypto"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"

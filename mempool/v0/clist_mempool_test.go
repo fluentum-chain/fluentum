@@ -19,7 +19,7 @@ import (
 	abciclimocks "github.com/fluentum-chain/fluentum/abci/client/mocks"
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
 	abciserver "github.com/fluentum-chain/fluentum/abci/server"
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"

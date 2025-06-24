@@ -3,7 +3,7 @@ package mock
 import (
 	"context"
 
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/bytes"
 	"github.com/fluentum-chain/fluentum/proxy"
 	"github.com/fluentum-chain/fluentum/rpc/client"

@@ -3,7 +3,7 @@ package coregrpc
 import (
 	"context"
 
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	core "github.com/fluentum-chain/fluentum/rpc/core"
 	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )

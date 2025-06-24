@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
 	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"

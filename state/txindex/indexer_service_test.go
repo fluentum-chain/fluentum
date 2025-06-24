@@ -7,7 +7,7 @@ import (
 	db "github.com/cometbft/cometbft-db"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	blockidxkv "github.com/fluentum-chain/fluentum/state/indexer/block/kv"
 	"github.com/fluentum-chain/fluentum/state/txindex"

@@ -1,7 +1,7 @@
 package mock
 
 import (
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	"github.com/fluentum-chain/fluentum/mempool"
 	"github.com/fluentum-chain/fluentum/types"

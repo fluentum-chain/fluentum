@@ -3,7 +3,7 @@ package proxy
 import (
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"

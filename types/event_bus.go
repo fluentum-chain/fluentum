@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmpubsub "github.com/fluentum-chain/fluentum/libs/pubsub"
 	"github.com/fluentum-chain/fluentum/libs/service"
