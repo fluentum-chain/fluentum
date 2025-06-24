@@ -102,8 +102,13 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		// config.Cmd(), // Removed - not available in v0.50.6
 	)
 
-	a := appCreator{encodingConfig}
-	server.AddCommands(rootCmd, app.DefaultNodeHome, a, a, addModuleInitFlags)
+	a := appCreator{encCfg: encodingConfig}
+
+	// Add server commands manually instead of using AddCommands to avoid interface issues
+	rootCmd.AddCommand(
+		server.StartCmd(a.CreateApp, app.DefaultNodeHome),
+		server.ExportCmd(a.ExportApp, app.DefaultNodeHome),
+	)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
