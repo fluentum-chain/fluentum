@@ -123,18 +123,6 @@ func ToRequestInitChain(req RequestInitChain) *Request {
 	}
 }
 
-func ToRequestFinalizeBlock(req RequestFinalizeBlock) *Request {
-	return &Request{
-		Value: &Request_BeginBlock{&req},
-	}
-}
-
-func ToRequestFinalizeBlock(req RequestFinalizeBlock) *Request {
-	return &Request{
-		Value: &Request_EndBlock{&req},
-	}
-}
-
 func ToRequestListSnapshots(req RequestListSnapshots) *Request {
 	return &Request{
 		Value: &Request_ListSnapshots{&req},
@@ -191,12 +179,6 @@ func ToResponseSetOption(res ResponseSetOption) *Response {
 	}
 }
 
-func ToResponseDeliverTx(res ResponseDeliverTx) *Response {
-	return &Response{
-		Value: &Response_DeliverTx{&res},
-	}
-}
-
 func ToResponseCheckTx(res ResponseCheckTx) *Response {
 	return &Response{
 		Value: &Response_CheckTx{&res},
@@ -218,18 +200,6 @@ func ToResponseQuery(res ResponseQuery) *Response {
 func ToResponseInitChain(res ResponseInitChain) *Response {
 	return &Response{
 		Value: &Response_InitChain{&res},
-	}
-}
-
-func ToResponseBeginBlock(res ResponseBeginBlock) *Response {
-	return &Response{
-		Value: &Response_BeginBlock{&res},
-	}
-}
-
-func ToResponseEndBlock(res ResponseEndBlock) *Response {
-	return &Response{
-		Value: &Response_EndBlock{&res},
 	}
 }
 

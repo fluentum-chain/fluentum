@@ -38,6 +38,7 @@ The Tendermint blockchains consists of a short list of data types:
     - [VersionParams](#versionparams)
   - [Proof](#proof)
 
+NOTE: All references to DeliverTx, ResponseDeliverTx, and related types are for legacy (pre-ABCI 2.0) context. In ABCI 2.0, use FinalizeBlock and its response types.
 
 ## Block
 

@@ -21,6 +21,8 @@ Here we cover the following components of ABCI applications:
   Tendermint and the application on startup.
 - [State Sync](#state-sync) - rapid bootstrapping of new nodes by restoring state machine snapshots
 
+NOTE: All references to DeliverTx, BeginBlock, EndBlock, and their response types are for legacy (pre-ABCI 2.0) context. In ABCI 2.0, use FinalizeBlock for all block-level processing.
+
 ## Connection State
 
 Since Tendermint maintains four concurrent ABCI connections, it is typical

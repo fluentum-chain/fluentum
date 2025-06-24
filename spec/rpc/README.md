@@ -9,6 +9,8 @@ parent:
 
 This file defines the JSON-RPC spec of Tendermint. This is meant to be implemented by all clients.
 
+NOTE: All references to DeliverTx, BeginBlock, EndBlock, and their response types are for legacy (pre-ABCI 2.0) context. In ABCI 2.0, use FinalizeBlock for all block-level processing.
+
 ## Support
 
   |              | [Tendermint-Go](https://github.com/tendermint/tendermint/) | [endermint-Rs](https://github.com/informalsystems/tendermint-rs) |

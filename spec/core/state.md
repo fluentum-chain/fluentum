@@ -13,6 +13,8 @@ However, the types in the `State` object are part of the specification, since
 the Merkle roots of the `State` objects are included in blocks and values are used during
 validation.
 
+NOTE: All references to EndBlock, BeginBlock, and their response types are for legacy (pre-ABCI 2.0) context. In ABCI 2.0, use FinalizeBlock for all block-level processing.
+
 ```go
 type State struct {
     ChainID        string

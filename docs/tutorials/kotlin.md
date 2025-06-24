@@ -355,6 +355,8 @@ class KVStoreApp(
 
 ### 1.3.4 BeginBlock -> DeliverTx -> EndBlock -> Commit
 
+NOTE: All references to DeliverTx, BeginBlock, EndBlock, and their response types are for legacy (pre-ABCI 2.0) context. In ABCI 2.0, use FinalizeBlock for all block-level processing.
+
 When Tendermint Core has decided on the block, it's transferred to the
 application in 3 parts: `BeginBlock`, one `DeliverTx` per transaction and
 `EndBlock` in the end. `DeliverTx` are being transferred asynchronously, but the

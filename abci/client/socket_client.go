@@ -3,6 +3,7 @@ package abcicli
 import (
 	"bufio"
 	"container/list"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -234,10 +235,6 @@ func (cli *socketClient) SetOptionAsync(req types.RequestSetOption) *ReqRes {
 	return cli.queueRequest(types.ToRequestSetOption(req))
 }
 
-func (cli *socketClient) DeliverTxAsync(req types.RequestFinalizeBlock) *ReqRes {
-	return cli.queueRequest(types.ToRequestFinalizeBlock(req))
-}
-
 func (cli *socketClient) CheckTxAsync(req types.RequestCheckTx) *ReqRes {
 	return cli.queueRequest(types.ToRequestCheckTx(req))
 }
@@ -252,14 +249,6 @@ func (cli *socketClient) CommitAsync() *ReqRes {
 
 func (cli *socketClient) InitChainAsync(req types.RequestInitChain) *ReqRes {
 	return cli.queueRequest(types.ToRequestInitChain(req))
-}
-
-func (cli *socketClient) BeginBlockAsync(req types.RequestFinalizeBlock) *ReqRes {
-	return cli.queueRequest(types.ToRequestFinalizeBlock(req))
-}
-
-func (cli *socketClient) EndBlockAsync(req types.RequestFinalizeBlock) *ReqRes {
-	return cli.queueRequest(types.ToRequestFinalizeBlock(req))
 }
 
 func (cli *socketClient) ListSnapshotsAsync(req types.RequestListSnapshots) *ReqRes {
@@ -316,15 +305,6 @@ func (cli *socketClient) SetOptionSync(req types.RequestSetOption) (*types.Respo
 	return reqres.Response.GetSetOption(), cli.Error()
 }
 
-func (cli *socketClient) DeliverTxSync(req types.RequestFinalizeBlock) (*types.ResponseDeliverTx, error) {
-	reqres := cli.queueRequest(types.ToRequestFinalizeBlock(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
-	}
-
-	return reqres.Response.GetDeliverTx(), cli.Error()
-}
-
 func (cli *socketClient) CheckTxSync(req types.RequestCheckTx) (*types.ResponseCheckTx, error) {
 	reqres := cli.queueRequest(types.ToRequestCheckTx(req))
 	if err := cli.FlushSync(); err != nil {
@@ -359,24 +339,6 @@ func (cli *socketClient) InitChainSync(req types.RequestInitChain) (*types.Respo
 	}
 
 	return reqres.Response.GetInitChain(), cli.Error()
-}
-
-func (cli *socketClient) BeginBlockSync(req types.RequestFinalizeBlock) (*types.ResponseBeginBlock, error) {
-	reqres := cli.queueRequest(types.ToRequestFinalizeBlock(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
-	}
-
-	return reqres.Response.GetBeginBlock(), cli.Error()
-}
-
-func (cli *socketClient) EndBlockSync(req types.RequestFinalizeBlock) (*types.ResponseEndBlock, error) {
-	reqres := cli.queueRequest(types.ToRequestFinalizeBlock(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
-	}
-
-	return reqres.Response.GetEndBlock(), cli.Error()
 }
 
 func (cli *socketClient) ListSnapshotsSync(req types.RequestListSnapshots) (*types.ResponseListSnapshots, error) {
@@ -469,8 +431,6 @@ func resMatchesReq(req *types.Request, res *types.Response) (ok bool) {
 		_, ok = res.Value.(*types.Response_Info)
 	case *types.Request_SetOption:
 		_, ok = res.Value.(*types.Response_SetOption)
-	case *types.Request_DeliverTx:
-		_, ok = res.Value.(*types.Response_DeliverTx)
 	case *types.Request_CheckTx:
 		_, ok = res.Value.(*types.Response_CheckTx)
 	case *types.Request_Commit:
@@ -479,10 +439,6 @@ func resMatchesReq(req *types.Request, res *types.Response) (ok bool) {
 		_, ok = res.Value.(*types.Response_Query)
 	case *types.Request_InitChain:
 		_, ok = res.Value.(*types.Response_InitChain)
-	case *types.Request_BeginBlock:
-		_, ok = res.Value.(*types.Response_BeginBlock)
-	case *types.Request_EndBlock:
-		_, ok = res.Value.(*types.Response_EndBlock)
 	case *types.Request_ApplySnapshotChunk:
 		_, ok = res.Value.(*types.Response_ApplySnapshotChunk)
 	case *types.Request_LoadSnapshotChunk:
@@ -510,4 +466,24 @@ func (cli *socketClient) stopForError(err error) {
 	if err := cli.Stop(); err != nil {
 		cli.Logger.Error("Error stopping abci.socketClient", "err", err)
 	}
+}
+
+// ExtendVoteAsync implements the ABCI 2.0 method for socketClient
+func (cli *socketClient) ExtendVoteAsync(ctx context.Context, req *types.RequestExtendVote) (*types.ResponseExtendVote, error) {
+	return &types.ResponseExtendVote{VoteExtension: []byte("extended")}, nil
+}
+
+// VerifyVoteExtensionSync sends a sync VerifyVoteExtension request
+func (cli *socketClient) VerifyVoteExtensionSync(req types.RequestVerifyVoteExtension) (*types.ResponseVerifyVoteExtension, error) {
+	reqres := cli.queueRequest(types.ToRequestVerifyVoteExtension(req))
+	res := cli.finishSyncCall(reqres)
+	if r, ok := res.Value.(*types.Response_VerifyVoteExtension); ok {
+		return r.VerifyVoteExtension, nil
+	}
+	return nil, fmt.Errorf("unexpected response type: %T", res.Value)
+}
+
+// VerifyVoteExtensionAsync sends an async VerifyVoteExtension request
+func (cli *socketClient) VerifyVoteExtensionAsync(req types.RequestVerifyVoteExtension) *ReqRes {
+	return cli.queueRequest(types.ToRequestVerifyVoteExtension(req))
 }

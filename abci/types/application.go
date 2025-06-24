@@ -114,10 +114,7 @@ func (app *GRPCApplication) SetOption(ctx context.Context, req *RequestSetOption
 	return res, err
 }
 
-func (app *GRPCApplication) DeliverTx(ctx context.Context, req *RequestFinalizeBlock) (*ResponseDeliverTx, error) {
-	res := app.app.DeliverTx(ctx, req)
-	return res, nil
-}
+// Legacy DeliverTx method (ABCI 1.0) is removed. Use FinalizeBlock for ABCI 2.0.
 
 func (app *GRPCApplication) CheckTx(ctx context.Context, req *RequestCheckTx) (*ResponseCheckTx, error) {
 	res, err := app.app.CheckTx(ctx, req)

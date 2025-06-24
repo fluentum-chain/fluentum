@@ -770,6 +770,8 @@ are limitted only by byte-size, not by number of transactions.
 ## Migration to Cosmos SDK v0.50.x, CometBFT v0.38.x, IAVL v1.0, and ABCI++
 
 - Update all dependencies in `go.mod` as described in the README and VERSION_COMPATIBILITY.md.
-- Refactor ABCI application logic to use `FinalizeBlock` instead of `DeliverTx`.
+- Refactor ABCI application logic to use `FinalizeBlock` instead of `DeliverTx`, `BeginBlock`, and `EndBlock`.
 - Use `iavl.NewMutableTree(db, cacheSize, true)` for IAVL v1.0+.
 - Run `go mod tidy` after all changes.
+
+# NOTE: All references to DeliverTx, BeginBlock, EndBlock, and their response types below are for legacy (pre-ABCI 2.0) migration context. In ABCI 2.0, use FinalizeBlock for all block-level processing.

@@ -11,6 +11,8 @@ a new programming language.
 You are expected to have read [ABCI Methods and Types](./abci.md) and [ABCI
 Applications](./apps.md).
 
+NOTE: All references to DeliverTx, BeginBlock, EndBlock, and their response types are for legacy (pre-ABCI 2.0) context. In ABCI 2.0, use FinalizeBlock for all block-level processing.
+
 ## Message Protocol
 
 The message protocol consists of pairs of requests and responses defined in the

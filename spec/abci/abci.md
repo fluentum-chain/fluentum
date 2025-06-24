@@ -19,8 +19,7 @@ handle a subset of the ABCI method calls. These subsets are defined as follows:
 #### **Consensus** connection
 
 * Driven by a consensus protocol and is responsible for block execution.
-* Handles the `InitChain`, `BeginBlock`, `DeliverTx`, `EndBlock`, and `Commit` method
-calls.
+* Handles the `InitChain`, `FinalizeBlock`, and `Commit` methods. (Legacy: `BeginBlock`, `DeliverTx`, `EndBlock` are replaced by `FinalizeBlock`.)
 
 #### **Mempool** connection
 
@@ -45,7 +44,7 @@ More details on managing state across connections can be found in the section on
 
 ## Errors
 
-The `Query`, `CheckTx` and `DeliverTx` methods include a `Code` field in their `Response*`.
+The `Query`, `CheckTx` and `FinalizeBlock` methods include a `Code` field in their `Response*`. (Legacy: DeliverTx is now handled by FinalizeBlock.)
 This field is meant to contain an application-specific response code.
 A response code of `0` indicates no error.  Any other response code
 indicates to Tendermint that an error occurred.
@@ -54,7 +53,7 @@ These methods also return a `Codespace` string to Tendermint. This field is
 used to disambiguate `Code` values returned by different domains of the
 application. The `Codespace` is a namespace for the `Code`.
 
-The `Echo`, `Info`, `InitChain`, `BeginBlock`, `EndBlock`, `Commit` methods
+The `Echo`, `Info`, `InitChain`, `FinalizeBlock`, `Commit` methods
 do not return errors. An error in any of these methods represents a critical
 issue that Tendermint has no reasonable way to handle. If there is an error in one
 of these methods, the application must crash to ensure that the error is safely
@@ -69,12 +68,9 @@ When Tendermint receives a `ResponseCheckTx` with a non-zero `Code`, the associa
 transaction will be not be added to Tendermint's mempool or it will be removed if
 it is already included.
 
-### DeliverTx
+### FinalizeBlock
 
-The `DeliverTx` ABCI method delivers transactions from Tendermint to the application.
-When Tendermint recieves a `ResponseDeliverTx` with a non-zero `Code`, the response code is logged.
-The transaction was already included in a block, so the `Code` does not influence
-Tendermint consensus.
+The `FinalizeBlock` ABCI method processes all transactions in a block and replaces the legacy `BeginBlock`, `DeliverTx`, and `EndBlock` methods.
 
 ### Query
 
@@ -84,7 +80,7 @@ returned directly to the client that initiated the query.
 
 ## Events
 
-The `CheckTx`, `BeginBlock`, `DeliverTx`, `EndBlock` methods include an `Events`
+The `CheckTx`, `FinalizeBlock`, `Commit` methods include an `Events`
 field in their `Response*`. Applications may respond to these ABCI methods with a set of events.
 Events allow applications to associate metadata about ABCI method execution with the
 transactions and blocks this metadata relates to.
@@ -95,8 +91,8 @@ An `Event` contains a `type` and a list of `EventAttributes`, which are key-valu
 string pairs denoting metadata about what happened during the method's execution.
 `Event` values can be used to index transactions and blocks according to what happened
 during their execution. Note that the set of events returned for a block from
-`BeginBlock` and `EndBlock` are merged. In case both methods return the same
-key, only the value defined in `EndBlock` is used.
+`FinalizeBlock` and `Commit` are merged. In case both methods return the same
+key, only the value defined in `Commit` is used.
 
 Each event has a `type` which is meant to categorize the event for a particular
 `Response*` or `Tx`. A `Response*` or `Tx` may contain multiple events with duplicate
@@ -126,7 +122,7 @@ message EventAttribute {
 Example:
 
 ```go
- abci.ResponseDeliverTx{
+ abci.ResponseFinalizeBlock{
   // ...
  Events: []abci.Event{
   {
@@ -188,14 +184,14 @@ ABCI applications must implement deterministic finite-state machines to be
 securely replicated by the Tendermint consensus engine. This means block execution
 over the Consensus Connection must be strictly deterministic: given the same
 ordered set of requests, all nodes will compute identical responses, for all
-BeginBlock, DeliverTx, EndBlock, and Commit. This is critical, because the
+FinalizeBlock, Commit. This is critical, because the
 responses are included in the header of the next block, either via a Merkle root
 or directly, so all nodes must agree on exactly what they are.
 
 For this reason, it is recommended that applications not be exposed to any
 external user or process except via the ABCI connections to a consensus engine
 like Tendermint Core. The application must only change its state based on input
-from block execution (BeginBlock, DeliverTx, EndBlock, Commit), and not through
+from block execution (FinalizeBlock, Commit), and not through
 any other kind of request. This is the only way to ensure all nodes see the same
 transactions and compute the same results.
 
@@ -222,7 +218,7 @@ Sources of non-determinism in applications may include:
 
 See [#56](https://github.com/tendermint/abci/issues/56) for original discussion.
 
-Note that some methods (`Query, CheckTx, DeliverTx`) return
+Note that some methods (`Query, CheckTx, FinalizeBlock`) return
 explicitly non-deterministic data in the form of `Info` and `Log` fields. The `Log` is
 intended for the literal output from the application's logger, while the
 `Info` is any additional info that should be returned. These are the only fields
@@ -235,11 +231,11 @@ The first time a new blockchain is started, Tendermint calls
 `InitChain`. From then on, the following sequence of methods is executed for each
 block:
 
-`BeginBlock, [DeliverTx], EndBlock, Commit`
+`FinalizeBlock, Commit`
 
-where one `DeliverTx` is called for each transaction in the block.
+where one `FinalizeBlock` is called for each transaction in the block.
 The result is an updated application state.
-Cryptographic commitments to the results of DeliverTx, EndBlock, and
+Cryptographic commitments to the results of FinalizeBlock, and
 Commit are included in the header of the next block.
 
 ## State Sync
@@ -379,7 +375,7 @@ the blockchain's `AppHash` which is verified via [light client verification](../
     * Merkle proof includes self-describing `type` field to support many types
     of Merkle trees and encoding formats.
 
-### BeginBlock
+### FinalizeBlock
 
 * **Request**:
 
@@ -398,7 +394,7 @@ the blockchain's `AppHash` which is verified via [light client verification](../
 
 * **Usage**:
     * Signals the beginning of a new block.
-    * Called prior to any `DeliverTx` method calls.
+    * Called prior to any `FinalizeBlock` method calls.
     * The header contains the height, timestamp, and more - it exactly matches the
     Tendermint block header. We may seek to generalize this in the future.
     * The `LastCommitInfo` and `ByzantineValidators` can be used to determine
@@ -442,61 +438,6 @@ the blockchain's `AppHash` which is verified via [light client verification](../
     other nodes or included in a proposal block.
     * Tendermint attributes no other value to the response code
 
-### DeliverTx
-
-* **Request**:
-
-    | Name | Type  | Description                    | Field Number |
-    |------|-------|--------------------------------|--------------|
-    | tx   | bytes | The request transaction bytes. | 1            |
-
-* **Response**:
-
-    | Name       | Type                      | Description                                                           | Field Number |
-    |------------|---------------------------|-----------------------------------------------------------------------|--------------|
-    | code       | uint32                    | Response code.                                                        | 1            |
-    | data       | bytes                     | Result bytes, if any.                                                 | 2            |
-    | log        | string                    | The output of the application's logger. **May be non-deterministic.** | 3            |
-    | info       | string                    | Additional information. **May be non-deterministic.**                 | 4            |
-    | gas_wanted | int64                     | Amount of gas requested for transaction.                              | 5            |
-    | gas_used   | int64                     | Amount of gas consumed by transaction.                                | 6            |
-    | events     | repeated [Event](#events) | Type & Key-Value events for indexing transactions (eg. by account).   | 7            |
-    | codespace  | string                    | Namespace for the `code`.                                             | 8            |
-
-* **Usage**:
-    * [**Required**] The core method of the application.
-    * When `DeliverTx` is called, the application must execute the transaction in full before returning control to Tendermint.
-    * `ResponseDeliverTx.Code == 0` only if the transaction is fully valid.
-
-### EndBlock
-
-* **Request**:
-
-    | Name   | Type  | Description                        | Field Number |
-    |--------|-------|------------------------------------|--------------|
-    | height | int64 | Height of the block just executed. | 1            |
-
-* **Response**:
-
-    | Name                    | Type                                         | Description                                                     | Field Number |
-    |-------------------------|----------------------------------------------|-----------------------------------------------------------------|--------------|
-    | validator_updates       | repeated [ValidatorUpdate](#validatorupdate) | Changes to validator set (set voting power to 0 to remove).     | 1            |
-    | consensus_param_updates | [ConsensusParams](#consensusparams)          | Changes to consensus-critical time, size, and other parameters. | 2            |
-    | events                  | repeated [Event](#events)                    | Type & Key-Value events for indexing                            | 3            |
-
-* **Usage**:
-    * Signals the end of a block.
-    * Called after all the transactions for the current block have been delivered, prior to the block's `Commit` message.
-    * Optional `validator_updates` triggered by block `H`. These updates affect validation
-      for blocks `H+1`, `H+2`, and `H+3`.
-    * Heights following a validator update are affected in the following way:
-        * `H+1`: `NextValidatorsHash` includes the new `validator_updates` value.
-        * `H+2`: The validator set change takes effect and `ValidatorsHash` is updated.
-        * `H+3`: `LastCommitInfo` is changed to include the altered validator set.
-    * `consensus_param_updates` returned for block `H` apply to the consensus
-      params for block `H+1`. For more information on the consensus parameters,
-      see the [application spec entry on consensus parameters](../spec/abci/apps.md#consensus-parameters).
-
 ### Commit
 
 * **Request**:
@@ -522,7 +463,7 @@ the blockchain's `AppHash` which is verified via [light client verification](../
     * Note developers can return whatever they want here (could be nothing, or a
     constant string, etc.), so long as it is deterministic - it must not be a
     function of anything that did not come from the
-    BeginBlock/DeliverTx/EndBlock methods.
+    FinalizeBlock/Commit methods.
     * Use `RetainHeight` with caution! If all nodes in the network remove historical
     blocks then this data is permanently lost, and no new nodes will be able to
     join the network and bootstrap. Historical blocks may also be required for
@@ -664,7 +605,7 @@ Most of the data structures used in ABCI are shared [common data structures](../
 
 * **Usage**:
     * Validator identified by address
-    * Used in RequestBeginBlock as part of VoteInfo
+    * Used in RequestFinalizeBlock as part of VoteInfo
     * Does not include PubKey to avoid sending potentially large quantum pubkeys
     over the ABCI
 

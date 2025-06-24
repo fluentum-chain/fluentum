@@ -11,7 +11,7 @@
 > **⚠️ NOTICE: This codebase is now fully migrated to CometBFT v0.38+ and ABCI 2.0 (ABCI++).**
 >
 > - All ABCI interfaces, types, and methods now use the new ABCI 2.0 (ABCI++) model.
-> - Legacy methods (`BeginBlock`, `DeliverTx`, `EndBlock`, etc.) and types (`ResponseDeliverTx`, etc.) have been removed.
+> - Legacy methods (`BeginBlock`, `DeliverTx`, `EndBlock`, etc.) and types (`ResponseDeliverTx`, etc.) have been removed. Now uses `FinalizeBlock` for block-level transaction processing.
 > - All block execution and event logic now uses `FinalizeBlock`, `ExecTxResult`, and the new event structure.
 > - If you are upgrading from Tendermint/ABCI 1.0, **read the migration notes below** and update your application, tests, and integrations accordingly.
 > - See the [Migration Guide](#migration-guide) and [docs/abci/README.md](abci/README.md) for details.
@@ -531,19 +531,8 @@ graph LR
 - **Cosmos SDK**: v0.50.x
 - **CometBFT**: v0.38.x
 - **IAVL**: v1.0.x
-- **ABCI++**: Now uses `FinalizeBlock` instead of `DeliverTx` for block-level transaction processing.
+- **ABCI++**: Now uses `FinalizeBlock` for all block-level transaction processing. All references to DeliverTx, BeginBlock, and EndBlock have been removed.
 
 ## Dependency Management
 
-- Run `go mod tidy` after any dependency changes.
-- Ensure your `go.mod` includes:
-  - `github.com/cosmos/cosmos-sdk v0.50.x`
-  - `github.com/cometbft/cometbft v0.38.x`
-  - `cosmossdk.io/store v1.0.x`
-  - `github.com/cosmos/iavl v1.0.x`
-
-## Key Changes
-
-- ABCI++: Implement and use `FinalizeBlock` for block-level transaction processing.
-- IAVL: Use `iavl.NewMutableTree(db, cacheSize, true)` for v1.0+.
-- See `UPGRADING.md` and `VERSION_COMPATIBILITY.md` for more details.
+- Run `go mod tidy`

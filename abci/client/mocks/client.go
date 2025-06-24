@@ -55,45 +55,6 @@ func (_m *Client) ApplySnapshotChunkSync(_a0 types.RequestApplySnapshotChunk) (*
 	return r0, r1
 }
 
-// BeginBlockAsync provides a mock function with given fields: _a0
-func (_m *Client) BeginBlockAsync(_a0 types.RequestFinalizeBlock) *abcicli.ReqRes {
-	ret := _m.Called(_a0)
-
-	var r0 *abcicli.ReqRes
-	if rf, ok := ret.Get(0).(func(types.RequestFinalizeBlock) *abcicli.ReqRes); ok {
-		r0 = rf(_a0)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*abcicli.ReqRes)
-		}
-	}
-
-	return r0
-}
-
-// BeginBlockSync provides a mock function with given fields: _a0
-func (_m *Client) BeginBlockSync(_a0 types.RequestFinalizeBlock) (*types.ResponseBeginBlock, error) {
-	ret := _m.Called(_a0)
-
-	var r0 *types.ResponseBeginBlock
-	if rf, ok := ret.Get(0).(func(types.RequestFinalizeBlock) *types.ResponseBeginBlock); ok {
-		r0 = rf(_a0)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.ResponseBeginBlock)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(types.RequestFinalizeBlock) error); ok {
-		r1 = rf(_a0)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // CheckTxAsync provides a mock function with given fields: _a0
 func (_m *Client) CheckTxAsync(_a0 types.RequestCheckTx) *abcicli.ReqRes {
 	ret := _m.Called(_a0)
@@ -165,45 +126,6 @@ func (_m *Client) CommitSync() (*types.ResponseCommit, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// DeliverTxAsync provides a mock function with given fields: _a0
-func (_m *Client) DeliverTxAsync(_a0 types.RequestFinalizeBlock) *abcicli.ReqRes {
-	ret := _m.Called(_a0)
-
-	var r0 *abcicli.ReqRes
-	if rf, ok := ret.Get(0).(func(types.RequestFinalizeBlock) *abcicli.ReqRes); ok {
-		r0 = rf(_a0)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*abcicli.ReqRes)
-		}
-	}
-
-	return r0
-}
-
-// DeliverTxSync provides a mock function with given fields: _a0
-func (_m *Client) DeliverTxSync(_a0 types.RequestFinalizeBlock) (*types.ResponseDeliverTx, error) {
-	ret := _m.Called(_a0)
-
-	var r0 *types.ResponseDeliverTx
-	if rf, ok := ret.Get(0).(func(types.RequestFinalizeBlock) *types.ResponseDeliverTx); ok {
-		r0 = rf(_a0)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.ResponseDeliverTx)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(types.RequestFinalizeBlock) error); ok {
-		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}

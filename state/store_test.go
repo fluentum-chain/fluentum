@@ -154,7 +154,7 @@ func TestPruneStates(t *testing.T) {
 				require.NoError(t, err)
 
 				err = stateStore.SaveABCIResponses(h, &tmstate.ABCIResponses{
-					DeliverTxs: []*abci.ResponseDeliverTx{
+					DeliverTxs: []*abci.ExecTxResult{
 						{Data: []byte{1}},
 						{Data: []byte{2}},
 						{Data: []byte{3}},
@@ -209,7 +209,7 @@ func TestPruneStates(t *testing.T) {
 func TestABCIResponsesResultsHash(t *testing.T) {
 	responses := &tmstate.ABCIResponses{
 		BeginBlock: &abci.ResponseBeginBlock{},
-		DeliverTxs: []*abci.ResponseDeliverTx{
+		DeliverTxs: []*abci.ExecTxResult{
 			{Code: 32, Data: []byte("Hello"), Log: "Huh?"},
 		},
 		EndBlock: &abci.ResponseEndBlock{},
@@ -249,7 +249,7 @@ func TestLastABCIResponses(t *testing.T) {
 		// stub the abciresponses.
 		response1 := &tmstate.ABCIResponses{
 			BeginBlock: &abci.ResponseBeginBlock{},
-			DeliverTxs: []*abci.ResponseDeliverTx{
+			DeliverTxs: []*abci.ExecTxResult{
 				{Code: 32, Data: []byte("Hello"), Log: "Huh?"},
 			},
 			EndBlock: &abci.ResponseEndBlock{},
@@ -281,7 +281,7 @@ func TestLastABCIResponses(t *testing.T) {
 		// stub the second abciresponse.
 		response2 := &tmstate.ABCIResponses{
 			BeginBlock: &abci.ResponseBeginBlock{},
-			DeliverTxs: []*abci.ResponseDeliverTx{
+			DeliverTxs: []*abci.ExecTxResult{
 				{Code: 44, Data: []byte("Hello again"), Log: "????"},
 			},
 			EndBlock: &abci.ResponseEndBlock{},

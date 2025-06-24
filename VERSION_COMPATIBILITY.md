@@ -270,7 +270,7 @@ go mod tidy
 
 ## Migration Notes
 
-- ABCI++: `DeliverTx` replaced by `FinalizeBlock`.
+- ABCI++: `DeliverTx` replaced by `FinalizeBlock`. (Legacy: `BeginBlock`, `DeliverTx`, and `EndBlock` are no longer used in ABCI 2.0.)
 - IAVL: Use `NewMutableTree(db, cacheSize, true)` for v1.0+.
 - Run `go mod tidy` after dependency changes.
 

@@ -86,17 +86,6 @@ func (app *localClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
 	)
 }
 
-func (app *localClient) DeliverTxAsync(params abci.RequestFinalizeBlock) *ReqRes {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	res := app.Application.DeliverTx(params)
-	return app.callback(
-		&abci.Request{Value: &abci.Request_DeliverTx{DeliverTx: &params}},
-		&abci.Response{Value: &abci.Response_DeliverTx{DeliverTx: &res}},
-	)
-}
-
 func (app *localClient) CheckTxAsync(req abci.RequestCheckTx) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
@@ -138,28 +127,6 @@ func (app *localClient) InitChainAsync(req abci.RequestInitChain) *ReqRes {
 	return app.callback(
 		&abci.Request{Value: &abci.Request_InitChain{InitChain: &req}},
 		&abci.Response{Value: &abci.Response_InitChain{InitChain: &res}},
-	)
-}
-
-func (app *localClient) BeginBlockAsync(req abci.RequestFinalizeBlock) *ReqRes {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	res := app.Application.BeginBlock(req)
-	return app.callback(
-		&abci.Request{Value: &abci.Request_BeginBlock{BeginBlock: &req}},
-		&abci.Response{Value: &abci.Response_BeginBlock{BeginBlock: &res}},
-	)
-}
-
-func (app *localClient) EndBlockAsync(req abci.RequestFinalizeBlock) *ReqRes {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	res := app.Application.EndBlock(req)
-	return app.callback(
-		&abci.Request{Value: &abci.Request_EndBlock{EndBlock: &req}},
-		&abci.Response{Value: &abci.Response_EndBlock{EndBlock: &res}},
 	)
 }
 
@@ -233,14 +200,6 @@ func (app *localClient) SetOptionSync(req abci.RequestSetOption) (*abci.Response
 	return &res, nil
 }
 
-func (app *localClient) DeliverTxSync(req abci.RequestFinalizeBlock) (*abci.ResponseDeliverTx, error) {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	res := app.Application.DeliverTx(req)
-	return &res, nil
-}
-
 func (app *localClient) CheckTxSync(req abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
@@ -270,22 +229,6 @@ func (app *localClient) InitChainSync(req abci.RequestInitChain) (*abci.Response
 	defer app.mtx.Unlock()
 
 	res := app.Application.InitChain(req)
-	return &res, nil
-}
-
-func (app *localClient) BeginBlockSync(req abci.RequestFinalizeBlock) (*abci.ResponseBeginBlock, error) {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	res := app.Application.BeginBlock(req)
-	return &res, nil
-}
-
-func (app *localClient) EndBlockSync(req abci.RequestFinalizeBlock) (*abci.ResponseEndBlock, error) {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	res := app.Application.EndBlock(req)
 	return &res, nil
 }
 
