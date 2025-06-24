@@ -29,8 +29,6 @@ type Application interface {
 	OfferSnapshot(RequestOfferSnapshot) ResponseOfferSnapshot                // Offer a snapshot to the application
 	LoadSnapshotChunk(RequestLoadSnapshotChunk) ResponseLoadSnapshotChunk    // Load a snapshot chunk
 	ApplySnapshotChunk(RequestApplySnapshotChunk) ResponseApplySnapshotChunk // Apply a shapshot chunk
-
-	FinalizeBlock(RequestFinalizeBlock) ResponseFinalizeBlock // New ABCI++ method
 }
 
 //-------------------------------------------------------
@@ -95,17 +93,6 @@ func (BaseApplication) LoadSnapshotChunk(req RequestLoadSnapshotChunk) ResponseL
 
 func (BaseApplication) ApplySnapshotChunk(req RequestApplySnapshotChunk) ResponseApplySnapshotChunk {
 	return ResponseApplySnapshotChunk{}
-}
-
-func (BaseApplication) FinalizeBlock(req RequestFinalizeBlock) ResponseFinalizeBlock {
-	results := make([]ResponseDeliverTx, len(req.Txs))
-	for i, tx := range req.Txs {
-		results[i] = ResponseDeliverTx{Code: CodeTypeOK, Data: tx}
-	}
-	return ResponseFinalizeBlock{
-		TxResults: results,
-		Events:    []Event{}, // Add block-level events if needed
-	}
 }
 
 //-------------------------------------------------------
@@ -193,10 +180,5 @@ func (app *GRPCApplication) LoadSnapshotChunk(
 func (app *GRPCApplication) ApplySnapshotChunk(
 	ctx context.Context, req *RequestApplySnapshotChunk) (*ResponseApplySnapshotChunk, error) {
 	res := app.app.ApplySnapshotChunk(*req)
-	return &res, nil
-}
-
-func (app *GRPCApplication) FinalizeBlock(ctx context.Context, req *RequestFinalizeBlock) (*ResponseFinalizeBlock, error) {
-	res := app.app.FinalizeBlock(*req)
 	return &res, nil
 }

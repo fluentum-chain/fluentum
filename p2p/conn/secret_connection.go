@@ -27,7 +27,7 @@ import (
 	"github.com/fluentum-chain/fluentum/libs/async"
 	"github.com/fluentum-chain/fluentum/libs/protoio"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	pc "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 // 4 + 1024 == 1028 total frame size
@@ -50,6 +50,22 @@ var (
 
 	secretConnKeyAndChallengeGen = []byte("TENDERMINT_SECRET_CONNECTION_KEY_AND_CHALLENGE_GEN")
 )
+
+// Custom AuthSigMessage struct to match the protobuf definition
+type authSigMessageProto struct {
+	PubKey *pc.PublicKey `protobuf:"bytes,1,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
+	Sig    []byte        `protobuf:"bytes,2,opt,name=sig,proto3" json:"sig,omitempty"`
+}
+
+func (m *authSigMessageProto) Reset()         { *m = authSigMessageProto{} }
+func (m *authSigMessageProto) String() string { return "" }
+func (*authSigMessageProto) ProtoMessage()    {}
+
+// Internal struct for our use
+type authSigMessage struct {
+	Key crypto.PubKey
+	Sig []byte
+}
 
 // SecretConnection implements net.Conn.
 // It is an implementation of the STS protocol.
@@ -396,11 +412,6 @@ func signChallenge(challenge *[32]byte, locPrivKey crypto.PrivKey) ([]byte, erro
 	return signature, nil
 }
 
-type authSigMessage struct {
-	Key crypto.PubKey
-	Sig []byte
-}
-
 func shareAuthSignature(sc io.ReadWriter, pubKey crypto.PubKey, signature []byte) (recvMsg authSigMessage, err error) {
 
 	// Send our info and receive theirs in tandem.
@@ -410,20 +421,24 @@ func shareAuthSignature(sc io.ReadWriter, pubKey crypto.PubKey, signature []byte
 			if err != nil {
 				return nil, true, err
 			}
-			_, err = protoio.NewDelimitedWriter(sc).WriteMsg(&tmp2p.AuthSigMessage{PubKey: pbpk, Sig: signature})
+			msg := &authSigMessageProto{
+				PubKey: &pbpk,
+				Sig:    signature,
+			}
+			_, err = protoio.NewDelimitedWriter(sc).WriteMsg(msg)
 			if err != nil {
 				return nil, true, err // abort
 			}
 			return nil, false, nil
 		},
 		func(_ int) (val interface{}, abort bool, err error) {
-			var pba tmp2p.AuthSigMessage
+			var pba authSigMessageProto
 			_, err = protoio.NewDelimitedReader(sc, 1024*1024).ReadMsg(&pba)
 			if err != nil {
 				return nil, true, err // abort
 			}
 
-			pk, err := cryptoenc.PubKeyFromProto(pba.PubKey)
+			pk, err := cryptoenc.PubKeyFromProto(*pba.PubKey)
 			if err != nil {
 				return nil, true, err // abort
 			}
