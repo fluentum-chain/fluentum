@@ -53,7 +53,7 @@ type ResultBlockResults struct {
 	TxsResults            []*abci.ExecTxResult   `json:"txs_results"`
 	Events                []*abci.Event          `json:"events"`
 	ValidatorUpdates      []abci.ValidatorUpdate `json:"validator_updates"`
-	ConsensusParamUpdates *abci.ConsensusParams  `json:"consensus_param_updates"`
+	ConsensusParamUpdates *types.ConsensusParams  `json:"consensus_param_updates"`
 }
 
 // NewResultCommit is a helper to initialize the ResultCommit with

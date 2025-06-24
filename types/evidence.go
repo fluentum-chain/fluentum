@@ -20,7 +20,7 @@ import (
 // Evidence represents any provable malicious activity by a validator.
 // Verification logic for each evidence is part of the evidence module.
 type Evidence interface {
-	ABCI() []abci.Evidence // forms individual evidence to be sent to the application
+	ABCI() []types.Evidence // forms individual evidence to be sent to the application
 	Bytes() []byte         // bytes which comprise the evidence
 	Hash() []byte          // hash of the evidence
 	Height() int64         // height of the infraction
@@ -73,9 +73,9 @@ func NewDuplicateVoteEvidence(vote1, vote2 *Vote, blockTime time.Time, valSet *V
 }
 
 // ABCI returns the application relevant representation of the evidence
-func (dve *DuplicateVoteEvidence) ABCI() []abci.Evidence {
-	return []abci.Evidence{{
-		Type: abci.EvidenceType_DUPLICATE_VOTE,
+func (dve *DuplicateVoteEvidence) ABCI() []types.Evidence {
+	return []types.Evidence{{
+		Type: types.EvidenceType_DUPLICATE_VOTE,
 		Validator: abci.Validator{
 			Address: dve.VoteA.ValidatorAddress,
 			Power:   dve.ValidatorPower,
@@ -199,12 +199,12 @@ type LightClientAttackEvidence struct {
 
 var _ Evidence = &LightClientAttackEvidence{}
 
-// ABCI forms an array of abci evidence for each byzantine validator
-func (l *LightClientAttackEvidence) ABCI() []abci.Evidence {
-	abciEv := make([]abci.Evidence, len(l.ByzantineValidators))
+// ABCI forms an array of types.Evidence for each byzantine validator
+func (l *LightClientAttackEvidence) ABCI() []types.Evidence {
+	abciEv := make([]types.Evidence, len(l.ByzantineValidators))
 	for idx, val := range l.ByzantineValidators {
-		abciEv[idx] = abci.Evidence{
-			Type:             abci.EvidenceType_LIGHT_CLIENT_ATTACK,
+		abciEv[idx] = types.Evidence{
+			Type:             types.EvidenceType_LIGHT_CLIENT_ATTACK,
 			Validator:        TM2PB.Validator(val),
 			Height:           l.Height(),
 			Time:             l.Timestamp,

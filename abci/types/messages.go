@@ -93,7 +93,7 @@ func ToRequestSetOption(req RequestSetOption) *Request {
 	}
 }
 
-func ToRequestDeliverTx(req RequestDeliverTx) *Request {
+func ToRequestFinalizeBlock(req RequestFinalizeBlock) *Request {
 	return &Request{
 		Value: &Request_DeliverTx{&req},
 	}
@@ -123,13 +123,13 @@ func ToRequestInitChain(req RequestInitChain) *Request {
 	}
 }
 
-func ToRequestBeginBlock(req RequestBeginBlock) *Request {
+func ToRequestFinalizeBlock(req RequestFinalizeBlock) *Request {
 	return &Request{
 		Value: &Request_BeginBlock{&req},
 	}
 }
 
-func ToRequestEndBlock(req RequestEndBlock) *Request {
+func ToRequestFinalizeBlock(req RequestFinalizeBlock) *Request {
 	return &Request{
 		Value: &Request_EndBlock{&req},
 	}

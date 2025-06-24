@@ -314,8 +314,8 @@ func TestMempool_KeepInvalidTxsInCache(t *testing.T) {
 		require.NoError(t, err)
 
 		// simulate new block
-		_ = app.DeliverTx(abci.RequestDeliverTx{Tx: a})
-		_ = app.DeliverTx(abci.RequestDeliverTx{Tx: b})
+		_ = app.DeliverTx(abci.RequestFinalizeBlock{Tx: a})
+		_ = app.DeliverTx(abci.RequestFinalizeBlock{Tx: b})
 		err = mp.Update(1, []types.Tx{a, b},
 			[]*abci.ResponseDeliverTx{{Code: abci.CodeTypeOK}, {Code: 2}}, nil, nil)
 		require.NoError(t, err)
@@ -447,7 +447,7 @@ func TestSerialReap(t *testing.T) {
 		for i := start; i < end; i++ {
 			txBytes := make([]byte, 8)
 			binary.BigEndian.PutUint64(txBytes, uint64(i))
-			res, err := appConnCon.DeliverTxSync(abci.RequestDeliverTx{Tx: txBytes})
+			res, err := appConnCon.DeliverTxSync(abci.RequestFinalizeBlock{Tx: txBytes})
 			if err != nil {
 				t.Errorf("client error committing tx: %v", err)
 			}
@@ -614,7 +614,7 @@ func TestMempoolTxsBytes(t *testing.T) {
 		}
 	})
 
-	res, err := appConnCon.DeliverTxSync(abci.RequestDeliverTx{Tx: txBytes})
+	res, err := appConnCon.DeliverTxSync(abci.RequestFinalizeBlock{Tx: txBytes})
 	require.NoError(t, err)
 	require.EqualValues(t, 0, res.Code)
 

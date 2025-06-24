@@ -19,7 +19,7 @@ func (app *Application) Info(req abci.RequestInfo) abci.ResponseInfo {
 	return abci.ResponseInfo{Data: fmt.Sprintf("counter=%d", app.counter)}
 }
 
-func (app *Application) DeliverTx(req abci.RequestDeliverTx) abci.ResponseDeliverTx {
+func (app *Application) DeliverTx(req abci.RequestFinalizeBlock) abci.ResponseDeliverTx {
 	app.counter++
 	return abci.ResponseDeliverTx{Code: 0}
 }

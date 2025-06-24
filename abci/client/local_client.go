@@ -86,7 +86,7 @@ func (app *localClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
 	)
 }
 
-func (app *localClient) DeliverTxAsync(params abci.RequestDeliverTx) *ReqRes {
+func (app *localClient) DeliverTxAsync(params abci.RequestFinalizeBlock) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
@@ -141,7 +141,7 @@ func (app *localClient) InitChainAsync(req abci.RequestInitChain) *ReqRes {
 	)
 }
 
-func (app *localClient) BeginBlockAsync(req abci.RequestBeginBlock) *ReqRes {
+func (app *localClient) BeginBlockAsync(req abci.RequestFinalizeBlock) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
@@ -152,7 +152,7 @@ func (app *localClient) BeginBlockAsync(req abci.RequestBeginBlock) *ReqRes {
 	)
 }
 
-func (app *localClient) EndBlockAsync(req abci.RequestEndBlock) *ReqRes {
+func (app *localClient) EndBlockAsync(req abci.RequestFinalizeBlock) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
@@ -233,7 +233,7 @@ func (app *localClient) SetOptionSync(req abci.RequestSetOption) (*abci.Response
 	return &res, nil
 }
 
-func (app *localClient) DeliverTxSync(req abci.RequestDeliverTx) (*abci.ResponseDeliverTx, error) {
+func (app *localClient) DeliverTxSync(req abci.RequestFinalizeBlock) (*abci.ResponseDeliverTx, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
@@ -273,7 +273,7 @@ func (app *localClient) InitChainSync(req abci.RequestInitChain) (*abci.Response
 	return &res, nil
 }
 
-func (app *localClient) BeginBlockSync(req abci.RequestBeginBlock) (*abci.ResponseBeginBlock, error) {
+func (app *localClient) BeginBlockSync(req abci.RequestFinalizeBlock) (*abci.ResponseBeginBlock, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
@@ -281,7 +281,7 @@ func (app *localClient) BeginBlockSync(req abci.RequestBeginBlock) (*abci.Respon
 	return &res, nil
 }
 
-func (app *localClient) EndBlockSync(req abci.RequestEndBlock) (*abci.ResponseEndBlock, error) {
+func (app *localClient) EndBlockSync(req abci.RequestFinalizeBlock) (*abci.ResponseEndBlock, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 

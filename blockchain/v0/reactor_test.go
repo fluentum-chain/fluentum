@@ -328,15 +328,15 @@ func (app *testApp) Info(req abci.RequestInfo) (resInfo abci.ResponseInfo) {
 	return abci.ResponseInfo{}
 }
 
-func (app *testApp) BeginBlock(req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *testApp) BeginBlock(req abci.RequestFinalizeBlock) abci.ResponseBeginBlock {
 	return abci.ResponseBeginBlock{}
 }
 
-func (app *testApp) EndBlock(req abci.RequestEndBlock) abci.ResponseEndBlock {
+func (app *testApp) EndBlock(req abci.RequestFinalizeBlock) abci.ResponseEndBlock {
 	return abci.ResponseEndBlock{}
 }
 
-func (app *testApp) DeliverTx(req abci.RequestDeliverTx) abci.ResponseDeliverTx {
+func (app *testApp) DeliverTx(req abci.RequestFinalizeBlock) abci.ResponseDeliverTx {
 	return abci.ResponseDeliverTx{Events: []abci.Event{}}
 }
 

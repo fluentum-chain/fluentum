@@ -67,7 +67,7 @@ func (app *PersistentKVStoreApplication) SetOption(req types.RequestSetOption) t
 }
 
 // tx is either "val:pubkey!power" or "key=value" or just arbitrary bytes
-func (app *PersistentKVStoreApplication) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
+func (app *PersistentKVStoreApplication) DeliverTx(req types.RequestFinalizeBlock) types.ResponseDeliverTx {
 	// if it starts with "val:", update the validator set
 	// format is "val:pubkey!power"
 	if isValidatorTx(req.Tx) {
@@ -120,7 +120,7 @@ func (app *PersistentKVStoreApplication) InitChain(req types.RequestInitChain) t
 }
 
 // Track the block hash and header information
-func (app *PersistentKVStoreApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+func (app *PersistentKVStoreApplication) BeginBlock(req types.RequestFinalizeBlock) types.ResponseBeginBlock {
 	// reset valset changes
 	app.ValUpdates = make([]types.ValidatorUpdate, 0)
 
@@ -146,7 +146,7 @@ func (app *PersistentKVStoreApplication) BeginBlock(req types.RequestBeginBlock)
 }
 
 // Update the validator set
-func (app *PersistentKVStoreApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
+func (app *PersistentKVStoreApplication) EndBlock(req types.RequestFinalizeBlock) types.ResponseEndBlock {
 	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 

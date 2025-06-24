@@ -635,7 +635,7 @@ func TestMockProxyApp(t *testing.T) {
 		mock.SetResponseCallback(proxyCb)
 
 		someTx := []byte("tx")
-		mock.DeliverTxAsync(abci.RequestDeliverTx{Tx: someTx})
+		mock.DeliverTxAsync(abci.RequestFinalizeBlock{Tx: someTx})
 	})
 	assert.True(t, validTxs == 1)
 	assert.True(t, invalidTxs == 0)

@@ -7,7 +7,7 @@ import (
 
 	tmnet "github.com/fluentum-chain/fluentum/libs/net"
 	"github.com/fluentum-chain/fluentum/libs/service"
-	"github.com/tendermint/tendermint/abci/types"
+	"github.com/cometbft/cometbft/abci/types"
 )
 
 type GRPCServer struct {

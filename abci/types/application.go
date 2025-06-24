@@ -114,7 +114,7 @@ func (app *GRPCApplication) SetOption(ctx context.Context, req *RequestSetOption
 	return res, err
 }
 
-func (app *GRPCApplication) DeliverTx(ctx context.Context, req *RequestDeliverTx) (*ResponseDeliverTx, error) {
+func (app *GRPCApplication) DeliverTx(ctx context.Context, req *RequestFinalizeBlock) (*ResponseDeliverTx, error) {
 	res := app.app.DeliverTx(ctx, req)
 	return res, nil
 }

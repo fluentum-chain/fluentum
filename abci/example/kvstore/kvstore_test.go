@@ -24,7 +24,7 @@ const (
 )
 
 func testKVStore(t *testing.T, app types.Application, tx []byte, key, value string) {
-	req := types.RequestDeliverTx{Tx: tx}
+	req := types.RequestFinalizeBlock{Tx: tx}
 	ar := app.DeliverTx(req)
 	require.False(t, ar.IsErr(), ar)
 	// repeating tx doesn't raise error
@@ -106,8 +106,8 @@ func TestPersistentKVStoreInfo(t *testing.T) {
 	header := tmproto.Header{
 		Height: height,
 	}
-	kvstore.BeginBlock(types.RequestBeginBlock{Hash: hash, Header: header})
-	kvstore.EndBlock(types.RequestEndBlock{Height: header.Height})
+	kvstore.BeginBlock(types.RequestFinalizeBlock{Hash: hash, Header: header})
+	kvstore.EndBlock(types.RequestFinalizeBlock{Height: header.Height})
 	kvstore.Commit()
 
 	resInfo = kvstore.Info(types.RequestInfo{})
@@ -196,13 +196,13 @@ func makeApplyBlock(
 		Height: height,
 	}
 
-	kvstore.BeginBlock(types.RequestBeginBlock{Hash: hash, Header: header})
+	kvstore.BeginBlock(types.RequestFinalizeBlock{Hash: hash, Header: header})
 	for _, tx := range txs {
-		if r := kvstore.DeliverTx(types.RequestDeliverTx{Tx: tx}); r.IsErr() {
+		if r := kvstore.DeliverTx(types.RequestFinalizeBlock{Tx: tx}); r.IsErr() {
 			t.Fatal(r)
 		}
 	}
-	resEndBlock := kvstore.EndBlock(types.RequestEndBlock{Height: header.Height})
+	resEndBlock := kvstore.EndBlock(types.RequestFinalizeBlock{Height: header.Height})
 	kvstore.Commit()
 
 	valsEqual(t, diff, resEndBlock.ValidatorUpdates)
@@ -321,11 +321,11 @@ func runClientTests(t *testing.T, client abcicli.Client) {
 }
 
 func testClient(t *testing.T, app abcicli.Client, tx []byte, key, value string) {
-	ar, err := app.DeliverTxSync(types.RequestDeliverTx{Tx: tx})
+	ar, err := app.DeliverTxSync(types.RequestFinalizeBlock{Tx: tx})
 	require.NoError(t, err)
 	require.False(t, ar.IsErr(), ar)
 	// repeating tx doesn't raise error
-	ar, err = app.DeliverTxSync(types.RequestDeliverTx{Tx: tx})
+	ar, err = app.DeliverTxSync(types.RequestFinalizeBlock{Tx: tx})
 	require.NoError(t, err)
 	require.False(t, ar.IsErr(), ar)
 	// commit

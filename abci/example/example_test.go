@@ -104,7 +104,7 @@ func testStream(t *testing.T, app abci.Application) {
 	// Write requests
 	for counter := 0; counter < numDeliverTxs; counter++ {
 		// Send request
-		reqRes := client.DeliverTxAsync(abci.RequestDeliverTx{Tx: []byte("test")})
+		reqRes := client.DeliverTxAsync(abci.RequestFinalizeBlock{Tx: []byte("test")})
 		_ = reqRes
 		// check err ?
 
@@ -165,7 +165,7 @@ func testGRPCSync(t *testing.T, app abci.ABCIApplicationServer) {
 	// Write requests
 	for counter := 0; counter < numDeliverTxs; counter++ {
 		// Send request
-		response, err := client.DeliverTx(context.Background(), &abci.RequestDeliverTx{Tx: []byte("test")})
+		response, err := client.DeliverTx(context.Background(), &abci.RequestFinalizeBlock{Tx: []byte("test")})
 		if err != nil {
 			t.Fatalf("Error in GRPC DeliverTx: %v", err.Error())
 		}

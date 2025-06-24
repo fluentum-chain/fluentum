@@ -201,8 +201,8 @@ func (cli *grpcClient) SetOptionAsync(params abci.RequestSetOption) *ReqRes {
 	return cli.finishAsyncCall(req, &abci.Response{Value: &abci.Response_SetOption{SetOption: res}})
 }
 
-func (cli *grpcClient) DeliverTxAsync(params abci.RequestDeliverTx) *ReqRes {
-	req := abci.ToRequestDeliverTx(params)
+func (cli *grpcClient) DeliverTxAsync(params abci.RequestFinalizeBlock) *ReqRes {
+	req := abci.ToRequestFinalizeBlock(params)
 	res, err := cli.client.DeliverTx(context.Background(), req.GetDeliverTx(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -246,8 +246,8 @@ func (cli *grpcClient) InitChainAsync(params abci.RequestInitChain) *ReqRes {
 	return cli.finishAsyncCall(req, &abci.Response{Value: &abci.Response_InitChain{InitChain: res}})
 }
 
-func (cli *grpcClient) BeginBlockAsync(params abci.RequestBeginBlock) *ReqRes {
-	req := abci.ToRequestBeginBlock(params)
+func (cli *grpcClient) BeginBlockAsync(params abci.RequestFinalizeBlock) *ReqRes {
+	req := abci.ToRequestFinalizeBlock(params)
 	res, err := cli.client.BeginBlock(context.Background(), req.GetBeginBlock(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -255,8 +255,8 @@ func (cli *grpcClient) BeginBlockAsync(params abci.RequestBeginBlock) *ReqRes {
 	return cli.finishAsyncCall(req, &abci.Response{Value: &abci.Response_BeginBlock{BeginBlock: res}})
 }
 
-func (cli *grpcClient) EndBlockAsync(params abci.RequestEndBlock) *ReqRes {
-	req := abci.ToRequestEndBlock(params)
+func (cli *grpcClient) EndBlockAsync(params abci.RequestFinalizeBlock) *ReqRes {
+	req := abci.ToRequestFinalizeBlock(params)
 	res, err := cli.client.EndBlock(context.Background(), req.GetEndBlock(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -361,7 +361,7 @@ func (cli *grpcClient) SetOptionSync(req abci.RequestSetOption) (*abci.ResponseS
 	return reqres.Response.GetSetOption(), cli.Error()
 }
 
-func (cli *grpcClient) DeliverTxSync(params abci.RequestDeliverTx) (*abci.ResponseDeliverTx, error) {
+func (cli *grpcClient) DeliverTxSync(params abci.RequestFinalizeBlock) (*abci.ResponseDeliverTx, error) {
 	reqres := cli.DeliverTxAsync(params)
 	return cli.finishSyncCall(reqres).GetDeliverTx(), cli.Error()
 }
@@ -386,12 +386,12 @@ func (cli *grpcClient) InitChainSync(params abci.RequestInitChain) (*abci.Respon
 	return cli.finishSyncCall(reqres).GetInitChain(), cli.Error()
 }
 
-func (cli *grpcClient) BeginBlockSync(params abci.RequestBeginBlock) (*abci.ResponseBeginBlock, error) {
+func (cli *grpcClient) BeginBlockSync(params abci.RequestFinalizeBlock) (*abci.ResponseBeginBlock, error) {
 	reqres := cli.BeginBlockAsync(params)
 	return cli.finishSyncCall(reqres).GetBeginBlock(), cli.Error()
 }
 
-func (cli *grpcClient) EndBlockSync(params abci.RequestEndBlock) (*abci.ResponseEndBlock, error) {
+func (cli *grpcClient) EndBlockSync(params abci.RequestFinalizeBlock) (*abci.ResponseEndBlock, error) {
 	reqres := cli.EndBlockAsync(params)
 	return cli.finishSyncCall(reqres).GetEndBlock(), cli.Error()
 }

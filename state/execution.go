@@ -266,7 +266,7 @@ func execBlockOnProxyApp(
 	initialHeight int64,
 ) (*tmstate.ABCIResponses, error) {
 	// Convert evidence to ABCI format
-	var byzantineValidators []abci.Evidence
+	var byzantineValidators []types.Evidence
 	for _, ev := range block.Evidence.Evidence {
 		byzantineValidators = append(byzantineValidators, ev.ABCI()...)
 	}

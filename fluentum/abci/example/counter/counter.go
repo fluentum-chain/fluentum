@@ -19,7 +19,7 @@ type RequestInfo struct{}
 type ResponseInfo struct{ Data string }
 type RequestSetOption struct{ Key, Value string }
 type ResponseSetOption struct{}
-type RequestDeliverTx struct{ Tx []byte }
+type RequestFinalizeBlock struct{ Tx []byte }
 type ResponseDeliverTx struct {
 	Code uint32
 	Log  string
@@ -61,7 +61,7 @@ func (app *Application) SetOption(req types.RequestSetOption) types.ResponseSetO
 	return types.ResponseSetOption{}
 }
 
-func (app *Application) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
+func (app *Application) DeliverTx(req types.RequestFinalizeBlock) types.ResponseDeliverTx {
 	if app.serial {
 		if len(req.Tx) > 8 {
 			return types.ResponseDeliverTx{

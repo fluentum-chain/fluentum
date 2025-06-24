@@ -302,7 +302,7 @@ func TestVerifyLightClientAttack_Amnesia(t *testing.T) {
 			ValidatorSet: conflictingVals,
 		},
 		CommonHeight:        10,
-		ByzantineValidators: nil, // with amnesia evidence no validators are submitted as abci evidence
+		ByzantineValidators: nil, // with amnesia evidence no validators are submitted as types.Evidence
 		TotalVotingPower:    50,
 		Timestamp:           defaultEvidenceTime,
 	}

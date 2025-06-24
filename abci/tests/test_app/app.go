@@ -42,7 +42,7 @@ func commit(client abcicli.Client, hashExp []byte) {
 }
 
 func deliverTx(client abcicli.Client, txBytes []byte, codeExp uint32, dataExp []byte) {
-	res, err := client.DeliverTxSync(types.RequestDeliverTx{Tx: txBytes})
+	res, err := client.DeliverTxSync(types.RequestFinalizeBlock{Tx: txBytes})
 	if err != nil {
 		panicf("client error: %v", err)
 	}
