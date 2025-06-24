@@ -2,6 +2,8 @@ version: v1
 name: buf.build/fluentum-chain/fluentum-proto
 deps:
   - buf.build/gogo/protobuf
+  - buf.build/cosmos/cosmos-sdk
+  - buf.build/fluentum-chain/tendermint
 breaking:
   use:
     - FILE
