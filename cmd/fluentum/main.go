@@ -174,10 +174,6 @@ type appCreator struct {
 	encCfg app.EncodingConfig
 }
 
-// Ensure appCreator implements the required interfaces
-var _ types.AppCreator = (*appCreator)(nil)
-var _ types.AppExporter = (*appCreator)(nil)
-
 // CreateApp implements types.AppCreator interface for Cosmos SDK v0.50.6
 func (a appCreator) CreateApp(
 	logger log.Logger,
