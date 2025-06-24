@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 )
@@ -27,35 +27,35 @@ type Client interface {
 
 	FlushAsync() *ReqRes
 	EchoAsync(msg string) *ReqRes
-	InfoAsync(types.RequestInfo) *ReqRes
-	SetOptionAsync(types.RequestSetOption) *ReqRes
-	DeliverTxAsync(types.RequestDeliverTx) *ReqRes
-	CheckTxAsync(types.RequestCheckTx) *ReqRes
-	QueryAsync(types.RequestQuery) *ReqRes
+	InfoAsync(abci.RequestInfo) *ReqRes
+	SetOptionAsync(abci.RequestSetOption) *ReqRes
+	DeliverTxAsync(abci.RequestDeliverTx) *ReqRes
+	CheckTxAsync(abci.RequestCheckTx) *ReqRes
+	QueryAsync(abci.RequestQuery) *ReqRes
 	CommitAsync() *ReqRes
-	InitChainAsync(types.RequestInitChain) *ReqRes
-	BeginBlockAsync(types.RequestBeginBlock) *ReqRes
-	EndBlockAsync(types.RequestEndBlock) *ReqRes
-	ListSnapshotsAsync(types.RequestListSnapshots) *ReqRes
-	OfferSnapshotAsync(types.RequestOfferSnapshot) *ReqRes
-	LoadSnapshotChunkAsync(types.RequestLoadSnapshotChunk) *ReqRes
-	ApplySnapshotChunkAsync(types.RequestApplySnapshotChunk) *ReqRes
+	InitChainAsync(abci.RequestInitChain) *ReqRes
+	BeginBlockAsync(abci.RequestBeginBlock) *ReqRes
+	EndBlockAsync(abci.RequestEndBlock) *ReqRes
+	ListSnapshotsAsync(abci.RequestListSnapshots) *ReqRes
+	OfferSnapshotAsync(abci.RequestOfferSnapshot) *ReqRes
+	LoadSnapshotChunkAsync(abci.RequestLoadSnapshotChunk) *ReqRes
+	ApplySnapshotChunkAsync(abci.RequestApplySnapshotChunk) *ReqRes
 
 	FlushSync() error
-	EchoSync(msg string) (*types.ResponseEcho, error)
-	InfoSync(types.RequestInfo) (*types.ResponseInfo, error)
-	SetOptionSync(types.RequestSetOption) (*types.ResponseSetOption, error)
-	DeliverTxSync(types.RequestDeliverTx) (*types.ResponseDeliverTx, error)
-	CheckTxSync(types.RequestCheckTx) (*types.ResponseCheckTx, error)
-	QuerySync(types.RequestQuery) (*types.ResponseQuery, error)
-	CommitSync() (*types.ResponseCommit, error)
-	InitChainSync(types.RequestInitChain) (*types.ResponseInitChain, error)
-	BeginBlockSync(types.RequestBeginBlock) (*types.ResponseBeginBlock, error)
-	EndBlockSync(types.RequestEndBlock) (*types.ResponseEndBlock, error)
-	ListSnapshotsSync(types.RequestListSnapshots) (*types.ResponseListSnapshots, error)
-	OfferSnapshotSync(types.RequestOfferSnapshot) (*types.ResponseOfferSnapshot, error)
-	LoadSnapshotChunkSync(types.RequestLoadSnapshotChunk) (*types.ResponseLoadSnapshotChunk, error)
-	ApplySnapshotChunkSync(types.RequestApplySnapshotChunk) (*types.ResponseApplySnapshotChunk, error)
+	EchoSync(msg string) (*abci.ResponseEcho, error)
+	InfoSync(abci.RequestInfo) (*abci.ResponseInfo, error)
+	SetOptionSync(abci.RequestSetOption) (*abci.ResponseSetOption, error)
+	DeliverTxSync(abci.RequestDeliverTx) (*abci.ResponseDeliverTx, error)
+	CheckTxSync(abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
+	QuerySync(abci.RequestQuery) (*abci.ResponseQuery, error)
+	CommitSync() (*abci.ResponseCommit, error)
+	InitChainSync(abci.RequestInitChain) (*abci.ResponseInitChain, error)
+	BeginBlockSync(abci.RequestBeginBlock) (*abci.ResponseBeginBlock, error)
+	EndBlockSync(abci.RequestEndBlock) (*abci.ResponseEndBlock, error)
+	ListSnapshotsSync(abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error)
+	OfferSnapshotSync(abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error)
+	LoadSnapshotChunkSync(abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error)
+	ApplySnapshotChunkSync(abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error)
 }
 
 //----------------------------------------
@@ -74,12 +74,12 @@ func NewClient(addr, transport string, mustConnect bool) (client Client, err err
 	return
 }
 
-type Callback func(*types.Request, *types.Response)
+type Callback func(*abci.Request, *abci.Response)
 
 type ReqRes struct {
-	*types.Request
+	*abci.Request
 	*sync.WaitGroup
-	*types.Response // Not set atomically, so be sure to use WaitGroup.
+	*abci.Response // Not set atomically, so be sure to use WaitGroup.
 
 	mtx tmsync.Mutex
 
@@ -89,10 +89,10 @@ type ReqRes struct {
 	// invoking the callback twice by accident, once when 'SetCallback' is
 	// called and once during the normal request.
 	callbackInvoked bool
-	cb              func(*types.Response) // A single callback that may be set.
+	cb              func(*abci.Response) // A single callback that may be set.
 }
 
-func NewReqRes(req *types.Request) *ReqRes {
+func NewReqRes(req *abci.Request) *ReqRes {
 	return &ReqRes{
 		Request:   req,
 		WaitGroup: waitGroup1(),
@@ -106,7 +106,7 @@ func NewReqRes(req *types.Request) *ReqRes {
 // Sets sets the callback. If reqRes is already done, it will call the cb
 // immediately. Note, reqRes.cb should not change if reqRes.done and only one
 // callback is supported.
-func (r *ReqRes) SetCallback(cb func(res *types.Response)) {
+func (r *ReqRes) SetCallback(cb func(res *abci.Response)) {
 	r.mtx.Lock()
 
 	if r.callbackInvoked {
@@ -137,7 +137,7 @@ func (r *ReqRes) InvokeCallback() {
 // will invoke the callback twice and create a potential race condition.
 //
 // ref: https://github.com/fluentum-chain/fluentum/issues/5439
-func (r *ReqRes) GetCallback() func(*types.Response) {
+func (r *ReqRes) GetCallback() func(*abci.Response) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	return r.cb
