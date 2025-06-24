@@ -1,4 +1,5 @@
 version: v2
+name: fluentum
 deps:
   - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto

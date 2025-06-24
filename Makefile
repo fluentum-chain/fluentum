@@ -408,13 +408,8 @@ test-features:
 .PHONY: clean
 clean:
 	@echo "Cleaning build artifacts..."
-	@rm -rf $(BUILD_DIR)
-	@echo "Cleaning feature build artifacts..."
-	@find $(FEATURES_DIR) -name "*.exe" -delete
-	@find $(FEATURES_DIR) -name "quantum_signing" -delete
-	@find $(FEATURES_DIR) -name "state_sync" -delete
-	@find $(FEATURES_DIR) -name "zk_rollup" -delete
-	@find $(FEATURES_DIR) -name "*.so" -delete
+	@if exist build rmdir /s /q build
+	@if exist .fluentum rmdir /s /q .fluentum
 
 # Run tests
 .PHONY: test
@@ -532,8 +527,8 @@ install:
 .PHONY: clean
 clean:
 	@echo "Cleaning build artifacts..."
-	@rm -rf $(BUILD_DIR)
-	@rm -rf .fluentum
+	@if exist build rmdir /s /q build
+	@if exist .fluentum rmdir /s /q .fluentum
 
 # Run tests
 .PHONY: test
