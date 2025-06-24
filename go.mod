@@ -75,3 +75,5 @@ replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
+
+replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.45.16
