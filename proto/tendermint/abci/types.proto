@@ -5,10 +5,10 @@ option go_package = "github.com/fluentum-chain/fluentum/proto/tendermint/abci";
 
 // For more information on gogo.proto, see:
 // https://github.com/gogo/protobuf/blob/master/extensions.md
-import "crypto/proof.proto";
-import "types/types.proto";
-import "crypto/keys.proto";
-import "types/params.proto";
+import "tendermint/crypto/proof.proto";
+import "tendermint/types/types.proto";
+import "tendermint/crypto/keys.proto";
+import "tendermint/types/params.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
@@ -76,7 +76,7 @@ message RequestQuery {
 
 message RequestBeginBlock {
   bytes                   hash                 = 1;
-  types.Header header               = 2 [(gogoproto.nullable) = false];
+  tendermint.types.Header header               = 2 [(gogoproto.nullable) = false];
   LastCommitInfo          last_commit_info     = 3 [(gogoproto.nullable) = false];
   repeated Evidence       byzantine_validators = 4 [(gogoproto.nullable) = false];
 }
@@ -191,7 +191,7 @@ message ResponseQuery {
   int64                      index     = 5;
   bytes                      key       = 6;
   bytes                      value     = 7;
-  crypto.ProofOps proof_ops = 8;
+  tendermint.crypto.ProofOps proof_ops = 8;
   int64                      height    = 9;
   string                     codespace = 10;
 }
@@ -289,9 +289,9 @@ message ResponseApplySnapshotChunk {
 // that can be adjusted by the abci app
 message ConsensusParams {
   BlockParams                      block     = 1;
-  types.EvidenceParams  evidence  = 2;
-  types.ValidatorParams validator = 3;
-  types.VersionParams   version   = 4;
+  tendermint.types.EvidenceParams  evidence  = 2;
+  tendermint.types.ValidatorParams validator = 3;
+  tendermint.types.VersionParams   version   = 4;
 }
 
 // BlockParams contains limits on the block size.
@@ -341,13 +341,13 @@ message TxResult {
 // Validator
 message Validator {
   bytes address = 1;  // The first 20 bytes of SHA256(public key)
-  crypto.PublicKey pub_key = 2 [(gogoproto.nullable) = false];
-  int64 power = 3;  // The voting power
+  tendermint.crypto.PublicKey pub_key = 1 [(gogoproto.nullable) = false];
+  int64 power = 2;  // The voting power
 }
 
 // ValidatorUpdate
 message ValidatorUpdate {
-  crypto.PublicKey pub_key = 1 [(gogoproto.nullable) = false];
+  tendermint.crypto.PublicKey pub_key = 1 [(gogoproto.nullable) = false];
   int64                       power   = 2;
 }
 
