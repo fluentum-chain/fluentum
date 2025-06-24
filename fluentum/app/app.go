@@ -286,6 +286,8 @@ func NewFluentumApp(
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
 		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
 		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
+		baseapp.SetPrepareProposal(app.PrepareProposal),
+		baseapp.SetProcessProposal(app.ProcessProposal),
 	}
 
 	return New(
@@ -585,7 +587,7 @@ func (app *App) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePr
 	var totalBytes int64
 	var selectedTxs [][]byte
 
-	// Use the proper method to get tx decoder
+	// Use TxDecoder() to get tx decoder
 	txDecoder := app.TxDecoder()
 
 	for _, txBytes := range req.Txs {
