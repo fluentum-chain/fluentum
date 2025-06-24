@@ -1,6 +1,9 @@
 version: v2
+name: buf.build/fluentum-chain/fluentum-proto
 deps:
   - buf.build/gogo/protobuf
+  - buf.build/cosmos/cosmos-proto
+  - buf.build/cosmos/gogo-proto
 breaking:
   use:
     - FILE
