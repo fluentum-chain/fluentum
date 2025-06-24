@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"

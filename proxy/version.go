@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	"github.com/fluentum-chain/fluentum/version"
 )
 

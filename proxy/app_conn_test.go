@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
 	"github.com/fluentum-chain/fluentum/abci/server"
-	"github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
 )
@@ -18,7 +18,7 @@ import (
 type AppConnTest interface {
 	EchoAsync(string) *abcicli.ReqRes
 	FlushSync() error
-	InfoSync(types.RequestInfo) (*types.ResponseInfo, error)
+	InfoSync(abci.RequestInfo) (*abci.ResponseInfo, error)
 }
 
 type appConnTest struct {
@@ -37,7 +37,7 @@ func (app *appConnTest) FlushSync() error {
 	return app.appConn.FlushSync()
 }
 
-func (app *appConnTest) InfoSync(req types.RequestInfo) (*types.ResponseInfo, error) {
+func (app *appConnTest) InfoSync(req abci.RequestInfo) (*abci.ResponseInfo, error) {
 	return app.appConn.InfoSync(req)
 }
 
@@ -122,7 +122,7 @@ func BenchmarkEcho(b *testing.B) {
 	}
 
 	b.StopTimer()
-	// info := proxy.InfoSync(types.RequestInfo{""})
+	// info := proxy.InfoSync(abci.RequestInfo{""})
 	// b.Log("N: ", b.N, info)
 }
 
@@ -155,7 +155,7 @@ func TestInfo(t *testing.T) {
 	proxy := NewAppConnTest(cli)
 	t.Log("Connected")
 
-	resInfo, err := proxy.InfoSync(RequestInfo)
+	resInfo, err := proxy.InfoSync(abci.RequestInfo{})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

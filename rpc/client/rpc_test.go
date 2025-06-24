@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"

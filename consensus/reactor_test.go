@@ -20,7 +20,7 @@ import (
 
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	cfg "github.com/fluentum-chain/fluentum/config"
 	cstypes "github.com/fluentum-chain/fluentum/consensus/types"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"

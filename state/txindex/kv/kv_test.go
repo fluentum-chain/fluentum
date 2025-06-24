@@ -12,7 +12,7 @@ import (
 
 	db "github.com/cometbft/cometbft-db"
 
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
 	"github.com/fluentum-chain/fluentum/state/txindex"

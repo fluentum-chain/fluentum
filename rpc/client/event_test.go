@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
 	"github.com/fluentum-chain/fluentum/rpc/client"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"

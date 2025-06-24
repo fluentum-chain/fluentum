@@ -8,7 +8,7 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/spf13/cobra"
 
-	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
+	abcitypes "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	tmcfg "github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/progressbar"
 	"github.com/fluentum-chain/fluentum/state"

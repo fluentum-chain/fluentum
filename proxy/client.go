@@ -3,9 +3,9 @@ package proxy
 import (
 	"fmt"
 
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
-	"github.com/fluentum-chain/fluentum/abci/types"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	e2e "github.com/fluentum-chain/fluentum/test/e2e/app"
 )
@@ -23,12 +23,12 @@ type ClientCreator interface {
 
 type localClientCreator struct {
 	mtx *tmsync.Mutex
-	app types.Application
+	app abci.Application
 }
 
 // NewLocalClientCreator returns a ClientCreator for the given app,
 // which will be running locally.
-func NewLocalClientCreator(app types.Application) ClientCreator {
+func NewLocalClientCreator(app abci.Application) ClientCreator {
 	return &localClientCreator{
 		mtx: new(tmsync.Mutex),
 		app: app,
@@ -83,7 +83,7 @@ func DefaultClientCreator(addr, transport, dbDir string) ClientCreator {
 		}
 		return NewLocalClientCreator(app)
 	case "noop":
-		return NewLocalClientCreator(types.NewBaseApplication())
+		return NewLocalClientCreator(abci.NewBaseApplication())
 	default:
 		mustConnect := false // loop retrying
 		return NewRemoteClientCreator(addr, transport, mustConnect)

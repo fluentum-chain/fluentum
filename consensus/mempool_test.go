@@ -13,7 +13,7 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 
 	"github.com/fluentum-chain/fluentum/abci/example/code"
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
 	sm "github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/types"

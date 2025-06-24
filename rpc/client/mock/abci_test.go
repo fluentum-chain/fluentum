@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	"github.com/fluentum-chain/fluentum/libs/bytes"
 	"github.com/fluentum-chain/fluentum/rpc/client"
 	"github.com/fluentum-chain/fluentum/rpc/client/mock"

@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	tmpubsub "github.com/fluentum-chain/fluentum/libs/pubsub"
 	tmquery "github.com/fluentum-chain/fluentum/libs/pubsub/query"

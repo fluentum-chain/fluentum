@@ -13,7 +13,7 @@ import (
 
 	dbm "github.com/cometbft/cometbft-db"
 
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	cfg "github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"

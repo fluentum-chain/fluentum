@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	"github.com/fluentum-chain/fluentum/libs/fail"
 	"github.com/fluentum-chain/fluentum/libs/log"

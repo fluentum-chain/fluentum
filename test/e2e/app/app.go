@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 
+	abci "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	"github.com/fluentum-chain/fluentum/abci/example/code"
-	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/version"
 )

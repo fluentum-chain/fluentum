@@ -10,8 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	dbm "github.com/cometbft/cometbft-db"
-
-	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
+	abcitypes "github.com/cometbft/cometbft/api/client/cometbft/abci/v1"
 	tmcfg "github.com/fluentum-chain/fluentum/config"
 	prototmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
 	blockmocks "github.com/fluentum-chain/fluentum/state/indexer/mocks"
