@@ -242,7 +242,10 @@ func New(
 
 	// initialize BaseApp
 	// app.SetInitChainer(app.InitChainer) // Commented out due to signature mismatch
-	app.SetBeginBlocker(app.BeginBlocker)
+	app.SetBeginBlocker(func(ctx sdk.Context) (sdk.BeginBlock, error) {
+		// For Cosmos SDK v0.50.6, we need to return the proper type
+		return sdk.BeginBlock{}, nil
+	})
 	// app.SetEndBlocker(app.EndBlocker) // Commented out due to signature mismatch
 
 	if loadLatest {
@@ -307,18 +310,6 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 
 // GetBaseApp returns the base app of the application
 func (app *App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
-
-// BeginBlocker application updates every begin block
-func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
-	// For Cosmos SDK v0.50.6, we need to return the proper type
-	return sdk.BeginBlock{}, nil
-}
-
-// EndBlocker application updates every end block
-func (app *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
-	// For Cosmos SDK v0.50.6, we need to return the proper type
-	return sdk.EndBlock{}, nil
-}
 
 // InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {

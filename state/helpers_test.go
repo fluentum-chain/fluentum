@@ -246,32 +246,6 @@ func (app *testApp) Info(req abci.RequestInfo) (resInfo abci.ResponseInfo) {
 	return abci.ResponseInfo{}
 }
 
-func (app *testApp) BeginBlock(req abci.RequestFinalizeBlock) abci.ResponseBeginBlock {
-	app.CommitVotes = req.LastCommitInfo.Votes
-	app.ByzantineValidators = req.ByzantineValidators
-	return abci.ResponseBeginBlock{}
-}
-
-func (app *testApp) EndBlock(req abci.RequestFinalizeBlock) abci.ResponseEndBlock {
-	return abci.ResponseEndBlock{
-		ValidatorUpdates: app.ValidatorUpdates,
-		ConsensusParamUpdates: &types.ConsensusParams{
-			Version: &tmproto.VersionParams{
-				AppVersion: 1}}}
-}
-
-func (app *testApp) DeliverTx(req abci.RequestFinalizeBlock) abci.ResponseDeliverTx {
-	return abci.ResponseDeliverTx{Events: []abci.Event{}}
-}
-
-func (app *testApp) CheckTx(req abci.RequestCheckTx) abci.ResponseCheckTx {
-	return abci.ResponseCheckTx{}
-}
-
-func (app *testApp) Commit() abci.ResponseCommit {
-	return abci.ResponseCommit{RetainHeight: 1}
-}
-
 func (app *testApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuery) {
 	return
 }
