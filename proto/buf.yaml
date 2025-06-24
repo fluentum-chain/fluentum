@@ -1,4 +1,4 @@
-version: v2
+version: v1
 name: buf.build/fluentum-chain/fluentum-proto
 deps:
   - buf.build/gogo/protobuf
