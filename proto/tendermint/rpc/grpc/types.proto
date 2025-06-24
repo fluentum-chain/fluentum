@@ -2,7 +2,7 @@ syntax = "proto3";
 package tendermint.rpc.grpc;
 option  go_package = "github.com/tendermint/tendermint/rpc/grpc;coregrpc";
 
-import "tendermint/abci/types.proto";
+import "cometbft/abci/v1/types.proto";
 
 //----------------------------------------
 // Request types
@@ -19,8 +19,8 @@ message RequestBroadcastTx {
 message ResponsePing {}
 
 message ResponseBroadcastTx {
-  tendermint.abci.ResponseCheckTx   check_tx   = 1;
-  tendermint.abci.ResponseDeliverTx deliver_tx = 2;
+  cometbft.abci.v1.ResponseCheckTx   check_tx   = 1;
+  cometbft.abci.v1.ResponseDeliverTx deliver_tx = 2;
 }
 
 //----------------------------------------
