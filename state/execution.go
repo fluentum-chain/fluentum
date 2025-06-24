@@ -262,23 +262,50 @@ func execBlockOnProxyApp(
 	store Store,
 	initialHeight int64,
 ) (*tmstate.ABCIResponses, error) {
-	// Prepare FinalizeBlock request
-	finalizeReq := abci.RequestFinalizeBlock{
-		Txs: block.Txs,
-		// TODO: Fill in other required fields (e.g., proposer, time, etc.)
+	// Convert evidence to ABCI format
+	var byzantineValidators []abci.Evidence
+	for _, ev := range block.Evidence.Evidence {
+		byzantineValidators = append(byzantineValidators, ev.ABCI()...)
 	}
 
-	// Call FinalizeBlock once for the block
-	finalizeResp, err := proxyAppConn.FinalizeBlockSync(finalizeReq)
+	// Begin block
+	beginBlockReq := abci.RequestBeginBlock{
+		Hash:                block.Hash(),
+		Header:              types.TM2PB.Header(&block.Header),
+		LastCommitInfo:      getBeginBlockValidatorInfo(block, store, initialHeight),
+		ByzantineValidators: byzantineValidators,
+	}
+	beginBlockResp, err := proxyAppConn.BeginBlockSync(beginBlockReq)
 	if err != nil {
-		logger.Error("error in proxyAppConn.FinalizeBlock", "err", err)
+		logger.Error("error in proxyAppConn.BeginBlock", "err", err)
 		return nil, err
 	}
 
-	// Adapt response to ABCIResponses structure
+	// Deliver txs
+	deliverTxsResponses := make([]*abci.ResponseDeliverTx, len(block.Txs))
+	for i, tx := range block.Txs {
+		req := abci.RequestDeliverTx{Tx: tx}
+		reqRes := proxyAppConn.DeliverTxAsync(req)
+		if reqRes.Response == nil {
+			logger.Error("error in proxyAppConn.DeliverTx", "err", "nil response")
+			return nil, fmt.Errorf("nil response from DeliverTx")
+		}
+		deliverTxsResponses[i] = reqRes.Response.GetDeliverTx()
+	}
+
+	// End block
+	endBlockReq := abci.RequestEndBlock{Height: block.Height}
+	endBlockResp, err := proxyAppConn.EndBlockSync(endBlockReq)
+	if err != nil {
+		logger.Error("error in proxyAppConn.EndBlock", "err", err)
+		return nil, err
+	}
+
+	// Create ABCIResponses structure
 	abciResponses := &tmstate.ABCIResponses{
-		FinalizeBlock: finalizeResp,
-		// TODO: Map other fields as needed
+		BeginBlock: beginBlockResp,
+		DeliverTxs: deliverTxsResponses,
+		EndBlock:   endBlockResp,
 	}
 
 	return abciResponses, nil
