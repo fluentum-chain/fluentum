@@ -1,4 +1,4 @@
-package abcicli_test
+package abcicli
 
 import (
 	"fmt"
@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	abcicli "github.com/cometbft/cometbft/abci/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 	"github.com/fluentum-chain/fluentum/abci/server"
 	"github.com/fluentum-chain/fluentum/abci/types"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"

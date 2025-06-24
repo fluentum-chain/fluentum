@@ -9,6 +9,7 @@ import (
 
 	"github.com/fluentum-chain/fluentum/abci/example/code"
 	"github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/libs/log"
 )
 
 var abciType string

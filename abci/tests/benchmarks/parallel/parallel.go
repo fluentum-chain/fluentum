@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/cometbft/cometbft/abci/types"
 	tmnet "github.com/fluentum-chain/fluentum/libs/net"
 )
 

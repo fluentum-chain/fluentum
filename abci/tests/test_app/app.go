@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	abcicli "github.com/fluentum-chain/fluentum/abci/client"
-	"github.com/fluentum-chain/fluentum/abci/types"
+	abcicli "github.com/cometbft/cometbft/abci/client"
 	"github.com/fluentum-chain/fluentum/libs/log"
 )
 
