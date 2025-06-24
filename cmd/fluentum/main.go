@@ -102,8 +102,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		// config.Cmd(), // Removed - not available in v0.50.6
 	)
 
-	a := appCreator{encCfg: encodingConfig}
-
 	// Create a simple start command manually to avoid interface issues
 	startCmd := &cobra.Command{
 		Use:   "start",
