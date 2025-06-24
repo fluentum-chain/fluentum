@@ -1,6 +1,8 @@
 package proxy
 
 import (
+	"context"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 )
@@ -14,12 +16,9 @@ type AppConnConsensus interface {
 	SetResponseCallback(abcicli.Callback)
 	Error() error
 
-	InitChainSync(abci.RequestInitChain) (*abci.ResponseInitChain, error)
-
-	BeginBlockSync(abci.RequestBeginBlock) (*abci.ResponseBeginBlock, error)
-	DeliverTxAsync(abci.RequestDeliverTx) *abcicli.ReqRes
-	EndBlockSync(abci.RequestEndBlock) (*abci.ResponseEndBlock, error)
-	CommitSync() (*abci.ResponseCommit, error)
+	InitChainSync(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error)
+	FinalizeBlockSync(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error)
+	CommitSync(ctx context.Context) (*abci.ResponseCommit, error)
 }
 
 type AppConnMempool interface {
@@ -73,24 +72,16 @@ func (app *appConnConsensus) Error() error {
 	return app.appConn.Error()
 }
 
-func (app *appConnConsensus) InitChainSync(req abci.RequestInitChain) (*abci.ResponseInitChain, error) {
-	return app.appConn.InitChainSync(req)
+func (app *appConnConsensus) InitChainSync(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
+	return app.appConn.InitChainSync(ctx, req)
 }
 
-func (app *appConnConsensus) BeginBlockSync(req abci.RequestBeginBlock) (*abci.ResponseBeginBlock, error) {
-	return app.appConn.BeginBlockSync(req)
+func (app *appConnConsensus) FinalizeBlockSync(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error) {
+	return app.appConn.FinalizeBlockSync(ctx, req)
 }
 
-func (app *appConnConsensus) DeliverTxAsync(req abci.RequestDeliverTx) *abcicli.ReqRes {
-	return app.appConn.DeliverTxAsync(req)
-}
-
-func (app *appConnConsensus) EndBlockSync(req abci.RequestEndBlock) (*abci.ResponseEndBlock, error) {
-	return app.appConn.EndBlockSync(req)
-}
-
-func (app *appConnConsensus) CommitSync() (*abci.ResponseCommit, error) {
-	return app.appConn.CommitSync()
+func (app *appConnConsensus) CommitSync(ctx context.Context) (*abci.ResponseCommit, error) {
+	return app.appConn.CommitSync(ctx)
 }
 
 //------------------------------------------------

@@ -8,6 +8,14 @@
 [![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.47.12-green.svg)](https://cosmos.network/)
 [![Mainnet Ready](https://img.shields.io/badge/Mainnet-Ready-brightgreen.svg)](FINAL_CHECKLIST.md)
 
+> **⚠️ NOTICE: This codebase is now fully migrated to CometBFT v0.38+ and ABCI 2.0 (ABCI++).**
+>
+> - All ABCI interfaces, types, and methods now use the new ABCI 2.0 (ABCI++) model.
+> - Legacy methods (`BeginBlock`, `DeliverTx`, `EndBlock`, etc.) and types (`ResponseDeliverTx`, etc.) have been removed.
+> - All block execution and event logic now uses `FinalizeBlock`, `ExecTxResult`, and the new event structure.
+> - If you are upgrading from Tendermint/ABCI 1.0, **read the migration notes below** and update your application, tests, and integrations accordingly.
+> - See the [Migration Guide](#migration-guide) and [docs/abci/README.md](abci/README.md) for details.
+
 > **Next-Generation Hybrid Blockchain Platform** - High-performance, quantum-resistant, and privacy-enabled blockchain with cross-chain interoperability.
 
 ## 🚀 Overview

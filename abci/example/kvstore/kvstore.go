@@ -2,6 +2,7 @@ package kvstore
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -75,52 +76,64 @@ func NewApplication() *Application {
 	return &Application{state: state}
 }
 
-func (app *Application) Info(req abci.RequestInfo) (resInfo abci.ResponseInfo) {
-	return abci.ResponseInfo{
+func (app *Application) Info(ctx context.Context, req *abci.RequestInfo) (*abci.ResponseInfo, error) {
+	return &abci.ResponseInfo{
 		Data:             fmt.Sprintf("{\"size\":%v}", app.state.Size),
 		Version:          version.ABCIVersion,
 		AppVersion:       ProtocolVersion,
 		LastBlockHeight:  app.state.Height,
 		LastBlockAppHash: app.state.AppHash,
-	}
+	}, nil
 }
 
-// tx is either "key=value" or just arbitrary bytes
-func (app *Application) DeliverTx(req abci.RequestDeliverTx) abci.ResponseDeliverTx {
-	var key, value []byte
-	parts := bytes.Split(req.Tx, []byte("="))
-	if len(parts) == 2 {
-		key, value = parts[0], parts[1]
-	} else {
-		key, value = req.Tx, req.Tx
-	}
+// FinalizeBlock handles the ABCI 2.0 FinalizeBlock call
+func (app *Application) FinalizeBlock(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error) {
+	txResults := make([]*abci.ExecTxResult, len(req.Txs))
 
-	err := app.state.db.Set(prefixKey(key), value)
-	if err != nil {
-		panic(err)
-	}
-	app.state.Size++
+	for i, tx := range req.Txs {
+		// Process each transaction
+		var key, value []byte
+		parts := bytes.Split(tx, []byte("="))
+		if len(parts) == 2 {
+			key, value = parts[0], parts[1]
+		} else {
+			key, value = tx, tx
+		}
 
-	events := []abci.Event{
-		{
-			Type: "app",
-			Attributes: []abci.EventAttribute{
-				{Key: []byte("creator"), Value: []byte("Cosmoshi Netowoko"), Index: true},
-				{Key: []byte("key"), Value: key, Index: true},
-				{Key: []byte("index_key"), Value: []byte("index is working"), Index: true},
-				{Key: []byte("noindex_key"), Value: []byte("index is working"), Index: false},
+		err := app.state.db.Set(prefixKey(key), value)
+		if err != nil {
+			panic(err)
+		}
+		app.state.Size++
+
+		events := []abci.Event{
+			{
+				Type: "app",
+				Attributes: []abci.EventAttribute{
+					{Key: "creator", Value: "Cosmoshi Netowoko", Index: true},
+					{Key: "key", Value: string(key), Index: true},
+					{Key: "index_key", Value: "index is working", Index: true},
+					{Key: "noindex_key", Value: "index is working", Index: false},
+				},
 			},
-		},
+		}
+
+		txResults[i] = &abci.ExecTxResult{
+			Code:   code.CodeTypeOK,
+			Events: events,
+		}
 	}
 
-	return abci.ResponseDeliverTx{Code: code.CodeTypeOK, Events: events}
+	return &abci.ResponseFinalizeBlock{
+		TxResults: txResults,
+	}, nil
 }
 
-func (app *Application) CheckTx(req abci.RequestCheckTx) abci.ResponseCheckTx {
-	return abci.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}
+func (app *Application) CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
+	return &abci.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}, nil
 }
 
-func (app *Application) Commit() abci.ResponseCommit {
+func (app *Application) Commit(ctx context.Context, req *abci.RequestCommit) (*abci.ResponseCommit, error) {
 	// Using a memdb - just return the big endian size of the db
 	appHash := make([]byte, 8)
 	binary.PutVarint(appHash, app.state.Size)
@@ -128,45 +141,34 @@ func (app *Application) Commit() abci.ResponseCommit {
 	app.state.Height++
 	saveState(app.state)
 
-	resp := abci.ResponseCommit{Data: appHash}
+	resp := &abci.ResponseCommit{Data: appHash}
 	if app.RetainBlocks > 0 && app.state.Height >= app.RetainBlocks {
 		resp.RetainHeight = app.state.Height - app.RetainBlocks + 1
 	}
-	return resp
+	return resp, nil
 }
 
 // Returns an associated value or nil if missing.
-func (app *Application) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuery) {
+func (app *Application) Query(ctx context.Context, reqQuery *abci.RequestQuery) (*abci.ResponseQuery, error) {
 	if reqQuery.Prove {
 		value, err := app.state.db.Get(prefixKey(reqQuery.Data))
 		if err != nil {
 			panic(err)
 		}
 		if value == nil {
-			resQuery.Log = "does not exist"
+			return &abci.ResponseQuery{Log: "does not exist"}, nil
 		} else {
-			resQuery.Log = "exists"
+			return &abci.ResponseQuery{Log: "exists", Index: -1, Key: reqQuery.Data, Value: value, Height: app.state.Height}, nil
 		}
-		resQuery.Index = -1 // TODO make Proof return index
-		resQuery.Key = reqQuery.Data
-		resQuery.Value = value
-		resQuery.Height = app.state.Height
-
-		return
 	}
 
-	resQuery.Key = reqQuery.Data
 	value, err := app.state.db.Get(prefixKey(reqQuery.Data))
 	if err != nil {
 		panic(err)
 	}
 	if value == nil {
-		resQuery.Log = "does not exist"
+		return &abci.ResponseQuery{Log: "does not exist", Key: reqQuery.Data, Height: app.state.Height}, nil
 	} else {
-		resQuery.Log = "exists"
+		return &abci.ResponseQuery{Log: "exists", Value: value, Height: app.state.Height}, nil
 	}
-	resQuery.Value = value
-	resQuery.Height = app.state.Height
-
-	return resQuery
 }

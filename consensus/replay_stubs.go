@@ -1,6 +1,8 @@
 package consensus
 
 import (
+	"context"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
@@ -77,20 +79,6 @@ type mockProxyApp struct {
 	abciResponses *tmstate.ABCIResponses
 }
 
-func (mock *mockProxyApp) DeliverTx(req abci.RequestDeliverTx) abci.ResponseDeliverTx {
-	r := mock.abciResponses.DeliverTxs[mock.txCount]
-	mock.txCount++
-	if r == nil {
-		return abci.ResponseDeliverTx{}
-	}
-	return *r
-}
-
-func (mock *mockProxyApp) EndBlock(req abci.RequestEndBlock) abci.ResponseEndBlock {
-	mock.txCount = 0
-	return *mock.abciResponses.EndBlock
-}
-
-func (mock *mockProxyApp) Commit() abci.ResponseCommit {
-	return abci.ResponseCommit{Data: mock.appHash}
+func (mock *mockProxyApp) FinalizeBlock(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error) {
+	return mock.abciResponses.FinalizeBlock, nil
 }

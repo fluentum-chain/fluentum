@@ -1,6 +1,7 @@
 package state
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -136,8 +137,9 @@ func (blockExec *BlockExecutor) ApplyBlock(
 	}
 
 	startTime := time.Now().UnixNano()
+	ctx := context.Background()
 	abciResponses, err := execBlockOnProxyApp(
-		blockExec.logger, blockExec.proxyApp, block, blockExec.store, state.InitialHeight,
+		ctx, blockExec.logger, blockExec.proxyApp, block, blockExec.store, state.InitialHeight,
 	)
 	endTime := time.Now().UnixNano()
 	blockExec.metrics.BlockProcessingTime.Observe(float64(endTime-startTime) / 1000000)
@@ -155,7 +157,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 	fail.Fail() // XXX
 
 	// validate the validator updates and convert to tendermint types
-	abciValUpdates := abciResponses.EndBlock.ValidatorUpdates
+	abciValUpdates := abciResponses.FinalizeBlock.ValidatorUpdates
 	err = validateValidatorUpdates(abciValUpdates, state.ConsensusParams.Validator)
 	if err != nil {
 		return state, 0, fmt.Errorf("error in validator updates: %v", err)
@@ -176,7 +178,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 	}
 
 	// Lock mempool, commit app state, update mempoool.
-	appHash, retainHeight, err := blockExec.Commit(state, block, abciResponses.DeliverTxs)
+	appHash, retainHeight, err := blockExec.Commit(state, block, abciResponses.FinalizeBlock.TxResults)
 	if err != nil {
 		return state, 0, fmt.Errorf("commit failed for application: %v", err)
 	}
@@ -210,7 +212,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 func (blockExec *BlockExecutor) Commit(
 	state State,
 	block *types.Block,
-	deliverTxResponses []*abci.ResponseDeliverTx,
+	txResults []*abci.ExecTxResult,
 ) ([]byte, int64, error) {
 	blockExec.mempool.Lock()
 	defer blockExec.mempool.Unlock()
@@ -242,7 +244,7 @@ func (blockExec *BlockExecutor) Commit(
 	err = blockExec.mempool.Update(
 		block.Height,
 		block.Txs,
-		deliverTxResponses,
+		txResults,
 		TxPreCheck(state),
 		TxPostCheck(state),
 	)
@@ -253,9 +255,10 @@ func (blockExec *BlockExecutor) Commit(
 //---------------------------------------------------------
 // Helper functions for executing blocks and updating state
 
-// Executes block's transactions on proxyAppConn.
-// Returns a list of transaction results and updates to the validator set
+// Executes block's transactions on proxyAppConn using ABCI 2.0 FinalizeBlock.
+// Returns a structure with the FinalizeBlock response and validator updates.
 func execBlockOnProxyApp(
+	ctx context.Context,
 	logger log.Logger,
 	proxyAppConn proxy.AppConnConsensus,
 	block *types.Block,
@@ -268,44 +271,21 @@ func execBlockOnProxyApp(
 		byzantineValidators = append(byzantineValidators, ev.ABCI()...)
 	}
 
-	// Begin block
-	beginBlockReq := abci.RequestBeginBlock{
+	finalizeBlockReq := &abci.RequestFinalizeBlock{
 		Hash:                block.Hash(),
 		Header:              types.TM2PB.Header(&block.Header),
 		LastCommitInfo:      getBeginBlockValidatorInfo(block, store, initialHeight),
 		ByzantineValidators: byzantineValidators,
+		Txs:                 block.Txs,
 	}
-	beginBlockResp, err := proxyAppConn.BeginBlockSync(beginBlockReq)
+	finalizeBlockResp, err := proxyAppConn.FinalizeBlockSync(ctx, finalizeBlockReq)
 	if err != nil {
-		logger.Error("error in proxyAppConn.BeginBlock", "err", err)
+		logger.Error("error in proxyAppConn.FinalizeBlock", "err", err)
 		return nil, err
 	}
 
-	// Deliver txs
-	deliverTxsResponses := make([]*abci.ResponseDeliverTx, len(block.Txs))
-	for i, tx := range block.Txs {
-		req := abci.RequestDeliverTx{Tx: tx}
-		reqRes := proxyAppConn.DeliverTxAsync(req)
-		if reqRes.Response == nil {
-			logger.Error("error in proxyAppConn.DeliverTx", "err", "nil response")
-			return nil, fmt.Errorf("nil response from DeliverTx")
-		}
-		deliverTxsResponses[i] = reqRes.Response.GetDeliverTx()
-	}
-
-	// End block
-	endBlockReq := abci.RequestEndBlock{Height: block.Height}
-	endBlockResp, err := proxyAppConn.EndBlockSync(endBlockReq)
-	if err != nil {
-		logger.Error("error in proxyAppConn.EndBlock", "err", err)
-		return nil, err
-	}
-
-	// Create ABCIResponses structure
 	abciResponses := &tmstate.ABCIResponses{
-		BeginBlock: beginBlockResp,
-		DeliverTxs: deliverTxsResponses,
-		EndBlock:   endBlockResp,
+		FinalizeBlock: finalizeBlockResp,
 	}
 
 	return abciResponses, nil
@@ -406,9 +386,9 @@ func updateState(
 	// Update the params with the latest abciResponses.
 	nextParams := state.ConsensusParams
 	lastHeightParamsChanged := state.LastHeightConsensusParamsChanged
-	if abciResponses.EndBlock.ConsensusParamUpdates != nil {
+	if abciResponses.FinalizeBlock.ConsensusParamUpdates != nil {
 		// NOTE: must not mutate s.ConsensusParams
-		nextParams = types.UpdateConsensusParams(state.ConsensusParams, abciResponses.EndBlock.ConsensusParamUpdates)
+		nextParams = types.UpdateConsensusParams(state.ConsensusParams, abciResponses.FinalizeBlock.ConsensusParamUpdates)
 		err := types.ValidateConsensusParams(nextParams)
 		if err != nil {
 			return state, fmt.Errorf("error updating consensus params: %v", err)
@@ -454,8 +434,8 @@ func fireEvents(
 ) {
 	if err := eventBus.PublishEventNewBlock(types.EventDataNewBlock{
 		Block:            block,
-		ResultBeginBlock: *abciResponses.BeginBlock,
-		ResultEndBlock:   *abciResponses.EndBlock,
+		ResultBeginBlock: *abciResponses.FinalizeBlock.BeginBlock,
+		ResultEndBlock:   *abciResponses.FinalizeBlock.EndBlock,
 	}); err != nil {
 		logger.Error("failed publishing new block", "err", err)
 	}
@@ -463,8 +443,8 @@ func fireEvents(
 	if err := eventBus.PublishEventNewBlockHeader(types.EventDataNewBlockHeader{
 		Header:           block.Header,
 		NumTxs:           int64(len(block.Txs)),
-		ResultBeginBlock: *abciResponses.BeginBlock,
-		ResultEndBlock:   *abciResponses.EndBlock,
+		ResultBeginBlock: *abciResponses.FinalizeBlock.BeginBlock,
+		ResultEndBlock:   *abciResponses.FinalizeBlock.EndBlock,
 	}); err != nil {
 		logger.Error("failed publishing new block header", "err", err)
 	}
@@ -485,7 +465,7 @@ func fireEvents(
 			Height: block.Height,
 			Index:  uint32(i),
 			Tx:     tx,
-			Result: *(abciResponses.DeliverTxs[i]),
+			Result: *(abciResponses.FinalizeBlock.TxResults[i]),
 		}}); err != nil {
 			logger.Error("failed publishing event TX", "err", err)
 		}
@@ -511,7 +491,7 @@ func ExecCommitBlock(
 	store Store,
 	initialHeight int64,
 ) ([]byte, error) {
-	_, err := execBlockOnProxyApp(logger, appConnConsensus, block, store, initialHeight)
+	_, err := execBlockOnProxyApp(context.Background(), logger, appConnConsensus, block, store, initialHeight)
 	if err != nil {
 		logger.Error("failed executing block on proxy app", "height", block.Height, "err", err)
 		return nil, err

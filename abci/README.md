@@ -1,5 +1,11 @@
 # Application BlockChain Interface (ABCI)
 
+> **NOTICE: This codebase now uses ABCI 2.0 (ABCI++), as introduced in CometBFT v0.38+.**
+>
+> - All legacy ABCI 1.0 methods (`BeginBlock`, `DeliverTx`, `EndBlock`, etc.) and types have been removed.
+> - The new interface uses `FinalizeBlock`, `ExecTxResult`, and updated event structures.
+> - If you are migrating from Tendermint/ABCI 1.0, see the [main README](../README.md) and the migration guide for details.
+
 Blockchains are systems for multi-master state machine replication.
 **ABCI** is an interface that defines the boundary between the replication engine (the blockchain),
 and the state machine (the application).

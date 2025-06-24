@@ -5,11 +5,11 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 )
 
-// ABCIResults wraps the deliver tx results to return a proof.
-type ABCIResults []*abci.ResponseDeliverTx
+// ABCIResults wraps the exec tx results to return a proof.
+type ABCIResults []*abci.ExecTxResult
 
-// NewResults creates a new ABCIResults from deliver tx responses
-func NewResults(responses []*abci.ResponseDeliverTx) ABCIResults {
+// NewResults creates a new ABCIResults from exec tx responses
+func NewResults(responses []*abci.ExecTxResult) ABCIResults {
 	return ABCIResults(responses)
 }
 
@@ -59,10 +59,10 @@ func (a ABCIResults) toByteSlices() [][]byte {
 	return bzs
 }
 
-// deterministicResponseDeliverTx strips non-deterministic fields from
-// ResponseDeliverTx and returns another ResponseDeliverTx.
-func deterministicResponseDeliverTx(response *abci.ResponseDeliverTx) *abci.ResponseDeliverTx {
-	return &abci.ResponseDeliverTx{
+// deterministicExecTxResult strips non-deterministic fields from
+// ExecTxResult and returns another ExecTxResult.
+func deterministicExecTxResult(response *abci.ExecTxResult) *abci.ExecTxResult {
+	return &abci.ExecTxResult{
 		Code:      response.Code,
 		Data:      response.Data,
 		GasWanted: response.GasWanted,

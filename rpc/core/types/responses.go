@@ -49,12 +49,11 @@ type ResultCommit struct {
 // Updated for ABCI++: use block-level TxResults from FinalizeBlock
 // TxsResults now comes from ResponseFinalizeBlock.TxResults
 type ResultBlockResults struct {
-	Height                int64                     `json:"height"`
-	TxsResults            []*abci.ResponseDeliverTx `json:"txs_results"`
-	BeginBlockEvents      []abci.Event              `json:"begin_block_events"`
-	EndBlockEvents        []abci.Event              `json:"end_block_events"`
-	ValidatorUpdates      []abci.ValidatorUpdate    `json:"validator_updates"`
-	ConsensusParamUpdates *abci.ConsensusParams     `json:"consensus_param_updates"`
+	Height                int64                  `json:"height"`
+	TxsResults            []*abci.ExecTxResult   `json:"txs_results"`
+	Events                []*abci.Event          `json:"events"`
+	ValidatorUpdates      []abci.ValidatorUpdate `json:"validator_updates"`
+	ConsensusParamUpdates *abci.ConsensusParams  `json:"consensus_param_updates"`
 }
 
 // NewResultCommit is a helper to initialize the ResultCommit with

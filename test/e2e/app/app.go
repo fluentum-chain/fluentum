@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/abci/example/code"
@@ -137,43 +136,6 @@ func (app *Application) CheckTx(req abci.RequestCheckTx) abci.ResponseCheckTx {
 		}
 	}
 	return abci.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}
-}
-
-// DeliverTx implements ABCI.
-func (app *Application) DeliverTx(req abci.RequestDeliverTx) abci.ResponseDeliverTx {
-	key, value, err := parseTx(req.Tx)
-	if err != nil {
-		panic(err) // shouldn't happen since we verified it in CheckTx
-	}
-	app.state.Set(key, value)
-	return abci.ResponseDeliverTx{Code: code.CodeTypeOK}
-}
-
-// EndBlock implements ABCI.
-func (app *Application) EndBlock(req abci.RequestEndBlock) abci.ResponseEndBlock {
-	valUpdates, err := app.validatorUpdates(uint64(req.Height))
-	if err != nil {
-		panic(err)
-	}
-
-	return abci.ResponseEndBlock{
-		ValidatorUpdates: valUpdates,
-		Events: []abci.Event{
-			{
-				Type: "val_updates",
-				Attributes: []abci.EventAttribute{
-					{
-						Key:   []byte("size"),
-						Value: []byte(strconv.Itoa(valUpdates.Len())),
-					},
-					{
-						Key:   []byte("height"),
-						Value: []byte(strconv.Itoa(int(req.Height))),
-					},
-				},
-			},
-		},
-	}
 }
 
 // Commit implements ABCI.

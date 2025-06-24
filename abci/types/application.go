@@ -10,25 +10,23 @@ import (
 // except CheckTx/DeliverTx, which take `tx []byte`, and `Commit`, which takes nothing.
 type Application interface {
 	// Info/Query Connection
-	Info(RequestInfo) ResponseInfo                // Return application info
-	SetOption(RequestSetOption) ResponseSetOption // Set application option
-	Query(RequestQuery) ResponseQuery             // Query for state
+	Info(context.Context, *RequestInfo) (*ResponseInfo, error)                // Return application info
+	SetOption(context.Context, *RequestSetOption) (*ResponseSetOption, error) // Set application option
+	Query(context.Context, *RequestQuery) (*ResponseQuery, error)             // Query for state
 
 	// Mempool Connection
-	CheckTx(RequestCheckTx) ResponseCheckTx // Validate a tx for the mempool
+	CheckTx(context.Context, *RequestCheckTx) (*ResponseCheckTx, error) // Validate a tx for the mempool
 
 	// Consensus Connection
-	InitChain(RequestInitChain) ResponseInitChain    // Initialize blockchain w validators/other info from TendermintCore
-	BeginBlock(RequestBeginBlock) ResponseBeginBlock // Signals the beginning of a block
-	DeliverTx(RequestDeliverTx) ResponseDeliverTx    // Deliver a tx for full processing
-	EndBlock(RequestEndBlock) ResponseEndBlock       // Signals the end of a block, returns changes to the validator set
-	Commit() ResponseCommit                          // Commit the state and return the application Merkle root hash
+	InitChain(context.Context, *RequestInitChain) (*ResponseInitChain, error)             // Initialize blockchain w validators/other info from TendermintCore
+	FinalizeBlock(context.Context, *RequestFinalizeBlock) (*ResponseFinalizeBlock, error) // ABCI 2.0: Finalize block
+	Commit(context.Context, *RequestCommit) (*ResponseCommit, error)                      // Commit the state and return the application Merkle root hash
 
 	// State Sync Connection
-	ListSnapshots(RequestListSnapshots) ResponseListSnapshots                // List available snapshots
-	OfferSnapshot(RequestOfferSnapshot) ResponseOfferSnapshot                // Offer a snapshot to the application
-	LoadSnapshotChunk(RequestLoadSnapshotChunk) ResponseLoadSnapshotChunk    // Load a snapshot chunk
-	ApplySnapshotChunk(RequestApplySnapshotChunk) ResponseApplySnapshotChunk // Apply a shapshot chunk
+	ListSnapshots(context.Context, *RequestListSnapshots) (*ResponseListSnapshots, error)                // List available snapshots
+	OfferSnapshot(context.Context, *RequestOfferSnapshot) (*ResponseOfferSnapshot, error)                // Offer a snapshot to the application
+	LoadSnapshotChunk(context.Context, *RequestLoadSnapshotChunk) (*ResponseLoadSnapshotChunk, error)    // Load a snapshot chunk
+	ApplySnapshotChunk(context.Context, *RequestApplySnapshotChunk) (*ResponseApplySnapshotChunk, error) // Apply a shapshot chunk
 }
 
 //-------------------------------------------------------
@@ -43,56 +41,48 @@ func NewBaseApplication() *BaseApplication {
 	return &BaseApplication{}
 }
 
-func (BaseApplication) Info(req RequestInfo) ResponseInfo {
-	return ResponseInfo{}
+func (BaseApplication) Info(ctx context.Context, req *RequestInfo) (*ResponseInfo, error) {
+	return &ResponseInfo{}, nil
 }
 
-func (BaseApplication) SetOption(req RequestSetOption) ResponseSetOption {
-	return ResponseSetOption{}
+func (BaseApplication) SetOption(ctx context.Context, req *RequestSetOption) (*ResponseSetOption, error) {
+	return &ResponseSetOption{}, nil
 }
 
-func (BaseApplication) DeliverTx(req RequestDeliverTx) ResponseDeliverTx {
-	return ResponseDeliverTx{Code: CodeTypeOK}
+func (BaseApplication) CheckTx(ctx context.Context, req *RequestCheckTx) (*ResponseCheckTx, error) {
+	return &ResponseCheckTx{Code: CodeTypeOK}, nil
 }
 
-func (BaseApplication) CheckTx(req RequestCheckTx) ResponseCheckTx {
-	return ResponseCheckTx{Code: CodeTypeOK}
+func (BaseApplication) Commit(ctx context.Context, req *RequestCommit) (*ResponseCommit, error) {
+	return &ResponseCommit{}, nil
 }
 
-func (BaseApplication) Commit() ResponseCommit {
-	return ResponseCommit{}
+func (BaseApplication) Query(ctx context.Context, req *RequestQuery) (*ResponseQuery, error) {
+	return &ResponseQuery{Code: CodeTypeOK}, nil
 }
 
-func (BaseApplication) Query(req RequestQuery) ResponseQuery {
-	return ResponseQuery{Code: CodeTypeOK}
+func (BaseApplication) InitChain(ctx context.Context, req *RequestInitChain) (*ResponseInitChain, error) {
+	return &ResponseInitChain{}, nil
 }
 
-func (BaseApplication) InitChain(req RequestInitChain) ResponseInitChain {
-	return ResponseInitChain{}
+func (BaseApplication) FinalizeBlock(ctx context.Context, req *RequestFinalizeBlock) (*ResponseFinalizeBlock, error) {
+	return &ResponseFinalizeBlock{}, nil
 }
 
-func (BaseApplication) BeginBlock(req RequestBeginBlock) ResponseBeginBlock {
-	return ResponseBeginBlock{}
+func (BaseApplication) ListSnapshots(ctx context.Context, req *RequestListSnapshots) (*ResponseListSnapshots, error) {
+	return &ResponseListSnapshots{}, nil
 }
 
-func (BaseApplication) EndBlock(req RequestEndBlock) ResponseEndBlock {
-	return ResponseEndBlock{}
+func (BaseApplication) OfferSnapshot(ctx context.Context, req *RequestOfferSnapshot) (*ResponseOfferSnapshot, error) {
+	return &ResponseOfferSnapshot{}, nil
 }
 
-func (BaseApplication) ListSnapshots(req RequestListSnapshots) ResponseListSnapshots {
-	return ResponseListSnapshots{}
+func (BaseApplication) LoadSnapshotChunk(ctx context.Context, req *RequestLoadSnapshotChunk) (*ResponseLoadSnapshotChunk, error) {
+	return &ResponseLoadSnapshotChunk{}, nil
 }
 
-func (BaseApplication) OfferSnapshot(req RequestOfferSnapshot) ResponseOfferSnapshot {
-	return ResponseOfferSnapshot{}
-}
-
-func (BaseApplication) LoadSnapshotChunk(req RequestLoadSnapshotChunk) ResponseLoadSnapshotChunk {
-	return ResponseLoadSnapshotChunk{}
-}
-
-func (BaseApplication) ApplySnapshotChunk(req RequestApplySnapshotChunk) ResponseApplySnapshotChunk {
-	return ResponseApplySnapshotChunk{}
+func (BaseApplication) ApplySnapshotChunk(ctx context.Context, req *RequestApplySnapshotChunk) (*ResponseApplySnapshotChunk, error) {
+	return &ResponseApplySnapshotChunk{}, nil
 }
 
 //-------------------------------------------------------
@@ -115,70 +105,61 @@ func (app *GRPCApplication) Flush(ctx context.Context, req *RequestFlush) (*Resp
 }
 
 func (app *GRPCApplication) Info(ctx context.Context, req *RequestInfo) (*ResponseInfo, error) {
-	res := app.app.Info(*req)
-	return &res, nil
+	res, err := app.app.Info(ctx, req)
+	return res, err
 }
 
 func (app *GRPCApplication) SetOption(ctx context.Context, req *RequestSetOption) (*ResponseSetOption, error) {
-	res := app.app.SetOption(*req)
-	return &res, nil
+	res, err := app.app.SetOption(ctx, req)
+	return res, err
 }
 
 func (app *GRPCApplication) DeliverTx(ctx context.Context, req *RequestDeliverTx) (*ResponseDeliverTx, error) {
-	res := app.app.DeliverTx(*req)
-	return &res, nil
+	res := app.app.DeliverTx(ctx, req)
+	return res, nil
 }
 
 func (app *GRPCApplication) CheckTx(ctx context.Context, req *RequestCheckTx) (*ResponseCheckTx, error) {
-	res := app.app.CheckTx(*req)
-	return &res, nil
+	res, err := app.app.CheckTx(ctx, req)
+	return res, err
 }
 
 func (app *GRPCApplication) Query(ctx context.Context, req *RequestQuery) (*ResponseQuery, error) {
-	res := app.app.Query(*req)
-	return &res, nil
+	res, err := app.app.Query(ctx, req)
+	return res, err
 }
 
 func (app *GRPCApplication) Commit(ctx context.Context, req *RequestCommit) (*ResponseCommit, error) {
-	res := app.app.Commit()
-	return &res, nil
+	res, err := app.app.Commit(ctx, req)
+	return res, err
 }
 
 func (app *GRPCApplication) InitChain(ctx context.Context, req *RequestInitChain) (*ResponseInitChain, error) {
-	res := app.app.InitChain(*req)
-	return &res, nil
+	res, err := app.app.InitChain(ctx, req)
+	return res, err
 }
 
-func (app *GRPCApplication) BeginBlock(ctx context.Context, req *RequestBeginBlock) (*ResponseBeginBlock, error) {
-	res := app.app.BeginBlock(*req)
-	return &res, nil
+func (app *GRPCApplication) FinalizeBlock(ctx context.Context, req *RequestFinalizeBlock) (*ResponseFinalizeBlock, error) {
+	res, err := app.app.FinalizeBlock(ctx, req)
+	return res, err
 }
 
-func (app *GRPCApplication) EndBlock(ctx context.Context, req *RequestEndBlock) (*ResponseEndBlock, error) {
-	res := app.app.EndBlock(*req)
-	return &res, nil
+func (app *GRPCApplication) ListSnapshots(ctx context.Context, req *RequestListSnapshots) (*ResponseListSnapshots, error) {
+	res, err := app.app.ListSnapshots(ctx, req)
+	return res, err
 }
 
-func (app *GRPCApplication) ListSnapshots(
-	ctx context.Context, req *RequestListSnapshots) (*ResponseListSnapshots, error) {
-	res := app.app.ListSnapshots(*req)
-	return &res, nil
+func (app *GRPCApplication) OfferSnapshot(ctx context.Context, req *RequestOfferSnapshot) (*ResponseOfferSnapshot, error) {
+	res, err := app.app.OfferSnapshot(ctx, req)
+	return res, err
 }
 
-func (app *GRPCApplication) OfferSnapshot(
-	ctx context.Context, req *RequestOfferSnapshot) (*ResponseOfferSnapshot, error) {
-	res := app.app.OfferSnapshot(*req)
-	return &res, nil
+func (app *GRPCApplication) LoadSnapshotChunk(ctx context.Context, req *RequestLoadSnapshotChunk) (*ResponseLoadSnapshotChunk, error) {
+	res, err := app.app.LoadSnapshotChunk(ctx, req)
+	return res, err
 }
 
-func (app *GRPCApplication) LoadSnapshotChunk(
-	ctx context.Context, req *RequestLoadSnapshotChunk) (*ResponseLoadSnapshotChunk, error) {
-	res := app.app.LoadSnapshotChunk(*req)
-	return &res, nil
-}
-
-func (app *GRPCApplication) ApplySnapshotChunk(
-	ctx context.Context, req *RequestApplySnapshotChunk) (*ResponseApplySnapshotChunk, error) {
-	res := app.app.ApplySnapshotChunk(*req)
-	return &res, nil
+func (app *GRPCApplication) ApplySnapshotChunk(ctx context.Context, req *RequestApplySnapshotChunk) (*ResponseApplySnapshotChunk, error) {
+	res, err := app.app.ApplySnapshotChunk(ctx, req)
+	return res, err
 }

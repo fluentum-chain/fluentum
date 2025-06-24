@@ -95,7 +95,7 @@ func TestStateSaveLoad(t *testing.T) {
 			loadedState, state))
 }
 
-// TestABCIResponsesSaveLoad tests saving and loading ABCIResponses.
+// TestABCIResponsesSaveLoad tests saving and loading ABCI responses.
 func TestABCIResponsesSaveLoad1(t *testing.T) {
 	tearDown, stateDB, state := setupTestCase(t)
 	defer tearDown(t)

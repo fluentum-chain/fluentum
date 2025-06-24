@@ -135,8 +135,8 @@ func (b *EventBus) PublishEventNewBlock(data EventDataNewBlock) error {
 	// no explicit deadline for publishing events
 	ctx := context.Background()
 
-	resultEvents := append(data.ResultBeginBlock.Events, data.ResultEndBlock.Events...)
-	events := b.validateAndStringifyEvents(resultEvents, b.Logger.With("block", data.Block.StringShort()))
+	// In ABCI 2.0, events are collected from FinalizeBlock response
+	events := b.validateAndStringifyEvents(data.Events, b.Logger.With("block", data.Block.StringShort()))
 
 	// add predefined new block event
 	events[EventTypeKey] = append(events[EventTypeKey], EventNewBlock)
@@ -148,9 +148,7 @@ func (b *EventBus) PublishEventNewBlockHeader(data EventDataNewBlockHeader) erro
 	// no explicit deadline for publishing events
 	ctx := context.Background()
 
-	resultTags := append(data.ResultBeginBlock.Events, data.ResultEndBlock.Events...)
-	// TODO: Create StringShort method for Header and use it in logger.
-	events := b.validateAndStringifyEvents(resultTags, b.Logger.With("header", data.Header))
+	events := b.validateAndStringifyEvents(data.Events, b.Logger.With("header", data.Header))
 
 	// add predefined new block header event
 	events[EventTypeKey] = append(events[EventTypeKey], EventNewBlockHeader)
