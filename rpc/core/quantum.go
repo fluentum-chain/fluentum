@@ -7,6 +7,7 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/core/crypto"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
+	rpcserver "github.com/fluentum-chain/fluentum/rpc/jsonrpc/server"
 	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
 
@@ -17,7 +18,7 @@ type QuantumAPI struct{}
 // More: https://docs.tendermint.com/v0.34/rpc/#/Info/quantum_reload
 func (api *QuantumAPI) Reload(ctx *rpctypes.Context) (*ctypes.ResultQuantumReload, error) {
 	// Get current quantum config from environment
-	if env.Config == (cfg.RPCConfig{}) {
+	if env == nil || env.Config.ListenAddress == "" {
 		return nil, fmt.Errorf("RPC environment not properly configured")
 	}
 
@@ -47,7 +48,7 @@ func (api *QuantumAPI) Reload(ctx *rpctypes.Context) (*ctypes.ResultQuantumReloa
 // Status returns the current quantum signing status
 // More: https://docs.tendermint.com/v0.34/rpc/#/Info/quantum_status
 func (api *QuantumAPI) Status(ctx *rpctypes.Context) (*ctypes.ResultQuantumStatus, error) {
-	activeSigner := crypto.GetActiveSigner()
+	activeSigner := crypto.GetSigner()
 	if activeSigner == nil {
 		return &ctypes.ResultQuantumStatus{
 			Enabled:    false,
@@ -63,10 +64,10 @@ func (api *QuantumAPI) Status(ctx *rpctypes.Context) (*ctypes.ResultQuantumStatu
 	}, nil
 }
 
-// RegisterQuantumAPI registers the quantum API with the RPC server
-func RegisterQuantumAPI(rpc *rpctypes.Server) {
-	api := &QuantumAPI{}
-	rpc.RegisterName("quantum", api)
+// Provide a function map for registration
+var QuantumRoutes = map[string]*rpcserver.RPCFunc{
+	"quantum_reload": rpcserver.NewRPCFunc(QuantumReload, ""),
+	"quantum_status": rpcserver.NewRPCFunc(QuantumStatus, ""),
 }
 
 // Route functions for the quantum API
