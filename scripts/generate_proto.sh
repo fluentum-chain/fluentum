@@ -2,10 +2,14 @@
 
 # Generate protobuf files with proper import paths
 # This script handles the protobuf generation for the Fluentum project
+# Run this script from the project root directory
 
 set -e
 
-echo "Generating protobuf files..."
+# Change to the project root directory
+cd "$(dirname "$0")/.."
+
+echo "Generating protobuf files from $(pwd)..."
 
 # Create output directories if they don't exist
 mkdir -p proto/tendermint/abci
@@ -18,6 +22,9 @@ mkdir -p proto/tendermint/rpc/grpc
 mkdir -p proto/tendermint/blockchain
 mkdir -p proto/tendermint/consensus
 mkdir -p proto/tendermint/privval
+
+# Create third_party/proto directory if it doesn't exist
+mkdir -p third_party/proto
 
 # Generate protobuf files with proper import paths
 # The -I flag adds include paths for imports
