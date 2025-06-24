@@ -286,8 +286,6 @@ func NewFluentumApp(
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
 		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
 		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
-		baseapp.SetPrepareProposal(app.PrepareProposal),
-		baseapp.SetProcessProposal(app.ProcessProposal),
 	}
 
 	return New(
@@ -579,72 +577,4 @@ func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs
 	}
 
 	return exportedApp, nil
-}
-
-// PrepareProposal implements the ABCI++ PrepareProposal method for CometBFT.
-func (app *App) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePrepareProposal {
-	maxTxBytes := req.MaxTxBytes
-	var totalBytes int64
-	var selectedTxs [][]byte
-
-	// Use TxDecoder() to get tx decoder
-	txDecoder := app.TxDecoder()
-
-	for _, txBytes := range req.Txs {
-		// Optionally decode and filter invalid txs
-		_, err := txDecoder(txBytes)
-		if err != nil {
-			// Skip invalid txs
-			continue
-		}
-		if maxTxBytes > 0 && totalBytes+int64(len(txBytes)) > maxTxBytes {
-			break
-		}
-		selectedTxs = append(selectedTxs, txBytes)
-		totalBytes += int64(len(txBytes))
-	}
-
-	return abci.ResponsePrepareProposal{
-		Txs: selectedTxs,
-	}
-}
-
-// ProcessProposal implements the ABCI++ ProcessProposal method for CometBFT.
-func (app *App) ProcessProposal(req abci.RequestProcessProposal) abci.ResponseProcessProposal {
-	txDecoder := app.TxDecoder()
-	for _, txBytes := range req.Txs {
-		// Decode the tx
-		tx, err := txDecoder(txBytes)
-		if err != nil {
-			return abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}
-		}
-		// For now, just check if tx can be decoded
-		// In a real implementation, you would validate the tx here
-		if tx == nil {
-			return abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_REJECT}
-		}
-	}
-	return abci.ResponseProcessProposal{Status: abci.ResponseProcessProposal_ACCEPT}
-}
-
-// ExtendVote implements the ABCI++ ExtendVote method for CometBFT.
-// This allows the application to extend votes with custom data for side transactions.
-func (app *App) ExtendVote(req abci.RequestExtendVote) abci.ResponseExtendVote {
-	// For now, return an empty vote extension
-	// In a real implementation, you would add custom data here
-	// such as side transaction information, quantum signatures, etc.
-	return abci.ResponseExtendVote{
-		VoteExtension: []byte{}, // Empty for now, can be extended with custom data
-	}
-}
-
-// VerifyVoteExtension implements the ABCI++ VerifyVoteExtension method for CometBFT.
-// This allows the application to verify vote extensions from other validators.
-func (app *App) VerifyVoteExtension(req abci.RequestVerifyVoteExtension) abci.ResponseVerifyVoteExtension {
-	// For now, accept all vote extensions
-	// In a real implementation, you would verify the custom data here
-	// such as validating quantum signatures, side transaction data, etc.
-	return abci.ResponseVerifyVoteExtension{
-		Status: abci.ResponseVerifyVoteExtension_ACCEPT,
-	}
 }
