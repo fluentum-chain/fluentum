@@ -10,8 +10,8 @@ package server
 import (
 	"fmt"
 
-	"github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/service"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 func NewServer(protoAddr, transport string, app types.Application) (service.Service, error) {

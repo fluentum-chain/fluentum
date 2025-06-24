@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/abci/types"
 	tmnet "github.com/fluentum-chain/fluentum/libs/net"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
