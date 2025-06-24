@@ -531,7 +531,7 @@ func (h *Header) ToProto() *tmproto.Header {
 	}
 
 	return &tmproto.Header{
-		Version:            h.Version,
+		Version:            convertVersionToExternal(h.Version).(tmversion.Consensus),
 		ChainID:            h.ChainID,
 		Height:             h.Height,
 		Time:               h.Time,
@@ -562,7 +562,7 @@ func HeaderFromProto(ph *tmproto.Header) (Header, error) {
 		return Header{}, err
 	}
 
-	h.Version = ph.Version
+	h.Version = convertVersionFromExternal(ph.Version)
 	h.ChainID = ph.ChainID
 	h.Height = ph.Height
 	h.Time = ph.Time
@@ -1271,4 +1271,105 @@ func BlockIDFromProto(bID *tmproto.BlockID) (*BlockID, error) {
 	blockID.Hash = bID.Hash
 
 	return blockID, blockID.ValidateBasic()
+}
+
+// Conversion functions to handle protobuf type mismatches
+func convertVersionToExternal(v tmversion.Consensus) interface{} {
+	// Create a struct that matches the external protobuf definition
+	return struct {
+		Block uint64 `json:"block"`
+		App   uint64 `json:"app"`
+	}{
+		Block: v.Block,
+		App:   v.App,
+	}
+}
+
+func convertVersionFromExternal(v interface{}) tmversion.Consensus {
+	// Convert from external protobuf to local version
+	if ext, ok := v.(struct {
+		Block uint64 `json:"block"`
+		App   uint64 `json:"app"`
+	}); ok {
+		return tmversion.Consensus{
+			Block: ext.Block,
+			App:   ext.App,
+		}
+	}
+	// Fallback to default values
+	return tmversion.Consensus{Block: 0, App: 0}
+}
+
+func convertProofToExternal(p interface{}) interface{} {
+	// Create a struct that matches the external protobuf definition
+	if localProof, ok := p.(*struct {
+		Total    int64    `json:"total"`
+		Index    int64    `json:"index"`
+		LeafHash []byte   `json:"leaf_hash"`
+		Aunts    [][]byte `json:"aunts"`
+	}); ok {
+		return &struct {
+			Total    int64    `json:"total"`
+			Index    int64    `json:"index"`
+			LeafHash []byte   `json:"leaf_hash"`
+			Aunts    [][]byte `json:"aunts"`
+		}{
+			Total:    localProof.Total,
+			Index:    localProof.Index,
+			LeafHash: localProof.LeafHash,
+			Aunts:    localProof.Aunts,
+		}
+	}
+	return p
+}
+
+func convertProofFromExternal(p interface{}) interface{} {
+	// Convert from external protobuf to local proof
+	if extProof, ok := p.(*struct {
+		Total    int64    `json:"total"`
+		Index    int64    `json:"index"`
+		LeafHash []byte   `json:"leaf_hash"`
+		Aunts    [][]byte `json:"aunts"`
+	}); ok {
+		return &struct {
+			Total    int64    `json:"total"`
+			Index    int64    `json:"index"`
+			LeafHash []byte   `json:"leaf_hash"`
+			Aunts    [][]byte `json:"aunts"`
+		}{
+			Total:    extProof.Total,
+			Index:    extProof.Index,
+			LeafHash: extProof.LeafHash,
+			Aunts:    extProof.Aunts,
+		}
+	}
+	return p
+}
+
+func convertPublicKeyToExternal(pk interface{}) interface{} {
+	// Create a struct that matches the external protobuf definition
+	if localPK, ok := pk.(*struct {
+		Sum interface{} `json:"sum"`
+	}); ok {
+		return &struct {
+			Sum interface{} `json:"sum"`
+		}{
+			Sum: localPK.Sum,
+		}
+	}
+	return pk
+}
+
+func convertPublicKeyFromExternal(pk interface{}) interface{} {
+	// Convert from external protobuf to local public key
+	if extPK, ok := pk.(*struct {
+		Sum interface{} `json:"sum"`
+	}); ok {
+		return &struct {
+			Sum interface{} `json:"sum"`
+		}{
+			Sum: extPK.Sum,
+		}
+	}
+	return pk
 }

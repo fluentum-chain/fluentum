@@ -9,6 +9,8 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto"
 	ce "github.com/fluentum-chain/fluentum/crypto/encoding"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	pc "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
+	tmcrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
@@ -145,7 +147,7 @@ func (v *Validator) ToProto() (*tmproto.Validator, error) {
 
 	vp := tmproto.Validator{
 		Address:          v.Address,
-		PubKey:           pk,
+		PubKey:           convertPublicKeyToExternal(pk).(tmcrypto.PublicKey),
 		VotingPower:      v.VotingPower,
 		ProposerPriority: v.ProposerPriority,
 	}
@@ -160,7 +162,7 @@ func ValidatorFromProto(vp *tmproto.Validator) (*Validator, error) {
 		return nil, errors.New("nil validator")
 	}
 
-	pk, err := ce.PubKeyFromProto(vp.PubKey)
+	pk, err := ce.PubKeyFromProto(convertPublicKeyFromExternal(vp.PubKey).(pc.PublicKey))
 	if err != nil {
 		return nil, err
 	}
