@@ -5,3 +5,11 @@ deps:
     owner: gogo
     repository: protobuf
     commit: 4df00b267f944190a229ce3695781e99
+  - remote: buf.build
+    owner: cosmos
+    repository: cosmos-proto
+    commit: 8c5495d3c7e3b3b3c3c3c3c3c3c3c3c3c3c3c3c3
+  - remote: buf.build
+    owner: cosmos
+    repository: gogo-proto
+    commit: 8c5495d3c7e3b3b3c3c3c3c3c3c3c3c3c3c3c3c3

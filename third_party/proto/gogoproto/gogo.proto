@@ -43,6 +43,7 @@ extend google.protobuf.EnumOptions {
 	optional bool enum_stringer = 62022;
 	optional string enum_customname = 62023;
 	optional bool enumdecl = 62024;
+	optional bool enumvalue_customname = 62021 [default = false];
 }
 
 extend google.protobuf.EnumValueOptions {
@@ -105,8 +106,8 @@ extend google.protobuf.MessageOptions {
 	optional bool description = 64014;
 	optional bool testgen = 64015;
 	optional bool benchgen = 64016;
-	optional bool marshaler = 64017;
-	optional bool unmarshaler = 64018;
+	optional bool marshaler = 64017 [default = false];
+	optional bool unmarshaler = 64018 [default = false];
 	optional bool stable_marshaler = 64019;
 
 	optional bool sizer = 64020;
@@ -129,7 +130,7 @@ extend google.protobuf.MessageOptions {
 }
 
 extend google.protobuf.FieldOptions {
-	optional bool nullable = 65001;
+	optional bool nullable = 65001 [default = true];
 	optional bool embed = 65002;
 	optional string customtype = 65003;
 	optional string customname = 65004;
@@ -139,7 +140,7 @@ extend google.protobuf.FieldOptions {
 	optional string castkey = 65008;
 	optional string castvalue = 65009;
 
-	optional bool stdtime = 65010;
+	optional bool stdtime = 65002 [default = false];
 	optional bool stdduration = 65011;
 	optional bool wktpointer = 65012;
 
