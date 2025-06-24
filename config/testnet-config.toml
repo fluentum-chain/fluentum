@@ -1,0 +1,178 @@
+# Fluentum Testnet Configuration Template
+# Copy this file to ~/.fluentum/config/config.toml and customize as needed
+
+# Node identification
+moniker = "fluentum-testnet-node"
+
+# Chain ID for testnet
+chain_id = "fluentum-testnet-1"
+
+# P2P Configuration
+[p2p]
+laddr = "tcp://0.0.0.0:26656"
+external_address = ""
+seeds = ""
+persistent_peers = ""
+max_num_inbound_peers = 40
+max_num_outbound_peers = 10
+flush_throttle_timeout = "100ms"
+max_packet_msg_payload_size = 1024
+send_rate = 5120000
+recv_rate = 5120000
+pex = true
+seed_mode = false
+private_peer_ids = ""
+allow_duplicate_ip = false
+handshake_timeout = "20s"
+dial_timeout = "3s"
+
+# RPC Configuration
+[rpc]
+laddr = "tcp://0.0.0.0:26657"
+cors_allowed_origins = ["*"]
+cors_allowed_methods = ["HEAD", "GET", "POST"]
+cors_allowed_headers = ["*"]
+grpc_laddr = ""
+grpc_max_open_connections = 900
+unsafe = false
+max_open_connections = 900
+max_subscription_clients = 100
+max_subscriptions_per_client = 5
+timeout_broadcast_tx_commit = "10s"
+max_body_bytes = 1000000
+max_header_bytes = 1048576
+tls_cert_file = ""
+tls_key_file = ""
+pprof_laddr = "localhost:6060"
+
+# Mempool Configuration
+[mempool]
+recheck = true
+broadcast = true
+wal_dir = ""
+size = 5000
+max_txs_bytes = 1073741824
+cache_size = 10000
+keep_invalid_txs_in_cache = true
+max_tx_bytes = 1048576
+max_batch_bytes = 0
+ttl_duration = "0s"
+ttl_num_blocks = 0
+
+# Consensus Configuration (optimized for testnet)
+[consensus]
+wal_file = "data/cs.wal/wal"
+timeout_propose = "1s"
+timeout_propose_delta = "500ms"
+timeout_prevote = "1s"
+timeout_prevote_delta = "500ms"
+timeout_precommit = "1s"
+timeout_precommit_delta = "500ms"
+timeout_commit = "1s"
+skip_timeout_commit = false
+create_empty_blocks = true
+create_empty_blocks_interval = "10s"
+peer_gossip_sleep_duration = "100ms"
+peer_query_maj23_sleep_duration = "2s"
+
+# Database Configuration
+[database]
+backend = "goleveldb"
+dir = "data"
+
+# Logging Configuration
+[log_level]
+default = "info"
+module = "consensus:info"
+module = "mempool:info"
+module = "p2p:info"
+module = "state:info"
+module = "main:info"
+
+# Instrumentation Configuration
+[instrumentation]
+prometheus = true
+prometheus_listen_addr = ":26660"
+max_open_connections = 3
+namespace = "tendermint"
+
+# Fast Sync Configuration
+[fastsync]
+version = "v0"
+
+# Application Configuration (app.toml)
+# Copy this section to ~/.fluentum/config/app.toml
+
+[api]
+enable = true
+swagger = true
+address = "tcp://0.0.0.0:1317"
+max_open_connections = 1000
+rpc_read_timeout = 10
+rpc_write_timeout = 0
+rpc_max_body_bytes = 1000000
+enable_unsafe_cors = false
+
+[grpc]
+enable = true
+address = "0.0.0.0:9090"
+
+[grpc-web]
+enable = true
+address = "0.0.0.0:9091"
+enable_unsafe_cors = false
+
+[state-sync]
+snapshot_interval = 0
+snapshot_keep_recent = 2
+
+[store]
+streamers = []
+
+[streamers]
+file = { "keys" = ["*"], "write_dir" = ".", "prefix" = "kvia" }
+
+[minimal-gas-prices]
+# Minimum gas prices to accept for transactions; any fee in a tx must meet this minimum (e.g. 0.01photino,0.001stake)
+# Gas prices in global fee are used if the value is empty.
+global_min_gas_price = 0
+
+[telemetry]
+enabled = false
+global_labels = [["chain_id", "fluentum-testnet-1"]]
+metrics_file = "telemetry/metrics.json"
+
+[rosetta]
+enable = false
+address = ":8080"
+blockchain = "app"
+network = "network"
+tendermint_endpoint = "http://localhost:26657"
+grcpc_endpoint = "localhost:9090"
+grpcws_endpoint = "localhost:9091"
+retries = 3
+offline = false
+
+[server]
+address = "tcp://0.0.0.0:1317"
+enable = true
+enable_unsafe_cors = false
+rpc_read_timeout = 10
+rpc_write_timeout = 0
+rpc_max_body_bytes = 1000000
+
+[client]
+node = "tcp://localhost:26657"
+chain_id = "fluentum-testnet-1"
+keyring_backend = "test"
+gas = "auto"
+gas_adjustment = 1.2
+gas_prices = "0.025uatom"
+min_gas_prices = ""
+broadcast_mode = "sync"
+simulate_and_execute_gas_multiplier = 1.1
+keyring_backend = "test"
+output_format = "text"
+output = "text"
+sign_mode = "direct"
+extra_codecs = [] 

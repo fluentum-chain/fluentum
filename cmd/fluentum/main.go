@@ -102,18 +102,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		// config.Cmd(), // Removed - not available in v0.50.6
 	)
 
-	// Create a simple start command manually to avoid interface issues
-	startCmd := &cobra.Command{
-		Use:   "start",
-		Short: "Start the Fluentum node",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// For now, just print a message
-			fmt.Println("Fluentum node starting...")
-			fmt.Println("This is a placeholder implementation.")
-			return nil
-		},
-	}
-
+	// Create a proper start command for the Fluentum node
+	startCmd := createStartCommand(encodingConfig)
 	rootCmd.AddCommand(startCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -346,6 +336,149 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
+}
+
+// createStartCommand creates the start command for the Fluentum node
+func createStartCommand(encodingConfig app.EncodingConfig) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "start",
+		Short: "Start the Fluentum node",
+		Long: `Start the Fluentum blockchain node.
+
+This command starts the Fluentum node with the following features:
+- ABCI application server
+- P2P networking
+- Consensus engine
+- RPC server
+- API server (if enabled)
+
+The node will connect to the network and begin participating in consensus.
+`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return startNode(cmd, encodingConfig)
+		},
+	}
+
+	// Add flags for configuration
+	cmd.Flags().String(flags.FlagHome, app.DefaultNodeHome, "The application home directory")
+	cmd.Flags().String(flags.FlagChainID, "", "The network chain ID")
+	cmd.Flags().String("log_level", "info", "Log level (debug, info, warn, error)")
+	cmd.Flags().Bool("api", true, "Enable the API server")
+	cmd.Flags().String("api.address", "tcp://0.0.0.0:1317", "The API server listen address")
+	cmd.Flags().Bool("grpc", true, "Enable the gRPC server")
+	cmd.Flags().String("grpc.address", "0.0.0.0:9090", "The gRPC server listen address")
+	cmd.Flags().Bool("grpc-web", true, "Enable the gRPC-Web server")
+	cmd.Flags().String("grpc-web.address", "0.0.0.0:9091", "The gRPC-Web server listen address")
+	cmd.Flags().String("rpc.address", "tcp://0.0.0.0:26657", "The RPC server listen address")
+	cmd.Flags().String("p2p.address", "tcp://0.0.0.0:26656", "The P2P server listen address")
+	cmd.Flags().String("seeds", "", "Comma-separated list of seed nodes")
+	cmd.Flags().String("persistent_peers", "", "Comma-separated list of persistent peers")
+	cmd.Flags().Bool("testnet", false, "Run in testnet mode with faster block times")
+	cmd.Flags().String("moniker", "fluentum-node", "Node moniker")
+
+	return cmd
+}
+
+// startNode starts the Fluentum node
+func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
+	// Get configuration from flags
+	homeDir, _ := cmd.Flags().GetString(flags.FlagHome)
+	chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
+	logLevel, _ := cmd.Flags().GetString("log_level")
+	apiEnabled, _ := cmd.Flags().GetBool("api")
+	apiAddress, _ := cmd.Flags().GetString("api.address")
+	grpcEnabled, _ := cmd.Flags().GetBool("grpc")
+	grpcAddress, _ := cmd.Flags().GetString("grpc.address")
+	grpcWebEnabled, _ := cmd.Flags().GetBool("grpc-web")
+	grpcWebAddress, _ := cmd.Flags().GetString("grpc-web.address")
+	rpcAddress, _ := cmd.Flags().GetString("rpc.address")
+	p2pAddress, _ := cmd.Flags().GetString("p2p.address")
+	seeds, _ := cmd.Flags().GetString("seeds")
+	persistentPeers, _ := cmd.Flags().GetString("persistent_peers")
+	testnetMode, _ := cmd.Flags().GetBool("testnet")
+	moniker, _ := cmd.Flags().GetString("moniker")
+
+	// Set default chain ID if not provided
+	if chainID == "" {
+		if testnetMode {
+			chainID = "fluentum-testnet-1"
+		} else {
+			chainID = "fluentum-mainnet-1"
+		}
+	}
+
+	// Create logger
+	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	logger = logger.With("module", "main")
+
+	// Log startup information
+	logger.Info("Starting Fluentum node",
+		"chain_id", chainID,
+		"home", homeDir,
+		"moniker", moniker,
+		"testnet", testnetMode,
+		"log_level", logLevel,
+	)
+
+	// Create app creator
+	appCreator := appCreator{encCfg: encodingConfig}
+
+	// Create server context
+	serverCtx := server.NewDefaultContext()
+	serverCtx.Config.SetRoot(homeDir)
+
+	// Configure the server
+	serverCtx.Config.Moniker = moniker
+	serverCtx.Config.RPC.ListenAddress = rpcAddress
+	serverCtx.Config.P2P.ListenAddress = p2pAddress
+	serverCtx.Config.P2P.Seeds = seeds
+	serverCtx.Config.P2P.PersistentPeers = persistentPeers
+
+	// Configure consensus for testnet mode
+	if testnetMode {
+		serverCtx.Config.Consensus.TimeoutCommit = "1s"
+		serverCtx.Config.Consensus.TimeoutPropose = "1s"
+		serverCtx.Config.Consensus.CreateEmptyBlocks = true
+		serverCtx.Config.Consensus.CreateEmptyBlocksInterval = "10s"
+		logger.Info("Configured for testnet mode with faster block times")
+	}
+
+	// Create app options
+	appOpts := server.DefaultStartOptions()
+	appOpts.AppCreator = appCreator
+	appOpts.AppCreatorOpts = []interface{}{encodingConfig}
+
+	// Configure API
+	if apiEnabled {
+		appOpts.APIEnable = true
+		appOpts.APIAddress = apiAddress
+		appOpts.APISwagger = true
+		logger.Info("API server enabled", "address", apiAddress)
+	}
+
+	// Configure gRPC
+	if grpcEnabled {
+		appOpts.GRPCEnable = true
+		appOpts.GRPCAddress = grpcAddress
+		logger.Info("gRPC server enabled", "address", grpcAddress)
+	}
+
+	// Configure gRPC-Web
+	if grpcWebEnabled {
+		appOpts.GRPCWebEnable = true
+		appOpts.GRPCWebAddress = grpcWebAddress
+		logger.Info("gRPC-Web server enabled", "address", grpcWebAddress)
+	}
+
+	// Start the server
+	logger.Info("Starting server...")
+	if err := server.Start(serverCtx, appOpts); err != nil {
+		return fmt.Errorf("failed to start server: %w", err)
+	}
+
+	// Wait for interrupt signal
+	logger.Info("Fluentum node is running. Press Ctrl+C to exit.")
+	select {}
 }
 
 func main() {

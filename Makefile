@@ -461,6 +461,17 @@ help:
 	@echo "  reset                    - Reset the node"
 	@echo "  status                   - Show node status"
 	@echo ""
+	@echo "Testnet Management:"
+	@echo "  init-testnet             - Initialize testnet node"
+	@echo "  start-testnet            - Start testnet node"
+	@echo "  start-testnet-bg         - Start testnet node in background"
+	@echo "  stop-testnet             - Stop testnet node"
+	@echo "  testnet-logs             - Show testnet logs"
+	@echo "  reset-testnet            - Reset testnet node"
+	@echo "  testnet-genesis-account name=NAME - Create testnet genesis account"
+	@echo "  testnet-script           - Run testnet startup script (Linux/macOS)"
+	@echo "  testnet-script-win       - Run testnet startup script (Windows)"
+	@echo ""
 	@echo "Account & Key Management:"
 	@echo "  keys-add name=NAME       - Add a new account"
 	@echo "  keys-list                - List accounts"
@@ -578,6 +589,70 @@ start:
 start-dev:
 	@echo "Starting node in development mode..."
 	./$(BUILD_DIR)/$(BINARY_NAME) start --log_level debug
+
+# Initialize testnet node
+.PHONY: init-testnet
+init-testnet:
+	@echo "Initializing testnet node..."
+	./$(BUILD_DIR)/$(BINARY_NAME) init fluentum-testnet --chain-id fluentum-testnet-1
+
+# Start testnet node
+.PHONY: start-testnet
+start-testnet:
+	@echo "Starting testnet node..."
+	./$(BUILD_DIR)/$(BINARY_NAME) start --testnet --api --grpc --grpc-web
+
+# Start testnet node in background
+.PHONY: start-testnet-bg
+start-testnet-bg:
+	@echo "Starting testnet node in background..."
+	@nohup ./$(BUILD_DIR)/$(BINARY_NAME) start --testnet --api --grpc --grpc-web > fluentum-testnet.log 2>&1 &
+	@echo $$! > fluentum-testnet.pid
+	@echo "Node started with PID: $$(cat fluentum-testnet.pid)"
+
+# Stop testnet node
+.PHONY: stop-testnet
+stop-testnet:
+	@echo "Stopping testnet node..."
+	@if [ -f fluentum-testnet.pid ]; then \
+		kill $$(cat fluentum-testnet.pid) 2>/dev/null || true; \
+		rm -f fluentum-testnet.pid; \
+		echo "Testnet node stopped"; \
+	else \
+		echo "No testnet PID file found"; \
+	fi
+
+# Show testnet logs
+.PHONY: testnet-logs
+testnet-logs:
+	@echo "Showing testnet logs..."
+	@tail -f fluentum-testnet.log
+
+# Reset testnet node
+.PHONY: reset-testnet
+reset-testnet:
+	@echo "Resetting testnet node..."
+	./$(BUILD_DIR)/$(BINARY_NAME) tendermint unsafe-reset-all --home ~/.fluentum
+
+# Create testnet genesis account
+.PHONY: testnet-genesis-account
+testnet-genesis-account:
+	@echo "Creating testnet genesis account..."
+	./$(BUILD_DIR)/$(BINARY_NAME) keys add $(name) --keyring-backend test
+	./$(BUILD_DIR)/$(BINARY_NAME) add-genesis-account $$(./$(BUILD_DIR)/$(BINARY_NAME) keys show $(name) -a --keyring-backend test) 1000000000ufluentum,1000000000stake --keyring-backend test
+
+# Run testnet startup script (Linux/macOS)
+.PHONY: testnet-script
+testnet-script:
+	@echo "Running testnet startup script..."
+	@chmod +x scripts/start_testnet.sh
+	./scripts/start_testnet.sh
+
+# Run testnet startup script (Windows)
+.PHONY: testnet-script-win
+testnet-script-win:
+	@echo "Running testnet startup script (Windows)..."
+	powershell -ExecutionPolicy Bypass -File scripts/start_testnet.ps1
 
 # Create a new account
 .PHONY: keys-add
@@ -716,6 +791,17 @@ help:
 	@echo "  start-dev                - Start the node in development mode"
 	@echo "  reset                    - Reset the node"
 	@echo "  status                   - Show node status"
+	@echo ""
+	@echo "Testnet Management:"
+	@echo "  init-testnet             - Initialize testnet node"
+	@echo "  start-testnet            - Start testnet node"
+	@echo "  start-testnet-bg         - Start testnet node in background"
+	@echo "  stop-testnet             - Stop testnet node"
+	@echo "  testnet-logs             - Show testnet logs"
+	@echo "  reset-testnet            - Reset testnet node"
+	@echo "  testnet-genesis-account name=NAME - Create testnet genesis account"
+	@echo "  testnet-script           - Run testnet startup script (Linux/macOS)"
+	@echo "  testnet-script-win       - Run testnet startup script (Windows)"
 	@echo ""
 	@echo "Account & Key Management:"
 	@echo "  keys-add name=NAME       - Add a new account"
