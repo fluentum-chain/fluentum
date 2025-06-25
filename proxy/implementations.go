@@ -20,7 +20,7 @@ func (a *mempoolConn) CheckTx(ctx context.Context, req *types.RequestCheckTx) (*
 }
 
 func (a *mempoolConn) CheckTxAsync(req *types.RequestCheckTx) *abcicli.ReqRes {
-	return a.client.CheckTxAsync(req)
+	return a.client.CheckTxAsync(context.Background(), req)
 }
 
 func (a *mempoolConn) Flush(ctx context.Context) error {
@@ -47,7 +47,7 @@ func (a *consensusConn) VerifyVoteExtension(ctx context.Context, req *types.Requ
 	return a.client.VerifyVoteExtension(ctx, req)
 }
 func (a *consensusConn) Commit(ctx context.Context) (*types.ResponseCommit, error) {
-	return a.client.Commit(ctx)
+	return a.client.Commit(ctx, &types.RequestCommit{})
 }
 
 // Query implementation
@@ -98,3 +98,9 @@ func NewAppConnQuery(client abcicli.Client) AppConnQuery {
 func NewAppConnSnapshot(client abcicli.Client) AppConnSnapshot {
 	return &snapshotConn{defaultAppConn{client}}
 }
+
+// Interface compliance checks
+var _ AppConnMempool = (*mempoolConn)(nil)
+var _ AppConnConsensus = (*consensusConn)(nil)
+var _ AppConnQuery = (*queryConn)(nil)
+var _ AppConnSnapshot = (*snapshotConn)(nil)
