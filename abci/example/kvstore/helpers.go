@@ -28,10 +28,11 @@ func RandVal(i int) abci.ValidatorUpdate {
 // the application. Note that the keys are deterministically
 // derived from the index in the array, while the power is
 // random (Change this if not desired)
-func RandVals(cnt int) []abci.ValidatorUpdate {
-	res := make([]abci.ValidatorUpdate, cnt)
+func RandVals(cnt int) []*abci.ValidatorUpdate {
+	res := make([]*abci.ValidatorUpdate, cnt)
 	for i := 0; i < cnt; i++ {
-		res[i] = RandVal(i)
+		v := RandVal(i)
+		res[i] = &v
 	}
 	return res
 }

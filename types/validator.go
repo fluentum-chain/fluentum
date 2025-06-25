@@ -10,6 +10,7 @@ import (
 	ce "github.com/fluentum-chain/fluentum/crypto/encoding"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"github.com/gogo/protobuf/proto"
 )
 
 // Volatile state for each Validator
@@ -125,7 +126,7 @@ func (v *Validator) Bytes() []byte {
 		VotingPower: v.VotingPower,
 	}
 
-	bz, err := pbv.Marshal()
+	bz, err := proto.Marshal(&pbv)
 	if err != nil {
 		panic(err)
 	}
@@ -145,7 +146,7 @@ func (v *Validator) ToProto() (*tmproto.Validator, error) {
 
 	vp := tmproto.Validator{
 		Address:          v.Address,
-		PubKey:           pk,
+		PubKey:           &pk,
 		VotingPower:      v.VotingPower,
 		ProposerPriority: v.ProposerPriority,
 	}
@@ -160,7 +161,7 @@ func ValidatorFromProto(vp *tmproto.Validator) (*Validator, error) {
 		return nil, errors.New("nil validator")
 	}
 
-	pk, err := ce.PubKeyFromProto(vp.PubKey)
+	pk, err := ce.PubKeyFromProto(*vp.PubKey)
 	if err != nil {
 		return nil, err
 	}

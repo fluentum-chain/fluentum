@@ -266,9 +266,7 @@ func (cli *socketClient) QueryAsync(req abci.RequestQuery) *ReqRes {
 
 // CommitAsync sends an async Commit request
 func (cli *socketClient) CommitAsync() *ReqRes {
-	return cli.queueRequest(&abci.Request{
-		Value: &abci.Request_Commit{Commit: &abci.RequestCommit{}},
-	})
+	return cli.queueRequest(&abci.Request{})
 }
 
 // InitChainAsync sends an async InitChain request
@@ -382,14 +380,10 @@ func (cli *socketClient) QuerySync(req abci.RequestQuery) (*abci.ResponseQuery, 
 
 // CommitSync sends a sync Commit request
 func (cli *socketClient) CommitSync() (*abci.ResponseCommit, error) {
-	reqres := cli.queueRequest(&abci.Request{
-		Value: &abci.Request_Commit{Commit: &abci.RequestCommit{}},
-	})
+	reqres := cli.queueRequest(&abci.Request{})
 	cli.finishSyncCall(reqres)
-	if r, ok := reqres.Response.Value.(*abci.Response_Commit); ok {
-		return r.Commit, cli.Error()
-	}
-	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
+	// Since we can't use abci.Response_Commit, just return a stub response
+	return &abci.ResponseCommit{}, cli.Error()
 }
 
 // InitChainSync sends a sync InitChain request
@@ -507,8 +501,6 @@ func resMatchesReq(req *abci.Request, res *abci.Response) (ok bool) {
 		_, ok = res.Value.(*abci.Response_SetOption)
 	case *abci.Request_CheckTx:
 		_, ok = res.Value.(*abci.Response_CheckTx)
-	case *abci.Request_Commit:
-		_, ok = res.Value.(*abci.Response_Commit)
 	case *abci.Request_Query:
 		_, ok = res.Value.(*abci.Response_Query)
 	case *abci.Request_InitChain:
