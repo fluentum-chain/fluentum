@@ -1,7 +1,6 @@
 package mempool
 
 import (
-	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -263,12 +262,10 @@ func (mem *CListMempool) CheckTx(tx types.Tx) error {
 	// }
 
 	// Check if the transaction is valid according to the application
-	reqRes, err := mem.proxyAppConn.CheckTxAsync(context.Background(), &cmabci.RequestCheckTx{Tx: tx})
+	res, err := mem.proxyAppConn.CheckTxSync(cmabci.RequestCheckTx{Tx: tx})
 	if err != nil {
 		return err
 	}
-	<-reqRes.Done()
-	res := reqRes.Response.GetCheckTx()
 	if res.Code != cmabci.CodeTypeOK {
 		return fmt.Errorf("transaction rejected: %s", res.Log)
 	}
