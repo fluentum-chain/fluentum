@@ -1,9 +1,11 @@
 package abcicli
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
+	"github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
@@ -14,51 +16,38 @@ const (
 	echoRetryIntervalSeconds = 1
 )
 
-// Client defines the interface for an ABCI client.
-// All `Async` methods return a `ReqRes`, and all `Sync` methods return an error.
+// Client matches CometBFT's v0.38.17 ABCI 2.0 specification
 type Client interface {
 	service.Service
 
+	// Mempool methods
+	CheckTx(context.Context, *types.RequestCheckTx) (*types.ResponseCheckTx, error)
+	CheckTxAsync(context.Context, *types.RequestCheckTx) *ReqRes
+	Flush(context.Context) error
+
+	// Consensus methods
+	FinalizeBlock(context.Context, *types.RequestFinalizeBlock) (*types.ResponseFinalizeBlock, error)
+	PrepareProposal(context.Context, *types.RequestPrepareProposal) (*types.ResponsePrepareProposal, error)
+	ProcessProposal(context.Context, *types.RequestProcessProposal) (*types.ResponseProcessProposal, error)
+	ExtendVote(context.Context, *types.RequestExtendVote) (*types.ResponseExtendVote, error)
+	VerifyVoteExtension(context.Context, *types.RequestVerifyVoteExtension) (*types.ResponseVerifyVoteExtension, error)
+	Commit(context.Context, *types.RequestCommit) (*types.ResponseCommit, error)
+	InitChain(context.Context, *types.RequestInitChain) (*types.ResponseInitChain, error)
+
+	// Query methods
+	Info(context.Context, *types.RequestInfo) (*types.ResponseInfo, error)
+	Query(context.Context, *types.RequestQuery) (*types.ResponseQuery, error)
+
+	// Snapshot methods
+	ListSnapshots(context.Context, *types.RequestListSnapshots) (*types.ResponseListSnapshots, error)
+	OfferSnapshot(context.Context, *types.RequestOfferSnapshot) (*types.ResponseOfferSnapshot, error)
+	LoadSnapshotChunk(context.Context, *types.RequestLoadSnapshotChunk) (*types.ResponseLoadSnapshotChunk, error)
+	ApplySnapshotChunk(context.Context, *types.RequestApplySnapshotChunk) (*types.ResponseApplySnapshotChunk, error)
+
+	// Common
 	Error() error
-	SetResponseCallback(Callback)
-
-	// Info/Query Connection
-	InfoSync(req abci.RequestInfo) (*abci.ResponseInfo, error)
-	InfoAsync(req abci.RequestInfo) *ReqRes
-
-	QuerySync(req abci.RequestQuery) (*abci.ResponseQuery, error)
-	QueryAsync(req abci.RequestQuery) *ReqRes
-
-	// Mempool Connection
-	CheckTxSync(req abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
-	CheckTxAsync(req abci.RequestCheckTx) *ReqRes
-
-	// Consensus Connection
-	InitChainSync(req abci.RequestInitChain) (*abci.ResponseInitChain, error)
-	InitChainAsync(req abci.RequestInitChain) *ReqRes
-
-	CommitSync() (*abci.ResponseCommit, error)
-	CommitAsync() *ReqRes
-
-	// State Sync Connection
-	ListSnapshotsSync(req abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error)
-	ListSnapshotsAsync(req abci.RequestListSnapshots) *ReqRes
-
-	OfferSnapshotSync(req abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error)
-	OfferSnapshotAsync(req abci.RequestOfferSnapshot) *ReqRes
-
-	LoadSnapshotChunkSync(req abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error)
-	LoadSnapshotChunkAsync(req abci.RequestLoadSnapshotChunk) *ReqRes
-
-	ApplySnapshotChunkSync(req abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error)
-	ApplySnapshotChunkAsync(req abci.RequestApplySnapshotChunk) *ReqRes
-
-	// Utility
-	FlushSync() error
-	FlushAsync() *ReqRes
-
-	EchoSync(msg string) (*abci.ResponseEcho, error)
-	EchoAsync(msg string) *ReqRes
+	SetResponseCallback(cb Callback)
+	SetLogger(logger Logger)
 }
 
 //----------------------------------------

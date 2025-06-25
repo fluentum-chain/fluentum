@@ -104,18 +104,16 @@ func (app *localClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
 }
 
 func (app *localClient) CheckTxAsync(req abci.RequestCheckTx) *ReqRes {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	// Return stub response
-	localRes := &abci.ResponseCheckTx{
-		Code: 0, // OK
-	}
-
-	return app.callback(
-		&abci.Request{Value: &abci.Request_CheckTx{CheckTx: &req}},
-		&abci.Response{Value: &abci.Response_CheckTx{CheckTx: localRes}},
-	)
+	reqRes := NewReqRes(req)
+	go func() {
+		res, err := app.Application.CheckTx(context.Background(), &req)
+		if err != nil {
+			reqRes.ErrorCh <- err
+		} else {
+			reqRes.ResponseCh <- res
+		}
+	}()
+	return reqRes
 }
 
 func (app *localClient) QueryAsync(req abci.RequestQuery) *ReqRes {
