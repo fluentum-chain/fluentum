@@ -19,6 +19,7 @@ import (
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // TODO: type ?
@@ -32,9 +33,9 @@ const (
 // A vote is either stepPrevote or stepPrecommit.
 func voteToStep(vote *tmproto.Vote) int8 {
 	switch vote.Type {
-	case tmproto.PrevoteType:
+	case types.PrevoteType:
 		return stepPrevote
-	case tmproto.PrecommitType:
+	case types.PrecommitType:
 		return stepPrecommit
 	default:
 		panic(fmt.Sprintf("Unknown vote type: %v", vote.Type))
@@ -406,11 +407,11 @@ func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.T
 		panic(fmt.Sprintf("signBytes cannot be unmarshalled into vote: %v", err))
 	}
 
-	lastTime := lastVote.Timestamp
+	lastTime := lastVote.Timestamp.AsTime()
 	// set the times to the same value and check equality
 	now := tmtime.Now()
-	lastVote.Timestamp = now
-	newVote.Timestamp = now
+	lastVote.Timestamp = timestamppb.New(now)
+	newVote.Timestamp = timestamppb.New(now)
 
 	return lastTime, proto.Equal(&newVote, &lastVote)
 }
@@ -426,11 +427,11 @@ func checkProposalsOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (ti
 		panic(fmt.Sprintf("signBytes cannot be unmarshalled into proposal: %v", err))
 	}
 
-	lastTime := lastProposal.Timestamp
+	lastTime := lastProposal.Timestamp.AsTime()
 	// set the times to the same value and check equality
 	now := tmtime.Now()
-	lastProposal.Timestamp = now
-	newProposal.Timestamp = now
+	lastProposal.Timestamp = timestamppb.New(now)
+	newProposal.Timestamp = timestamppb.New(now)
 
 	return lastTime, proto.Equal(&newProposal, &lastProposal)
 }

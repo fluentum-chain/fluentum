@@ -7,7 +7,6 @@ import (
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
 	abci "github.com/fluentum-chain/fluentum/abci/types"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
-	e2e "github.com/fluentum-chain/fluentum/test/e2e/app"
 )
 
 //go:generate ../scripts/mockery_generate.sh ClientCreator
@@ -77,11 +76,8 @@ func DefaultClientCreator(addr, transport, dbDir string) ClientCreator {
 	case "persistent_kvstore":
 		return NewLocalClientCreator(kvstore.NewPersistentKVStoreApplication(dbDir))
 	case "e2e":
-		app, err := e2e.NewApplication(e2e.DefaultConfig(dbDir))
-		if err != nil {
-			panic(err)
-		}
-		return NewLocalClientCreator(app)
+		// TODO: Fix e2e app to use local ABCI types
+		panic("e2e app not yet compatible with local ABCI types")
 	case "noop":
 		return NewLocalClientCreator(abci.NewBaseApplication())
 	default:

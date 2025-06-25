@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/libs/bytes"
 	"github.com/fluentum-chain/fluentum/p2p"
@@ -49,11 +49,11 @@ type ResultCommit struct {
 // Updated for ABCI++: use block-level TxResults from FinalizeBlock
 // TxsResults now comes from ResponseFinalizeBlock.TxResults
 type ResultBlockResults struct {
-	Height                int64                  `json:"height"`
-	TxsResults            []*abci.ExecTxResult   `json:"txs_results"`
-	Events                []*abci.Event          `json:"events"`
-	ValidatorUpdates      []abci.ValidatorUpdate `json:"validator_updates"`
-	ConsensusParamUpdates *types.ConsensusParams  `json:"consensus_param_updates"`
+	Height                int64                    `json:"height"`
+	TxsResults            []*abci.ExecTxResult     `json:"txs_results"`
+	Events                []*abci.Event            `json:"events"`
+	ValidatorUpdates      []abci.ValidatorUpdate   `json:"validator_updates"`
+	ConsensusParamUpdates *tmproto.ConsensusParams `json:"consensus_param_updates"`
 }
 
 // NewResultCommit is a helper to initialize the ResultCommit with
