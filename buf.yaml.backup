@@ -1,0 +1,11 @@
+version: v2
+name: buf.build/fluentum-chain/fluentum
+deps:
+  - buf.build/cosmos/cosmos-proto
+  - buf.build/cosmos/gogo-proto
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT 

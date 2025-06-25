@@ -6,6 +6,7 @@ import (
 
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	tmcrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
+	"github.com/gogo/protobuf/proto"
 )
 
 const ProofOpValue = "simple:v"
@@ -37,12 +38,12 @@ func NewValueOp(key []byte, proof *Proof) ValueOp {
 	}
 }
 
-func ValueOpDecoder(pop tmcrypto.ProofOp) (ProofOperator, error) {
+func ValueOpDecoder(pop *tmcrypto.ProofOp) (ProofOperator, error) {
 	if pop.Type != ProofOpValue {
 		return nil, fmt.Errorf("unexpected ProofOp.Type; got %v, want %v", pop.Type, ProofOpValue)
 	}
 	var pbop tmcrypto.ValueOp // a bit strange as we'll discard this, but it works.
-	err := pbop.Unmarshal(pop.Data)
+	err := proto.Unmarshal(pop.Data, &pbop)
 	if err != nil {
 		return nil, fmt.Errorf("decoding ProofOp.Data into ValueOp: %w", err)
 	}
@@ -59,7 +60,7 @@ func (op ValueOp) ProofOp() tmcrypto.ProofOp {
 		Key:   op.key,
 		Proof: op.Proof.ToProto(),
 	}
-	bz, err := pbval.Marshal()
+	bz, err := proto.Marshal(&pbval)
 	if err != nil {
 		panic(err)
 	}

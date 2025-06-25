@@ -71,7 +71,7 @@ func (poz ProofOperators) Verify(root []byte, keypath string, args [][]byte) (er
 //----------------------------------------
 // ProofRuntime - main entrypoint
 
-type OpDecoder func(tmcrypto.ProofOp) (ProofOperator, error)
+type OpDecoder func(*tmcrypto.ProofOp) (ProofOperator, error)
 
 type ProofRuntime struct {
 	decoders map[string]OpDecoder
@@ -91,7 +91,7 @@ func (prt *ProofRuntime) RegisterOpDecoder(typ string, dec OpDecoder) {
 	prt.decoders[typ] = dec
 }
 
-func (prt *ProofRuntime) Decode(pop tmcrypto.ProofOp) (ProofOperator, error) {
+func (prt *ProofRuntime) Decode(pop *tmcrypto.ProofOp) (ProofOperator, error) {
 	decoder := prt.decoders[pop.Type]
 	if decoder == nil {
 		return nil, fmt.Errorf("unrecognized proof type %v", pop.Type)
