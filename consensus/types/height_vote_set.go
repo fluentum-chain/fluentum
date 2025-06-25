@@ -9,6 +9,7 @@ import (
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
 	"github.com/fluentum-chain/fluentum/p2p"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
 )
 
@@ -162,7 +163,7 @@ func (hvs *HeightVoteSet) POLInfo() (polRound int32, polBlockID types.BlockID) {
 	return -1, types.BlockID{}
 }
 
-func (hvs *HeightVoteSet) getVoteSet(round int32, voteType types.SignedMsgType) *types.VoteSet {
+func (hvs *HeightVoteSet) getVoteSet(round int32, voteType tmproto.SignedMsgType) *types.VoteSet {
 	rvs, ok := hvs.roundVoteSets[round]
 	if !ok {
 		return nil
@@ -183,7 +184,7 @@ func (hvs *HeightVoteSet) getVoteSet(round int32, voteType types.SignedMsgType) 
 // TODO: implement ability to remove peers too
 func (hvs *HeightVoteSet) SetPeerMaj23(
 	round int32,
-	voteType types.SignedMsgType,
+	voteType tmproto.SignedMsgType,
 	peerID p2p.ID,
 	blockID types.BlockID) error {
 	hvs.mtx.Lock()

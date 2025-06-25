@@ -322,7 +322,7 @@ func (pv *FilePV) signVote(chainID string, vote *tmproto.Vote) error {
 		if bytes.Equal(signBytes, lss.SignBytes) {
 			vote.Signature = lss.Signature
 		} else if timestamp, ok := checkVotesOnlyDifferByTimestamp(lss.SignBytes, signBytes); ok {
-			vote.Timestamp = timestamp
+			vote.Timestamp = timestamppb.New(timestamp)
 			vote.Signature = lss.Signature
 		} else {
 			err = fmt.Errorf("conflicting data")
@@ -364,7 +364,7 @@ func (pv *FilePV) signProposal(chainID string, proposal *tmproto.Proposal) error
 		if bytes.Equal(signBytes, lss.SignBytes) {
 			proposal.Signature = lss.Signature
 		} else if timestamp, ok := checkProposalsOnlyDifferByTimestamp(lss.SignBytes, signBytes); ok {
-			proposal.Timestamp = timestamp
+			proposal.Timestamp = timestamppb.New(timestamp)
 			proposal.Signature = lss.Signature
 		} else {
 			err = fmt.Errorf("conflicting data")

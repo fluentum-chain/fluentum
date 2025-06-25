@@ -36,6 +36,8 @@ type RequestFlush = abci.RequestFlush
 type ResponseFlush = abci.ResponseFlush
 type ValidatorUpdate = abci.ValidatorUpdate
 type EventAttribute = abci.EventAttribute
+type Event = abci.Event
+type ExecTxResult = abci.ResponseDeliverTx
 
 // Application is an interface that enables any finite, deterministic state machine
 // to be driven by a blockchain-based replication engine via the ABCI.
