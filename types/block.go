@@ -181,7 +181,7 @@ func (b *Block) Size() int {
 		return 0
 	}
 
-	return pbb.Size()
+	return proto.Size(pbb)
 }
 
 // String returns a string representation of the block
@@ -231,15 +231,15 @@ func (b *Block) ToProto() (*tmproto.Block, error) {
 
 	pb := new(tmproto.Block)
 
-	pb.Header = *b.Header.ToProto()
-	pb.Data = b.Data.ToProto()
+	pb.Header = b.Header.ToProto()
+	pb.Data = &b.Data.ToProto()
 
 	if b.Evidence.Evidence != nil {
 		protoEvidence, err := b.Evidence.ToProto()
 		if err != nil {
 			return nil, err
 		}
-		pb.Evidence = *protoEvidence
+		pb.Evidence = protoEvidence
 	}
 
 	if b.LastCommit != nil {
@@ -257,17 +257,17 @@ func BlockFromProto(bp *tmproto.Block) (*Block, error) {
 	}
 
 	b := new(Block)
-	h, err := HeaderFromProto(&bp.Header)
+	h, err := HeaderFromProto(bp.Header)
 	if err != nil {
 		return nil, err
 	}
 	b.Header = h
-	data, err := DataFromProto(&bp.Data)
+	data, err := DataFromProto(bp.Data)
 	if err != nil {
 		return nil, err
 	}
 	b.Data = data
-	if err := b.Evidence.FromProto(&bp.Evidence); err != nil {
+	if err := b.Evidence.FromProto(bp.Evidence); err != nil {
 		return nil, err
 	}
 
