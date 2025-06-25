@@ -6,11 +6,12 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 
 	"github.com/fluentum-chain/fluentum/abci/example/code"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
-	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
+	abciProto "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
 
-var _ ApplicationInterface = (*PersistentKVStoreApplication)(nil)
+var _ abci.Application = (*PersistentKVStoreApplication)(nil)
 
 type PersistentKVStoreApplication struct {
 	app *Application
@@ -101,12 +102,12 @@ func (app *PersistentKVStoreApplication) LoadSnapshotChunk(
 
 func (app *PersistentKVStoreApplication) OfferSnapshot(
 	ctx context.Context, req *abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error) {
-	return &abci.ResponseOfferSnapshot{Result: abci.ResponseOfferSnapshot_ABORT}, nil
+	return &abci.ResponseOfferSnapshot{Result: abciProto.ResponseOfferSnapshot_ABORT}, nil
 }
 
 func (app *PersistentKVStoreApplication) ApplySnapshotChunk(
 	ctx context.Context, req *abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error) {
-	return &abci.ResponseApplySnapshotChunk{Result: abci.ResponseApplySnapshotChunk_ABORT}, nil
+	return &abci.ResponseApplySnapshotChunk{Result: abciProto.ResponseApplySnapshotChunk_ABORT}, nil
 }
 
 func (app *PersistentKVStoreApplication) Echo(ctx context.Context, req *abci.RequestEcho) (*abci.ResponseEcho, error) {

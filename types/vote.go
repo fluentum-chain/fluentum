@@ -209,11 +209,12 @@ func (vote *Vote) ToProto() *tmproto.Vote {
 		return nil
 	}
 
+	blockIDProto := vote.BlockId.ToProto()
 	return &tmproto.Vote{
 		Type:             vote.Type,
 		Height:           vote.Height,
 		Round:            vote.Round,
-		BlockId:          vote.BlockId.ToProto(),
+		BlockId:          &blockIDProto,
 		Timestamp:        timestamppb.New(vote.Timestamp),
 		ValidatorAddress: vote.ValidatorAddress,
 		ValidatorIndex:   vote.ValidatorIndex,
@@ -228,7 +229,7 @@ func VoteFromProto(pv *tmproto.Vote) (*Vote, error) {
 		return nil, errors.New("nil vote")
 	}
 
-	blockID, err := BlockIDFromProto(&pv.BlockId)
+	blockID, err := BlockIDFromProto(pv.BlockId)
 	if err != nil {
 		return nil, err
 	}

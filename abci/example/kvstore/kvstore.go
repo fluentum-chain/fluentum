@@ -9,7 +9,8 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 
 	"github.com/fluentum-chain/fluentum/abci/example/code"
-	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	abciProto "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	"github.com/fluentum-chain/fluentum/version"
 )
 
@@ -61,23 +62,7 @@ func prefixKey(key []byte) []byte {
 
 //---------------------------------------------------
 
-// Custom interface that matches the available local ABCI types
-type ApplicationInterface interface {
-	Info(ctx context.Context, req *abci.RequestInfo) (*abci.ResponseInfo, error)
-	CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
-	Commit(ctx context.Context, req *abci.RequestCommit) (*abci.ResponseCommit, error)
-	Query(ctx context.Context, req *abci.RequestQuery) (*abci.ResponseQuery, error)
-	InitChain(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error)
-	ListSnapshots(ctx context.Context, req *abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error)
-	LoadSnapshotChunk(ctx context.Context, req *abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error)
-	OfferSnapshot(ctx context.Context, req *abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error)
-	ApplySnapshotChunk(ctx context.Context, req *abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error)
-	SetOption(ctx context.Context, req *abci.RequestSetOption) (*abci.ResponseSetOption, error)
-	Echo(ctx context.Context, req *abci.RequestEcho) (*abci.ResponseEcho, error)
-	Flush(ctx context.Context, req *abci.RequestFlush) (*abci.ResponseFlush, error)
-}
-
-var _ ApplicationInterface = (*Application)(nil)
+var _ abci.Application = (*Application)(nil)
 
 type Application struct {
 	state        State
@@ -156,11 +141,11 @@ func (app *Application) LoadSnapshotChunk(ctx context.Context, req *abci.Request
 }
 
 func (app *Application) OfferSnapshot(ctx context.Context, req *abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error) {
-	return &abci.ResponseOfferSnapshot{Result: abci.ResponseOfferSnapshot_ABORT}, nil
+	return &abci.ResponseOfferSnapshot{Result: abciProto.ResponseOfferSnapshot_ABORT}, nil
 }
 
 func (app *Application) ApplySnapshotChunk(ctx context.Context, req *abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error) {
-	return &abci.ResponseApplySnapshotChunk{Result: abci.ResponseApplySnapshotChunk_ABORT}, nil
+	return &abci.ResponseApplySnapshotChunk{Result: abciProto.ResponseApplySnapshotChunk_ABORT}, nil
 }
 
 func (app *Application) SetOption(ctx context.Context, req *abci.RequestSetOption) (*abci.ResponseSetOption, error) {

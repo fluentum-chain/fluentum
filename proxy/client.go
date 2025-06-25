@@ -3,9 +3,9 @@ package proxy
 import (
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	e2e "github.com/fluentum-chain/fluentum/test/e2e/app"
 )
