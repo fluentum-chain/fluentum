@@ -1,4 +1,4 @@
-package abcicli
+package client
 
 import (
 	"bufio"
