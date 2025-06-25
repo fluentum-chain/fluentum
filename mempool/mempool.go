@@ -267,7 +267,7 @@ func (mem *CListMempool) CheckTx(tx types.Tx) error {
 	if err != nil {
 		return err
 	}
-	<-reqRes.Done()
+	<-reqRes.Done
 	res := reqRes.Response.GetCheckTx()
 	if res.Code != cmabci.CodeTypeOK {
 		return fmt.Errorf("transaction rejected: %s", res.Log)
