@@ -25,6 +25,7 @@ type AppConnMempool interface {
 	Error() error
 
 	CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
+	CheckTxAsync(ctx context.Context, req *abci.RequestCheckTx) *abcicli.ReqRes
 
 	FlushAsync() *abcicli.ReqRes
 	FlushSync() error
@@ -108,7 +109,17 @@ func (app *appConnMempool) FlushSync() error {
 }
 
 func (app *appConnMempool) CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
-	return app.appConn.CheckTx(ctx, req)
+	reqRes := app.appConn.CheckTxAsync(ctx, req)
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-reqRes.Done():
+		return reqRes.Response.GetCheckTx(), nil
+	}
+}
+
+func (app *appConnMempool) CheckTxAsync(ctx context.Context, req *abci.RequestCheckTx) *abcicli.ReqRes {
+	return app.appConn.CheckTxAsync(ctx, req)
 }
 
 //------------------------------------------------
