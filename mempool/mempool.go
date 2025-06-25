@@ -12,7 +12,6 @@ import (
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	"github.com/fluentum-chain/fluentum/libs/log"
-	"github.com/fluentum-chain/fluentum/proxy"
 	"github.com/fluentum-chain/fluentum/types"
 )
 
@@ -263,7 +262,7 @@ func (mem *CListMempool) CheckTx(tx types.Tx) error {
 	// }
 
 	// Check if the transaction is valid according to the application
-	res, err := mem.proxyAppConn.CheckTxSync(cmabci.RequestCheckTx{Tx: tx})
+	res, err := mem.proxyAppConn.CheckTxAsync(cmabci.RequestCheckTx{Tx: tx})
 	if err != nil {
 		return err
 	}

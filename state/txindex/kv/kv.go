@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
 	dbm "github.com/cometbft/cometbft-db"
-	"google.golang.org/protobuf/proto"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
@@ -52,7 +52,7 @@ func (txi *TxIndex) Get(hash []byte) (*abci.TxResult, error) {
 	}
 
 	txResult := new(abci.TxResult)
-	err = proto.Unmarshal(rawBytes, txResult)
+	err = json.Unmarshal(rawBytes, txResult)
 	if err != nil {
 		return nil, fmt.Errorf("error reading TxResult: %v", err)
 	}
@@ -83,7 +83,7 @@ func (txi *TxIndex) AddBatch(b *txindex.Batch) error {
 			return err
 		}
 
-		rawBytes, err := proto.Marshal(result)
+		rawBytes, err := json.Marshal(result)
 		if err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func (txi *TxIndex) Index(result *abci.TxResult) error {
 		return err
 	}
 
-	rawBytes, err := proto.Marshal(result)
+	rawBytes, err := json.Marshal(result)
 	if err != nil {
 		return err
 	}
