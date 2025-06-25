@@ -3,7 +3,6 @@ package abcicli
 import (
 	"bufio"
 	"container/list"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +10,7 @@ import (
 	"reflect"
 	"time"
 
+	types "github.com/fluentum-chain/fluentum/abci/types"
 	tmnet "github.com/fluentum-chain/fluentum/libs/net"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
@@ -125,7 +125,7 @@ func (cli *socketClient) sendRequestsRoutine(conn io.Writer) {
 			// cli.Logger.Debug("Sent request", "requestType", reflect.TypeOf(reqres.Request), "request", reqres.Request)
 
 			cli.willSendReq(reqres)
-			err := abci.WriteMessage(reqres.Request, w)
+			err := types.WriteMessage(reqres.Request, w)
 			if err != nil {
 				cli.stopForError(fmt.Errorf("write to buffer: %w", err))
 				return
@@ -141,7 +141,9 @@ func (cli *socketClient) sendRequestsRoutine(conn io.Writer) {
 			}
 		case <-cli.flushTimer.Ch: // flush queue
 			select {
-			case cli.reqQueue <- NewReqRes(abci.ToRequestFlush()):
+			case cli.reqQueue <- NewReqRes(&abci.Request{
+				Value: &abci.Request_Flush{Flush: &abci.RequestFlush{}},
+			}):
 			default:
 				// Probably will fill the buffer, or retry later.
 			}
@@ -155,7 +157,7 @@ func (cli *socketClient) recvResponseRoutine(conn io.Reader) {
 	r := bufio.NewReader(conn)
 	for {
 		var res = &abci.Response{}
-		err := abci.ReadMessage(r, res)
+		err := types.ReadMessage(r, res)
 		if err != nil {
 			cli.stopForError(fmt.Errorf("read message: %w", err))
 			return
@@ -220,163 +222,234 @@ func (cli *socketClient) didRecvResponse(res *abci.Response) error {
 
 //----------------------------------------
 
+// EchoAsync sends an async Echo request
 func (cli *socketClient) EchoAsync(msg string) *ReqRes {
-	return cli.queueRequest(abci.ToRequestEcho(msg))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Echo{Echo: &abci.RequestEcho{Message: msg}},
+	})
 }
 
+// FlushAsync sends an async Flush request
 func (cli *socketClient) FlushAsync() *ReqRes {
-	return cli.queueRequest(abci.ToRequestFlush())
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Flush{Flush: &abci.RequestFlush{}},
+	})
 }
 
+// InfoAsync sends an async Info request
 func (cli *socketClient) InfoAsync(req abci.RequestInfo) *ReqRes {
-	return cli.queueRequest(abci.ToRequestInfo(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Info{Info: &req},
+	})
 }
 
+// SetOptionAsync sends an async SetOption request
 func (cli *socketClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
-	return cli.queueRequest(abci.ToRequestSetOption(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_SetOption{SetOption: &req},
+	})
 }
 
+// CheckTxAsync sends an async CheckTx request
 func (cli *socketClient) CheckTxAsync(req abci.RequestCheckTx) *ReqRes {
-	return cli.queueRequest(abci.ToRequestCheckTx(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_CheckTx{CheckTx: &req},
+	})
 }
 
+// QueryAsync sends an async Query request
 func (cli *socketClient) QueryAsync(req abci.RequestQuery) *ReqRes {
-	return cli.queueRequest(abci.ToRequestQuery(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Query{Query: &req},
+	})
 }
 
+// CommitAsync sends an async Commit request
 func (cli *socketClient) CommitAsync() *ReqRes {
-	return cli.queueRequest(abci.ToRequestCommit())
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Commit{Commit: &abci.RequestCommit{}},
+	})
 }
 
+// InitChainAsync sends an async InitChain request
 func (cli *socketClient) InitChainAsync(req abci.RequestInitChain) *ReqRes {
-	return cli.queueRequest(abci.ToRequestInitChain(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_InitChain{InitChain: &req},
+	})
 }
 
+// ListSnapshotsAsync sends an async ListSnapshots request
 func (cli *socketClient) ListSnapshotsAsync(req abci.RequestListSnapshots) *ReqRes {
-	return cli.queueRequest(abci.ToRequestListSnapshots(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_ListSnapshots{ListSnapshots: &req},
+	})
 }
 
+// OfferSnapshotAsync sends an async OfferSnapshot request
 func (cli *socketClient) OfferSnapshotAsync(req abci.RequestOfferSnapshot) *ReqRes {
-	return cli.queueRequest(abci.ToRequestOfferSnapshot(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_OfferSnapshot{OfferSnapshot: &req},
+	})
 }
 
+// LoadSnapshotChunkAsync sends an async LoadSnapshotChunk request
 func (cli *socketClient) LoadSnapshotChunkAsync(req abci.RequestLoadSnapshotChunk) *ReqRes {
-	return cli.queueRequest(abci.ToRequestLoadSnapshotChunk(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_LoadSnapshotChunk{LoadSnapshotChunk: &req},
+	})
 }
 
+// ApplySnapshotChunkAsync sends an async ApplySnapshotChunk request
 func (cli *socketClient) ApplySnapshotChunkAsync(req abci.RequestApplySnapshotChunk) *ReqRes {
-	return cli.queueRequest(abci.ToRequestApplySnapshotChunk(req))
+	return cli.queueRequest(&abci.Request{
+		Value: &abci.Request_ApplySnapshotChunk{ApplySnapshotChunk: &req},
+	})
 }
 
 //----------------------------------------
 
-func (cli *socketClient) FlushSync() error {
-	reqRes := cli.queueRequest(abci.ToRequestFlush())
-	if err := cli.Error(); err != nil {
-		return err
-	}
-	reqRes.Wait() // NOTE: if we don't flush the queue, its possible to get stuck here
-	return cli.Error()
-}
-
+// EchoSync sends a sync Echo request
 func (cli *socketClient) EchoSync(msg string) (*abci.ResponseEcho, error) {
-	reqres := cli.queueRequest(abci.ToRequestEcho(msg))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Echo{Echo: &abci.RequestEcho{Message: msg}},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_Echo); ok {
+		return r.Echo, cli.Error()
 	}
-
-	return reqres.Response.GetEcho(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
+// FlushSync sends a sync Flush request
+func (cli *socketClient) FlushSync() error {
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Flush{Flush: &abci.RequestFlush{}},
+	})
+	cli.finishSyncCall(reqres)
+	if _, ok := reqres.Response.Value.(*abci.Response_Flush); ok {
+		return cli.Error()
+	}
+	return fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
+}
+
+// InfoSync sends a sync Info request
 func (cli *socketClient) InfoSync(req abci.RequestInfo) (*abci.ResponseInfo, error) {
-	reqres := cli.queueRequest(abci.ToRequestInfo(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Info{Info: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_Info); ok {
+		return r.Info, cli.Error()
 	}
-
-	return reqres.Response.GetInfo(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
+// SetOptionSync sends a sync SetOption request
 func (cli *socketClient) SetOptionSync(req abci.RequestSetOption) (*abci.ResponseSetOption, error) {
-	reqres := cli.queueRequest(abci.ToRequestSetOption(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_SetOption{SetOption: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_SetOption); ok {
+		return r.SetOption, cli.Error()
 	}
-
-	return reqres.Response.GetSetOption(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
+// CheckTxSync sends a sync CheckTx request
 func (cli *socketClient) CheckTxSync(req abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
-	reqres := cli.queueRequest(abci.ToRequestCheckTx(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_CheckTx{CheckTx: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_CheckTx); ok {
+		return r.CheckTx, cli.Error()
 	}
-
-	return reqres.Response.GetCheckTx(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
+// QuerySync sends a sync Query request
 func (cli *socketClient) QuerySync(req abci.RequestQuery) (*abci.ResponseQuery, error) {
-	reqres := cli.queueRequest(abci.ToRequestQuery(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Query{Query: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_Query); ok {
+		return r.Query, cli.Error()
 	}
-
-	return reqres.Response.GetQuery(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
+// CommitSync sends a sync Commit request
 func (cli *socketClient) CommitSync() (*abci.ResponseCommit, error) {
-	reqres := cli.queueRequest(abci.ToRequestCommit())
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_Commit{Commit: &abci.RequestCommit{}},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_Commit); ok {
+		return r.Commit, cli.Error()
 	}
-
-	return reqres.Response.GetCommit(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
+// InitChainSync sends a sync InitChain request
 func (cli *socketClient) InitChainSync(req abci.RequestInitChain) (*abci.ResponseInitChain, error) {
-	reqres := cli.queueRequest(abci.ToRequestInitChain(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_InitChain{InitChain: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_InitChain); ok {
+		return r.InitChain, cli.Error()
 	}
-
-	return reqres.Response.GetInitChain(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
+// ListSnapshotsSync sends a sync ListSnapshots request
 func (cli *socketClient) ListSnapshotsSync(req abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error) {
-	reqres := cli.queueRequest(abci.ToRequestListSnapshots(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_ListSnapshots{ListSnapshots: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_ListSnapshots); ok {
+		return r.ListSnapshots, cli.Error()
 	}
-
-	return reqres.Response.GetListSnapshots(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
+// OfferSnapshotSync sends a sync OfferSnapshot request
 func (cli *socketClient) OfferSnapshotSync(req abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error) {
-	reqres := cli.queueRequest(abci.ToRequestOfferSnapshot(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_OfferSnapshot{OfferSnapshot: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_OfferSnapshot); ok {
+		return r.OfferSnapshot, cli.Error()
 	}
-
-	return reqres.Response.GetOfferSnapshot(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
-func (cli *socketClient) LoadSnapshotChunkSync(
-	req abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error) {
-	reqres := cli.queueRequest(abci.ToRequestLoadSnapshotChunk(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+// LoadSnapshotChunkSync sends a sync LoadSnapshotChunk request
+func (cli *socketClient) LoadSnapshotChunkSync(req abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error) {
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_LoadSnapshotChunk{LoadSnapshotChunk: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_LoadSnapshotChunk); ok {
+		return r.LoadSnapshotChunk, cli.Error()
 	}
-
-	return reqres.Response.GetLoadSnapshotChunk(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
-func (cli *socketClient) ApplySnapshotChunkSync(
-	req abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error) {
-	reqres := cli.queueRequest(abci.ToRequestApplySnapshotChunk(req))
-	if err := cli.FlushSync(); err != nil {
-		return nil, err
+// ApplySnapshotChunkSync sends a sync ApplySnapshotChunk request
+func (cli *socketClient) ApplySnapshotChunkSync(req abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error) {
+	reqres := cli.queueRequest(&abci.Request{
+		Value: &abci.Request_ApplySnapshotChunk{ApplySnapshotChunk: &req},
+	})
+	cli.finishSyncCall(reqres)
+	if r, ok := reqres.Response.Value.(*abci.Response_ApplySnapshotChunk); ok {
+		return r.ApplySnapshotChunk, cli.Error()
 	}
-	return reqres.Response.GetApplySnapshotChunk(), cli.Error()
+	return nil, fmt.Errorf("unexpected response type: %T", reqres.Response.Value)
 }
 
 //----------------------------------------
@@ -469,22 +542,6 @@ func (cli *socketClient) stopForError(err error) {
 	}
 }
 
-// ExtendVoteAsync implements the ABCI 2.0 method for socketClient
-func (cli *socketClient) ExtendVoteAsync(ctx context.Context, req *abci.RequestExtendVote) (*abci.ResponseExtendVote, error) {
-	return &abci.ResponseExtendVote{VoteExtension: []byte("extended")}, nil
-}
-
-// VerifyVoteExtensionSync sends a sync VerifyVoteExtension request
-func (cli *socketClient) VerifyVoteExtensionSync(req abci.RequestVerifyVoteExtension) (*abci.ResponseVerifyVoteExtension, error) {
-	reqres := cli.queueRequest(abci.ToRequestVerifyVoteExtension(req))
-	res := cli.finishSyncCall(reqres)
-	if r, ok := res.Value.(*abci.Response_VerifyVoteExtension); ok {
-		return r.VerifyVoteExtension, nil
-	}
-	return nil, fmt.Errorf("unexpected response type: %T", res.Value)
-}
-
-// VerifyVoteExtensionAsync sends an async VerifyVoteExtension request
-func (cli *socketClient) VerifyVoteExtensionAsync(req abci.RequestVerifyVoteExtension) *ReqRes {
-	return cli.queueRequest(abci.ToRequestVerifyVoteExtension(req))
+func (cli *socketClient) finishSyncCall(reqres *ReqRes) {
+	reqres.Wait()
 }
