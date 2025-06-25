@@ -156,7 +156,6 @@ func (app *Application) Commit() abci.ResponseCommit {
 		retainHeight = int64(height - app.cfg.RetainBlocks + 1)
 	}
 	return abci.ResponseCommit{
-		Data:         hash,
 		RetainHeight: retainHeight,
 	}
 }

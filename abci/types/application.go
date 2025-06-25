@@ -1,8 +1,36 @@
 package types
 
 import (
-	context "golang.org/x/net/context"
+	"context"
+
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
+
+// Type aliases for backward compatibility
+type RequestInfo = abci.RequestInfo
+type ResponseInfo = abci.ResponseInfo
+type RequestSetOption = abci.RequestSetOption
+type ResponseSetOption = abci.ResponseSetOption
+type RequestQuery = abci.RequestQuery
+type ResponseQuery = abci.ResponseQuery
+type RequestCheckTx = abci.RequestCheckTx
+type ResponseCheckTx = abci.ResponseCheckTx
+type RequestInitChain = abci.RequestInitChain
+type ResponseInitChain = abci.ResponseInitChain
+type RequestCommit = abci.RequestCommit
+type ResponseCommit = abci.ResponseCommit
+type RequestListSnapshots = abci.RequestListSnapshots
+type ResponseListSnapshots = abci.ResponseListSnapshots
+type RequestOfferSnapshot = abci.RequestOfferSnapshot
+type ResponseOfferSnapshot = abci.ResponseOfferSnapshot
+type RequestLoadSnapshotChunk = abci.RequestLoadSnapshotChunk
+type ResponseLoadSnapshotChunk = abci.ResponseLoadSnapshotChunk
+type RequestApplySnapshotChunk = abci.RequestApplySnapshotChunk
+type ResponseApplySnapshotChunk = abci.ResponseApplySnapshotChunk
+type RequestEcho = abci.RequestEcho
+type ResponseEcho = abci.ResponseEcho
+type RequestFlush = abci.RequestFlush
+type ResponseFlush = abci.ResponseFlush
 
 // Application is an interface that enables any finite, deterministic state machine
 // to be driven by a blockchain-based replication engine via the ABCI.
@@ -18,9 +46,8 @@ type Application interface {
 	CheckTx(context.Context, *RequestCheckTx) (*ResponseCheckTx, error) // Validate a tx for the mempool
 
 	// Consensus Connection
-	InitChain(context.Context, *RequestInitChain) (*ResponseInitChain, error)             // Initialize blockchain w validators/other info from TendermintCore
-	FinalizeBlock(context.Context, *RequestFinalizeBlock) (*ResponseFinalizeBlock, error) // ABCI 2.0: Finalize block
-	Commit(context.Context, *RequestCommit) (*ResponseCommit, error)                      // Commit the state and return the application Merkle root hash
+	InitChain(context.Context, *RequestInitChain) (*ResponseInitChain, error) // Initialize blockchain w validators/other info from TendermintCore
+	Commit(context.Context, *RequestCommit) (*ResponseCommit, error)          // Commit the state and return the application Merkle root hash
 
 	// State Sync Connection
 	ListSnapshots(context.Context, *RequestListSnapshots) (*ResponseListSnapshots, error)                // List available snapshots
@@ -63,10 +90,6 @@ func (BaseApplication) Query(ctx context.Context, req *RequestQuery) (*ResponseQ
 
 func (BaseApplication) InitChain(ctx context.Context, req *RequestInitChain) (*ResponseInitChain, error) {
 	return &ResponseInitChain{}, nil
-}
-
-func (BaseApplication) FinalizeBlock(ctx context.Context, req *RequestFinalizeBlock) (*ResponseFinalizeBlock, error) {
-	return &ResponseFinalizeBlock{}, nil
 }
 
 func (BaseApplication) ListSnapshots(ctx context.Context, req *RequestListSnapshots) (*ResponseListSnapshots, error) {
@@ -133,11 +156,6 @@ func (app *GRPCApplication) Commit(ctx context.Context, req *RequestCommit) (*Re
 
 func (app *GRPCApplication) InitChain(ctx context.Context, req *RequestInitChain) (*ResponseInitChain, error) {
 	res, err := app.app.InitChain(ctx, req)
-	return res, err
-}
-
-func (app *GRPCApplication) FinalizeBlock(ctx context.Context, req *RequestFinalizeBlock) (*ResponseFinalizeBlock, error) {
-	res, err := app.app.FinalizeBlock(ctx, req)
 	return res, err
 }
 

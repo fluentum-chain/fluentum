@@ -9,11 +9,14 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmnet "github.com/fluentum-chain/fluentum/libs/net"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
+
+// Callback type for ABCI responses
+type Callback func(*abci.Request, *abci.Response)
 
 var _ Client = (*grpcClient)(nil)
 
@@ -30,7 +33,7 @@ type grpcClient struct {
 	mtx   tmsync.Mutex
 	addr  string
 	err   error
-	resCb func(*abci.Request, *abci.Response) // listens to all callbacks
+	resCb Callback // listens to all callbacks
 }
 
 func NewGRPCClient(addr string, mustConnect bool) Client {
