@@ -1,6 +1,8 @@
 package proxy
 
 import (
+	"context"
+
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
@@ -22,8 +24,7 @@ type AppConnMempool interface {
 	SetResponseCallback(abcicli.Callback)
 	Error() error
 
-	CheckTxAsync(req abci.RequestCheckTx) *abcicli.ReqRes
-	CheckTxSync(req abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
+	CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
 
 	FlushAsync() *abcicli.ReqRes
 	FlushSync() error
@@ -106,12 +107,8 @@ func (app *appConnMempool) FlushSync() error {
 	return app.appConn.FlushSync()
 }
 
-func (app *appConnMempool) CheckTxAsync(req abci.RequestCheckTx) *abcicli.ReqRes {
-	return app.appConn.CheckTxAsync(req)
-}
-
-func (app *appConnMempool) CheckTxSync(req abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
-	return app.appConn.CheckTxSync(req)
+func (app *appConnMempool) CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
+	return app.appConn.CheckTx(ctx, req)
 }
 
 //------------------------------------------------
