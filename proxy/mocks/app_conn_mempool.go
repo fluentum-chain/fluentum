@@ -5,6 +5,9 @@ package mocks
 import (
 	mock "github.com/stretchr/testify/mock"
 
+	"context"
+	"time"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
 )
@@ -14,13 +17,36 @@ type AppConnMempool struct {
 	mock.Mock
 }
 
-// CheckTxAsync provides a mock function with given fields: _a0
-func (_m *AppConnMempool) CheckTxAsync(_a0 abci.RequestCheckTx) *abcicli.ReqRes {
-	ret := _m.Called(_a0)
+// CheckTx provides a mock function with given fields: ctx, req
+func (_m *AppConnMempool) CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
+	ret := _m.Called(ctx, req)
+
+	var r0 *abci.ResponseCheckTx
+	if rf, ok := ret.Get(0).(func(context.Context, *abci.RequestCheckTx) *abci.ResponseCheckTx); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*abci.ResponseCheckTx)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *abci.RequestCheckTx) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CheckTxAsync provides a mock function with given fields: req
+func (_m *AppConnMempool) CheckTxAsync(req *abci.RequestCheckTx) *abcicli.ReqRes {
+	ret := _m.Called(req)
 
 	var r0 *abcicli.ReqRes
-	if rf, ok := ret.Get(0).(func(abci.RequestCheckTx) *abcicli.ReqRes); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(*abci.RequestCheckTx) *abcicli.ReqRes); ok {
+		r0 = rf(req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*abcicli.ReqRes)
@@ -30,13 +56,13 @@ func (_m *AppConnMempool) CheckTxAsync(_a0 abci.RequestCheckTx) *abcicli.ReqRes 
 	return r0
 }
 
-// CheckTxSync provides a mock function with given fields: _a0
-func (_m *AppConnMempool) CheckTxSync(_a0 abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
-	ret := _m.Called(_a0)
+// CheckTxWithTimeout provides a mock function with given fields: req, timeout
+func (_m *AppConnMempool) CheckTxWithTimeout(req *abci.RequestCheckTx, timeout time.Duration) (*abci.ResponseCheckTx, error) {
+	ret := _m.Called(req, timeout)
 
 	var r0 *abci.ResponseCheckTx
-	if rf, ok := ret.Get(0).(func(abci.RequestCheckTx) *abci.ResponseCheckTx); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(*abci.RequestCheckTx, time.Duration) *abci.ResponseCheckTx); ok {
+		r0 = rf(req, timeout)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*abci.ResponseCheckTx)
@@ -44,8 +70,68 @@ func (_m *AppConnMempool) CheckTxSync(_a0 abci.RequestCheckTx) (*abci.ResponseCh
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(abci.RequestCheckTx) error); ok {
-		r1 = rf(_a0)
+	if rf, ok := ret.Get(1).(func(*abci.RequestCheckTx, time.Duration) error); ok {
+		r1 = rf(req, timeout)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// FinalizeBlock provides a mock function with given fields: ctx, req
+func (_m *AppConnMempool) FinalizeBlock(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error) {
+	ret := _m.Called(ctx, req)
+
+	var r0 *abci.ResponseFinalizeBlock
+	if rf, ok := ret.Get(0).(func(context.Context, *abci.RequestFinalizeBlock) *abci.ResponseFinalizeBlock); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*abci.ResponseFinalizeBlock)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *abci.RequestFinalizeBlock) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Flush provides a mock function with given fields: ctx
+func (_m *AppConnMempool) Flush(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Info provides a mock function with given fields: ctx, req
+func (_m *AppConnMempool) Info(ctx context.Context, req *abci.RequestInfo) (*abci.ResponseInfo, error) {
+	ret := _m.Called(ctx, req)
+
+	var r0 *abci.ResponseInfo
+	if rf, ok := ret.Get(0).(func(context.Context, *abci.RequestInfo) *abci.ResponseInfo); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*abci.ResponseInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *abci.RequestInfo) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -55,36 +141,6 @@ func (_m *AppConnMempool) CheckTxSync(_a0 abci.RequestCheckTx) (*abci.ResponseCh
 
 // Error provides a mock function with given fields:
 func (_m *AppConnMempool) Error() error {
-	ret := _m.Called()
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FlushAsync provides a mock function with given fields:
-func (_m *AppConnMempool) FlushAsync() *abcicli.ReqRes {
-	ret := _m.Called()
-
-	var r0 *abcicli.ReqRes
-	if rf, ok := ret.Get(0).(func() *abcicli.ReqRes); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*abcicli.ReqRes)
-		}
-	}
-
-	return r0
-}
-
-// FlushSync provides a mock function with given fields:
-func (_m *AppConnMempool) FlushSync() error {
 	ret := _m.Called()
 
 	var r0 error

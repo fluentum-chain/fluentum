@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"sort"
@@ -138,7 +139,7 @@ func (txmp *TxMempool) FlushAppConn() error {
 	txmp.mtx.Unlock()
 	defer txmp.mtx.Lock()
 
-	return txmp.proxyAppConn.FlushSync()
+	return txmp.proxyAppConn.Flush(context.Background())
 }
 
 // EnableTxsAvailable enables the mempool to trigger events when transactions

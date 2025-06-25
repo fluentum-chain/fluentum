@@ -2,6 +2,7 @@ package v0
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"sync"
 	"sync/atomic"
@@ -152,7 +153,7 @@ func (mem *CListMempool) SizeBytes() int64 {
 
 // Lock() must be help by the caller during execution.
 func (mem *CListMempool) FlushAppConn() error {
-	return mem.proxyAppConn.FlushSync()
+	return mem.proxyAppConn.Flush(context.Background())
 }
 
 // XXX: Unsafe! Calling Flush may leave mempool in inconsistent state.
@@ -251,7 +252,7 @@ func (mem *CListMempool) CheckTx(
 		return mempool.ErrTxInCache
 	}
 
-	reqRes := mem.proxyAppConn.CheckTxAsync(abci.RequestCheckTx{Tx: tx})
+	reqRes := mem.proxyAppConn.CheckTxAsync(&abci.RequestCheckTx{Tx: tx})
 	reqRes.SetCallback(mem.reqResCb(tx, txInfo.SenderID, txInfo.SenderP2PID, cb))
 
 	return nil
@@ -650,7 +651,7 @@ func (mem *CListMempool) recheckTxs() {
 	// NOTE: globalCb may be called concurrently.
 	for e := mem.txs.Front(); e != nil; e = e.Next() {
 		memTx := e.Value.(*mempoolTx)
-		mem.proxyAppConn.CheckTxAsync(abci.RequestCheckTx{
+		mem.proxyAppConn.CheckTxAsync(&abci.RequestCheckTx{
 			Tx:   memTx.tx,
 			Type: abci.CheckTxType_Recheck,
 		})
