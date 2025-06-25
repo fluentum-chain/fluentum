@@ -93,12 +93,6 @@ func ToRequestSetOption(req RequestSetOption) *Request {
 	}
 }
 
-func ToRequestFinalizeBlock(req RequestFinalizeBlock) *Request {
-	return &Request{
-		Value: &Request_DeliverTx{&req},
-	}
-}
-
 func ToRequestCheckTx(req RequestCheckTx) *Request {
 	return &Request{
 		Value: &Request_CheckTx{&req},

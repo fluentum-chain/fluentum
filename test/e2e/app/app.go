@@ -140,7 +140,7 @@ func (app *Application) CheckTx(req abci.RequestCheckTx) abci.ResponseCheckTx {
 
 // Commit implements ABCI.
 func (app *Application) Commit() abci.ResponseCommit {
-	height, hash, err := app.state.Commit()
+	height, _, err := app.state.Commit()
 	if err != nil {
 		panic(err)
 	}

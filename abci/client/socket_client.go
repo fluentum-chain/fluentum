@@ -15,6 +15,7 @@ import (
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	"github.com/fluentum-chain/fluentum/libs/timer"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
 
 const (
@@ -36,8 +37,8 @@ type socketClient struct {
 
 	mtx     tmsync.Mutex
 	err     error
-	reqSent *list.List                            // list of requests sent, waiting for response
-	resCb   func(*types.Request, *types.Response) // called on all requests, if set.
+	reqSent *list.List                          // list of requests sent, waiting for response
+	resCb   func(*abci.Request, *abci.Response) // called on all requests, if set.
 }
 
 var _ Client = (*socketClient)(nil)

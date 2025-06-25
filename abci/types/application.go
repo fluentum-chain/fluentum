@@ -7,6 +7,8 @@ import (
 )
 
 // Type aliases for backward compatibility
+type Request = abci.Request
+type Response = abci.Response
 type RequestInfo = abci.RequestInfo
 type ResponseInfo = abci.ResponseInfo
 type RequestSetOption = abci.RequestSetOption
@@ -31,6 +33,7 @@ type RequestEcho = abci.RequestEcho
 type ResponseEcho = abci.ResponseEcho
 type RequestFlush = abci.RequestFlush
 type ResponseFlush = abci.ResponseFlush
+type ValidatorUpdate = abci.ValidatorUpdate
 
 // Application is an interface that enables any finite, deterministic state machine
 // to be driven by a blockchain-based replication engine via the ABCI.

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
 
 const (
@@ -36,9 +36,6 @@ type Client interface {
 	InitChainSync(req abci.RequestInitChain) (*abci.ResponseInitChain, error)
 	InitChainAsync(req abci.RequestInitChain) *ReqRes
 
-	FinalizeBlockSync(req abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error)
-	FinalizeBlockAsync(req abci.RequestFinalizeBlock) *ReqRes
-
 	CommitSync() (*abci.ResponseCommit, error)
 	CommitAsync() *ReqRes
 
@@ -54,19 +51,6 @@ type Client interface {
 
 	ApplySnapshotChunkSync(req abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error)
 	ApplySnapshotChunkAsync(req abci.RequestApplySnapshotChunk) *ReqRes
-
-	// ABCI 2.0 Methods
-	PrepareProposalSync(req abci.RequestPrepareProposal) (*abci.ResponsePrepareProposal, error)
-	PrepareProposalAsync(req abci.RequestPrepareProposal) *ReqRes
-
-	ProcessProposalSync(req abci.RequestProcessProposal) (*abci.ResponseProcessProposal, error)
-	ProcessProposalAsync(req abci.RequestProcessProposal) *ReqRes
-
-	ExtendVoteSync(req abci.RequestExtendVote) (*abci.ResponseExtendVote, error)
-	ExtendVoteAsync(req abci.RequestExtendVote) *ReqRes
-
-	VerifyVoteExtensionSync(req abci.RequestVerifyVoteExtension) (*abci.ResponseVerifyVoteExtension, error)
-	VerifyVoteExtensionAsync(req abci.RequestVerifyVoteExtension) *ReqRes
 
 	// Utility
 	FlushSync() error
