@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 

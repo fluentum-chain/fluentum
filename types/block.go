@@ -232,7 +232,8 @@ func (b *Block) ToProto() (*tmproto.Block, error) {
 	pb := new(tmproto.Block)
 
 	pb.Header = b.Header.ToProto()
-	pb.Data = &b.Data.ToProto()
+	dataProto := b.Data.ToProto()
+	pb.Data = &dataProto
 
 	if b.Evidence.Evidence != nil {
 		protoEvidence, err := b.Evidence.ToProto()
@@ -531,8 +532,8 @@ func (h *Header) ToProto() *tmproto.Header {
 	}
 
 	return &tmproto.Header{
-		Version:            h.Version,
-		ChainID:            h.ChainID,
+		Version:            &h.Version,
+		ChainId:            h.ChainID,
 		Height:             h.Height,
 		Time:               h.Time,
 		LastBlockId:        h.LastBlockID.ToProto(),
@@ -1198,7 +1199,7 @@ func (blockID BlockID) Equals(other BlockID) bool {
 // Key returns a machine-readable string representation of the BlockID
 func (blockID BlockID) Key() string {
 	pbph := blockID.PartSetHeader.ToProto()
-	bz, err := pbph.Marshal()
+	bz, err := proto.Marshal(&pbph)
 	if err != nil {
 		panic(err)
 	}

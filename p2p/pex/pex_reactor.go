@@ -280,7 +280,12 @@ func (r *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 
 	case *tmp2p.PexAddrs:
 		// If we asked for addresses, add them to the book
-		addrs, err := p2p.NetAddressesFromProto(msg.Addrs)
+		// Convert []*NetAddress to []NetAddress
+		netAddrs := make([]tmp2p.NetAddress, len(msg.Addrs))
+		for i, addr := range msg.Addrs {
+			netAddrs[i] = *addr
+		}
+		addrs, err := p2p.NetAddressesFromProto(netAddrs)
 		if err != nil {
 			r.Switch.StopPeerForError(e.Src, err)
 			r.book.MarkBad(e.Src.SocketAddr(), defaultBanTime)
@@ -421,9 +426,15 @@ func (r *Reactor) ReceiveAddrs(addrs []*p2p.NetAddress, src Peer) error {
 
 // SendAddrs sends addrs to the peer.
 func (r *Reactor) SendAddrs(p Peer, netAddrs []*p2p.NetAddress) {
+	// Convert []NetAddress to []*NetAddress
+	protoAddrs := p2p.NetAddressesToProto(netAddrs)
+	ptrAddrs := make([]*tmp2p.NetAddress, len(protoAddrs))
+	for i := range protoAddrs {
+		ptrAddrs[i] = &protoAddrs[i]
+	}
 	e := p2p.Envelope{
 		ChannelID: PexChannel,
-		Message:   &tmp2p.PexAddrs{Addrs: p2p.NetAddressesToProto(netAddrs)},
+		Message:   &tmp2p.PexAddrs{Addrs: ptrAddrs},
 	}
 	p2p.SendEnvelopeShim(p, e, r.Logger) //nolint: staticcheck
 }

@@ -9,12 +9,13 @@ import (
 	"strings"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"github.com/gogo/protobuf/proto"
 )
 
 // Evidence represents any provable malicious activity by a validator.
@@ -76,7 +77,7 @@ func NewDuplicateVoteEvidence(vote1, vote2 *Vote, blockTime time.Time, valSet *V
 func (dve *DuplicateVoteEvidence) ABCI() []abci.Evidence {
 	return []abci.Evidence{{
 		Type: abci.EvidenceType_DUPLICATE_VOTE,
-		Validator: abci.Validator{
+		Validator: &abci.Validator{
 			Address: dve.VoteA.ValidatorAddress,
 			Power:   dve.ValidatorPower,
 		},
@@ -89,7 +90,7 @@ func (dve *DuplicateVoteEvidence) ABCI() []abci.Evidence {
 // Bytes returns the proto-encoded evidence as a byte array.
 func (dve *DuplicateVoteEvidence) Bytes() []byte {
 	pbe := dve.ToProto()
-	bz, err := pbe.Marshal()
+	bz, err := proto.Marshal(pbe)
 	if err != nil {
 		panic(err)
 	}
@@ -204,8 +205,11 @@ func (l *LightClientAttackEvidence) ABCI() []abci.Evidence {
 	abciEv := make([]abci.Evidence, len(l.ByzantineValidators))
 	for idx, val := range l.ByzantineValidators {
 		abciEv[idx] = abci.Evidence{
-			Type:             abci.EvidenceType_LIGHT_CLIENT_ATTACK,
-			Validator:        TM2PB.Validator(val),
+			Type: abci.EvidenceType_LIGHT_CLIENT_ATTACK,
+			Validator: &abci.Validator{
+				Address: val.PubKey.Address(),
+				Power:   val.VotingPower,
+			},
 			Height:           l.Height(),
 			Time:             l.Timestamp,
 			TotalVotingPower: l.TotalVotingPower,
@@ -220,7 +224,7 @@ func (l *LightClientAttackEvidence) Bytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-	bz, err := pbe.Marshal()
+	bz, err := proto.Marshal(pbe)
 	if err != nil {
 		panic(err)
 	}
