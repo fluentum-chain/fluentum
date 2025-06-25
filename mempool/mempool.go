@@ -263,7 +263,10 @@ func (mem *CListMempool) CheckTx(tx types.Tx) error {
 	// }
 
 	// Check if the transaction is valid according to the application
-	reqRes := mem.proxyAppConn.CheckTxAsync(context.Background(), &cmabci.RequestCheckTx{Tx: tx})
+	reqRes, err := mem.proxyAppConn.CheckTxAsync(context.Background(), &cmabci.RequestCheckTx{Tx: tx})
+	if err != nil {
+		return err
+	}
 	<-reqRes.Done()
 	res := reqRes.Response.GetCheckTx()
 	if res.Code != cmabci.CodeTypeOK {
