@@ -7,7 +7,8 @@ import (
 	"math"
 	"sync"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	cmabci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/proxy"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	"github.com/fluentum-chain/fluentum/libs/log"
@@ -35,7 +36,7 @@ const (
 type Mempool interface {
 	// CheckTx executes a new transaction against the application to determine
 	// its validity and whether it should be added to the mempool.
-	CheckTx(tx types.Tx, callback func(*abci.Response), txInfo TxInfo) error
+	CheckTx(tx types.Tx, callback func(*cmabci.Response), txInfo TxInfo) error
 
 	// RemoveTxByKey removes a transaction, identified by its key,
 	// from the mempool.
@@ -70,7 +71,7 @@ type Mempool interface {
 	Update(
 		blockHeight int64,
 		blockTxs types.Txs,
-		deliverTxResponses []*abci.ResponseDeliverTx,
+		deliverTxResponses []*cmabci.ExecTxResult,
 		newPreFn PreCheckFunc,
 		newPostFn PostCheckFunc,
 	) error
@@ -111,7 +112,7 @@ type PreCheckFunc func(types.Tx) error
 // PostCheckFunc is an optional filter executed after CheckTx and rejects
 // transaction if false is returned. An example would be to ensure a
 // transaction doesn't require more gas than available for the block.
-type PostCheckFunc func(types.Tx, *abci.ResponseCheckTx) error
+type PostCheckFunc func(types.Tx, *cmabci.ResponseCheckTx) error
 
 // PreCheckMaxBytes checks that the size of the transaction is smaller or equal
 // to the expected maxBytes.
@@ -130,7 +131,7 @@ func PreCheckMaxBytes(maxBytes int64) PreCheckFunc {
 // PostCheckMaxGas checks that the wanted gas is smaller or equal to the passed
 // maxGas. Returns nil if maxGas is -1.
 func PostCheckMaxGas(maxGas int64) PostCheckFunc {
-	return func(tx types.Tx, res *abci.ResponseCheckTx) error {
+	return func(tx types.Tx, res *cmabci.ResponseCheckTx) error {
 		if maxGas == -1 {
 			return nil
 		}
@@ -262,11 +263,11 @@ func (mem *CListMempool) CheckTx(tx types.Tx) error {
 	// }
 
 	// Check if the transaction is valid according to the application
-	res, err := mem.proxyAppConn.CheckTxSync(abci.RequestCheckTx{Tx: tx})
+	res, err := mem.proxyAppConn.CheckTxSync(cmabci.RequestCheckTx{Tx: tx})
 	if err != nil {
 		return err
 	}
-	if res.Code != abci.CodeTypeOK {
+	if res.Code != cmabci.CodeTypeOK {
 		return fmt.Errorf("transaction rejected: %s", res.Log)
 	}
 
@@ -290,7 +291,7 @@ func (mem *CListMempool) CheckTx(tx types.Tx) error {
 func (mem *CListMempool) Update(
 	height int64,
 	txs []types.Tx,
-	deliverTxResponses []*abci.ResponseDeliverTx,
+	deliverTxResponses []*cmabci.ExecTxResult,
 	preCheck PreCheckFunc,
 	postCheck PostCheckFunc,
 ) error {
@@ -304,7 +305,7 @@ func (mem *CListMempool) Update(
 
 	// Remove transactions that were included in the block
 	for i, tx := range txs {
-		if deliverTxResponses[i].Code == abci.CodeTypeOK {
+		if deliverTxResponses[i].Code == cmabci.CodeTypeOK {
 			// TODO: Implement proper transaction removal
 			// mem.txs.Remove(tx.Key())
 			mem.txsBytes -= int64(len(tx))

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	dbm "github.com/cometbft/cometbft-db"
-	"github.com/gogo/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/pubsub/query"
@@ -165,7 +165,7 @@ func (txi *TxIndex) indexEvents(result *abci.TxResult, hash []byte, store dbm.Ba
 			// index if `index: true` is set
 			compositeTag := fmt.Sprintf("%s.%s", event.Type, string(attr.Key))
 			if attr.GetIndex() {
-				err := store.Set(keyForEvent(compositeTag, attr.Value, result), hash)
+				err := store.Set(keyForEvent(compositeTag, []byte(attr.Value), result), hash)
 				if err != nil {
 					return err
 				}

@@ -579,7 +579,7 @@ func (mem *CListMempool) ReapMaxTxs(max int) types.Txs {
 func (mem *CListMempool) Update(
 	height int64,
 	txs types.Txs,
-	deliverTxResponses []*abci.ResponseDeliverTx,
+	deliverTxResponses []*abci.ExecTxResult,
 	preCheck mempool.PreCheckFunc,
 	postCheck mempool.PostCheckFunc,
 ) error {

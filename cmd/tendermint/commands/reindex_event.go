@@ -153,10 +153,9 @@ func eventReIndex(cmd *cobra.Command, args eventReIndexArgs) error {
 			}
 
 			e := types.EventDataNewBlockHeader{
-				Header:           b.Header,
-				NumTxs:           int64(len(b.Txs)),
-				ResultBeginBlock: *r.BeginBlock,
-				ResultEndBlock:   *r.EndBlock,
+				Header:              b.Header,
+				NumTxs:              int64(len(b.Txs)),
+				ResultFinalizeBlock: *r.FinalizeBlock,
 			}
 
 			var batch *txindex.Batch

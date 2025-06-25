@@ -178,11 +178,22 @@ type ResultBroadcastTx struct {
 }
 
 // CheckTx and DeliverTx results
+// ABCI 2.0: DeliverTx → ExecTxResult
+// Old:
+//
+//	type ResultBroadcastTxCommit struct {
+//	    CheckTx   abci.ResponseCheckTx   `json:"check_tx"`
+//	    DeliverTx abci.ResponseDeliverTx `json:"deliver_tx"`
+//	    Hash      bytes.HexBytes         `json:"hash"`
+//	    Height    int64                  `json:"height"`
+//	}
+//
+// New:
 type ResultBroadcastTxCommit struct {
-	CheckTx   abci.ResponseCheckTx   `json:"check_tx"`
-	DeliverTx abci.ResponseDeliverTx `json:"deliver_tx"`
-	Hash      bytes.HexBytes         `json:"hash"`
-	Height    int64                  `json:"height"`
+	CheckTx abci.ResponseCheckTx `json:"check_tx"`
+	ExecTx  abci.ExecTxResult    `json:"exec_tx"`
+	Hash    bytes.HexBytes       `json:"hash"`
+	Height  int64                `json:"height"`
 }
 
 // ResultCheckTx wraps abci.ResponseCheckTx.
@@ -191,13 +202,25 @@ type ResultCheckTx struct {
 }
 
 // Result of querying for a tx
+// Old:
+//
+//	type ResultTx struct {
+//	    Hash     bytes.HexBytes         `json:"hash"`
+//	    Height   int64                  `json:"height"`
+//	    Index    uint32                 `json:"index"`
+//	    TxResult abci.ResponseDeliverTx `json:"tx_result"`
+//	    Tx       types.Tx               `json:"tx"`
+//	    Proof    types.TxProof          `json:"proof,omitempty"`
+//	}
+//
+// New:
 type ResultTx struct {
-	Hash     bytes.HexBytes         `json:"hash"`
-	Height   int64                  `json:"height"`
-	Index    uint32                 `json:"index"`
-	TxResult abci.ResponseDeliverTx `json:"tx_result"`
-	Tx       types.Tx               `json:"tx"`
-	Proof    types.TxProof          `json:"proof,omitempty"`
+	Hash   bytes.HexBytes    `json:"hash"`
+	Height int64             `json:"height"`
+	Index  uint32            `json:"index"`
+	ExecTx abci.ExecTxResult `json:"exec_tx"`
+	Tx     types.Tx          `json:"tx"`
+	Proof  types.TxProof     `json:"proof,omitempty"`
 }
 
 // Result of searching for txs

@@ -380,7 +380,7 @@ func (txmp *TxMempool) ReapMaxTxs(max int) types.Txs {
 func (txmp *TxMempool) Update(
 	blockHeight int64,
 	blockTxs types.Txs,
-	deliverTxResponses []*abci.ResponseDeliverTx,
+	deliverTxResponses []*abci.ExecTxResult,
 	newPreFn mempool.PreCheckFunc,
 	newPostFn mempool.PostCheckFunc,
 ) error {

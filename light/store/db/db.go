@@ -12,6 +12,7 @@ import (
 	"github.com/fluentum-chain/fluentum/light/store"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -52,7 +53,7 @@ func (s *dbs) SaveLightBlock(lb *types.LightBlock) error {
 		return fmt.Errorf("unable to convert light block to protobuf: %w", err)
 	}
 
-	lbBz, err := lbpb.Marshal()
+	lbBz, err := proto.Marshal(lbpb)
 	if err != nil {
 		return fmt.Errorf("marshaling LightBlock: %w", err)
 	}
@@ -121,7 +122,7 @@ func (s *dbs) LightBlock(height int64) (*types.LightBlock, error) {
 	}
 
 	var lbpb tmproto.LightBlock
-	err = lbpb.Unmarshal(bz)
+	err = proto.Unmarshal(bz, &lbpb)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal error: %w", err)
 	}

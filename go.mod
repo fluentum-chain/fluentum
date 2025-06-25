@@ -64,6 +64,14 @@ require (
 	google.golang.org/protobuf v1.36.6
 )
 
+require (
+	github.com/cosmos/gogoproto v1.7.0 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
+	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241202173237-19429a94021a // indirect
+)
+
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
 
 replace github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0

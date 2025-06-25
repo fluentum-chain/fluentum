@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	"github.com/fluentum-chain/fluentum/libs/fail"
 	"github.com/fluentum-chain/fluentum/libs/log"
@@ -14,6 +13,7 @@ import (
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/proxy"
 	"github.com/fluentum-chain/fluentum/types"
+	tmabci "github.com/tendermint/tendermint/abci/types"
 )
 
 //-----------------------------------------------------------------------------
@@ -212,7 +212,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 func (blockExec *BlockExecutor) Commit(
 	state State,
 	block *types.Block,
-	txResults []*abci.ExecTxResult,
+	txResults []*tmabci.ExecTxResult,
 ) ([]byte, int64, error) {
 	blockExec.mempool.Lock()
 	defer blockExec.mempool.Unlock()
@@ -271,7 +271,7 @@ func execBlockOnProxyApp(
 		byzantineValidators = append(byzantineValidators, ev.ABCI()...)
 	}
 
-	finalizeBlockReq := &abci.RequestFinalizeBlock{
+	finalizeBlockReq := &tmabci.RequestFinalizeBlock{
 		Hash:                block.Hash(),
 		Header:              types.TM2PB.Header(&block.Header),
 		LastCommitInfo:      getBeginBlockValidatorInfo(block, store, initialHeight),
@@ -292,8 +292,8 @@ func execBlockOnProxyApp(
 }
 
 func getBeginBlockValidatorInfo(block *types.Block, store Store,
-	initialHeight int64) abci.LastCommitInfo {
-	voteInfos := make([]abci.VoteInfo, block.LastCommit.Size())
+	initialHeight int64) tmabci.LastCommitInfo {
+	voteInfos := make([]tmabci.VoteInfo, block.LastCommit.Size())
 	// Initial block -> LastCommitInfo.Votes are empty.
 	// Remember that the first LastCommit is intentionally empty, so it makes
 	// sense for LastCommitInfo.Votes to also be empty.
@@ -318,20 +318,20 @@ func getBeginBlockValidatorInfo(block *types.Block, store Store,
 
 		for i, val := range lastValSet.Validators {
 			commitSig := block.LastCommit.Signatures[i]
-			voteInfos[i] = abci.VoteInfo{
+			voteInfos[i] = tmabci.VoteInfo{
 				Validator:       types.TM2PB.Validator(val),
 				SignedLastBlock: !commitSig.Absent(),
 			}
 		}
 	}
 
-	return abci.LastCommitInfo{
+	return tmabci.LastCommitInfo{
 		Round: block.LastCommit.Round,
 		Votes: voteInfos,
 	}
 }
 
-func validateValidatorUpdates(abciUpdates []abci.ValidatorUpdate,
+func validateValidatorUpdates(abciUpdates []tmabci.ValidatorUpdate,
 	params tmproto.ValidatorParams) error {
 	for _, valUpdate := range abciUpdates {
 		if valUpdate.GetPower() < 0 {
@@ -433,18 +433,16 @@ func fireEvents(
 	validatorUpdates []*types.Validator,
 ) {
 	if err := eventBus.PublishEventNewBlock(types.EventDataNewBlock{
-		Block:            block,
-		ResultBeginBlock: *abciResponses.FinalizeBlock.BeginBlock,
-		ResultEndBlock:   *abciResponses.FinalizeBlock.EndBlock,
+		Block:               block,
+		ResultFinalizeBlock: *abciResponses.FinalizeBlock,
 	}); err != nil {
 		logger.Error("failed publishing new block", "err", err)
 	}
 
 	if err := eventBus.PublishEventNewBlockHeader(types.EventDataNewBlockHeader{
-		Header:           block.Header,
-		NumTxs:           int64(len(block.Txs)),
-		ResultBeginBlock: *abciResponses.FinalizeBlock.BeginBlock,
-		ResultEndBlock:   *abciResponses.FinalizeBlock.EndBlock,
+		Header:              block.Header,
+		NumTxs:              int64(len(block.Txs)),
+		ResultFinalizeBlock: *abciResponses.FinalizeBlock,
 	}); err != nil {
 		logger.Error("failed publishing new block header", "err", err)
 	}
@@ -461,7 +459,7 @@ func fireEvents(
 	}
 
 	for i, tx := range block.Data.Txs {
-		if err := eventBus.PublishEventTx(types.EventDataTx{TxResult: abci.TxResult{
+		if err := eventBus.PublishEventTx(types.EventDataTx{TxResult: tmabci.TxResult{
 			Height: block.Height,
 			Index:  uint32(i),
 			Tx:     tx,

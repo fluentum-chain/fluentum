@@ -59,8 +59,8 @@ func BroadcastTxSync(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadcas
 	}
 }
 
-// BroadcastTxCommit returns with the responses from CheckTx and DeliverTx.
-// More: https://docs.tendermint.com/v0.34/rpc/#/Tx/broadcast_tx_commit
+// BroadcastTxCommit returns with the responses from CheckTx and block-level ExecTxResult.
+// ABCI 2.0: DeliverTx → ExecTxResult
 func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadcastTxCommit, error) {
 	subscriber := ctx.RemoteAddr()
 
@@ -105,21 +105,22 @@ func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadc
 		checkTxRes := checkTxResMsg.GetCheckTx()
 		if checkTxRes.Code != abci.CodeTypeOK {
 			return &ctypes.ResultBroadcastTxCommit{
-				CheckTx:   *checkTxRes,
-				DeliverTx: abci.ResponseDeliverTx{},
-				Hash:      tx.Hash(),
+				CheckTx: *checkTxRes,
+				ExecTx:  abci.ExecTxResult{},
+				Hash:    tx.Hash(),
 			}, nil
 		}
 
 		// Wait for the tx to be included in a block or timeout.
 		select {
 		case msg := <-deliverTxSub.Out(): // The tx was included in a block.
-			deliverTxRes := msg.Data().(types.EventDataTx)
+			eventTx := msg.Data().(types.EventDataTx)
+			// In ABCI 2.0, eventTx.Result should be of type ExecTxResult
 			return &ctypes.ResultBroadcastTxCommit{
-				CheckTx:   *checkTxRes,
-				DeliverTx: deliverTxRes.Result,
-				Hash:      tx.Hash(),
-				Height:    deliverTxRes.Height,
+				CheckTx: *checkTxRes,
+				ExecTx:  eventTx.Result, // Should be ExecTxResult
+				Hash:    tx.Hash(),
+				Height:  eventTx.Height,
 			}, nil
 		case <-deliverTxSub.Cancelled():
 			var reason string
@@ -131,17 +132,17 @@ func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadc
 			err = fmt.Errorf("deliverTxSub was cancelled (reason: %s)", reason)
 			env.Logger.Error("Error on broadcastTxCommit", "err", err)
 			return &ctypes.ResultBroadcastTxCommit{
-				CheckTx:   *checkTxRes,
-				DeliverTx: abci.ResponseDeliverTx{},
-				Hash:      tx.Hash(),
+				CheckTx: *checkTxRes,
+				ExecTx:  abci.ExecTxResult{},
+				Hash:    tx.Hash(),
 			}, err
 		case <-time.After(env.Config.TimeoutBroadcastTxCommit):
 			err = errors.New("timed out waiting for tx to be included in a block")
 			env.Logger.Error("Error on broadcastTxCommit", "err", err)
 			return &ctypes.ResultBroadcastTxCommit{
-				CheckTx:   *checkTxRes,
-				DeliverTx: abci.ResponseDeliverTx{},
-				Hash:      tx.Hash(),
+				CheckTx: *checkTxRes,
+				ExecTx:  abci.ExecTxResult{},
+				Hash:    tx.Hash(),
 			}, err
 		}
 	}

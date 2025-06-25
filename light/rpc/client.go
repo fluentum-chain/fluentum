@@ -8,9 +8,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-
 	abci "github.com/cometbft/cometbft/abci/types"
+	localabci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
@@ -143,7 +142,7 @@ func (c *Client) ABCIQueryWithOptions(ctx context.Context, path string, data tmb
 	resp := res.Response
 
 	// Validate the response.
-	if resp.IsErr() {
+	if resp.Code != 0 {
 		return nil, fmt.Errorf("err response code: %v", resp.Code)
 	}
 	if len(resp.Key) == 0 {
@@ -410,27 +409,15 @@ func (c *Client) BlockResults(ctx context.Context, height *int64) (*ctypes.Resul
 		return nil, err
 	}
 
-	// proto-encode BeginBlock events
-	bbeBytes, err := proto.Marshal(&abci.ResponseBeginBlock{
-		Events: res.BeginBlockEvents,
-	})
-	if err != nil {
-		return nil, err
+	// Convert res.TxsResults (local) to []*abci.ExecTxResult (CometBFT) before passing to types.NewResults
+	convertedTxsResults := make([]*abci.ExecTxResult, len(res.TxsResults))
+	for i, txr := range res.TxsResults {
+		convertedTxsResults[i] = ToCmExecTxResult(txr)
 	}
-
-	// Build a Merkle tree of proto-encoded DeliverTx results and get a hash.
-	results := types.NewResults(res.TxsResults)
-
-	// proto-encode EndBlock events.
-	ebeBytes, err := proto.Marshal(&abci.ResponseEndBlock{
-		Events: res.EndBlockEvents,
-	})
-	if err != nil {
-		return nil, err
-	}
+	results := types.NewResults(convertedTxsResults)
 
 	// Build a Merkle tree out of the above 3 binary slices.
-	rH := merkle.HashFromByteSlices([][]byte{bbeBytes, results.Hash(), ebeBytes})
+	rH := merkle.HashFromByteSlices([][]byte{results.Hash()})
 
 	// Verify block results.
 	if !bytes.Equal(rH, trustedBlock.LastResultsHash) {
@@ -663,4 +650,46 @@ func validateSkipCount(page, perPage int) int {
 	}
 
 	return skipCount
+}
+
+func ToCmExecTxResult(txr *localabci.ExecTxResult) *abci.ExecTxResult {
+	if txr == nil {
+		return nil
+	}
+	return &abci.ExecTxResult{
+		Code:      txr.Code,
+		Data:      txr.Data,
+		Log:       txr.Log,
+		Info:      txr.Info,
+		GasWanted: txr.GasWanted,
+		GasUsed:   txr.GasUsed,
+		Events:    toCmEvents(txr.Events),
+		Codespace: txr.Codespace,
+	}
+}
+
+func toCmEvents(evts []*localabci.Event) []abci.Event {
+	res := make([]abci.Event, len(evts))
+	for i, e := range evts {
+		if e == nil {
+			continue
+		}
+		res[i] = abci.Event{
+			Type:       e.Type,
+			Attributes: toCmEventAttributes(e.Attributes),
+		}
+	}
+	return res
+}
+
+func toCmEventAttributes(attrs []*localabci.EventAttribute) []abci.EventAttribute {
+	res := make([]abci.EventAttribute, len(attrs))
+	for i, a := range attrs {
+		res[i] = abci.EventAttribute{
+			Key:   string(a.Key),
+			Value: string(a.Value),
+			Index: a.Index,
+		}
+	}
+	return res
 }
