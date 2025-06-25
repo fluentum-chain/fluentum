@@ -276,30 +276,6 @@ func (cli *grpcClient) ApplySnapshotChunkAsync(params abci.RequestApplySnapshotC
 	return cli.finishAsyncCall(req, &abci.Response{Value: &abci.Response_ApplySnapshotChunk{ApplySnapshotChunk: res}})
 }
 
-// ExtendVoteAsync implements the ABCI 2.0 method for grpcClient
-func (cli *grpcClient) ExtendVoteAsync(ctx context.Context, req *abci.RequestExtendVote) (*abci.ResponseExtendVote, error) {
-	return &abci.ResponseExtendVote{VoteExtension: []byte("extended")}, nil
-}
-
-// VerifyVoteExtensionSync sends a sync VerifyVoteExtension request
-func (cli *grpcClient) VerifyVoteExtensionSync(req abci.RequestVerifyVoteExtension) (*abci.ResponseVerifyVoteExtension, error) {
-	res, err := cli.client.VerifyVoteExtension(context.Background(), &req)
-	if err != nil {
-		cli.StopForError(err)
-		return nil, err
-	}
-	return res, nil
-}
-
-// VerifyVoteExtensionAsync sends an async VerifyVoteExtension request
-func (cli *grpcClient) VerifyVoteExtensionAsync(req abci.RequestVerifyVoteExtension) *ReqRes {
-	res, err := cli.client.VerifyVoteExtension(context.Background(), &req)
-	if err != nil {
-		cli.StopForError(err)
-	}
-	return cli.finishAsyncCall(abci.ToRequestVerifyVoteExtension(req), &abci.Response{Value: &abci.Response_VerifyVoteExtension{VerifyVoteExtension: res}})
-}
-
 // finishAsyncCall creates a ReqRes for an async call, and immediately populates it
 // with the response. We don't complete it until it's been ordered via the channel.
 func (cli *grpcClient) finishAsyncCall(req *abci.Request, res *abci.Response) *ReqRes {
@@ -307,34 +283,6 @@ func (cli *grpcClient) finishAsyncCall(req *abci.Request, res *abci.Response) *R
 	reqres.Response = res
 	cli.chReqRes <- reqres // use channel for async responses, since they must be ordered
 	return reqres
-}
-
-// finishSyncCall waits for an async call to complete. It is necessary to call all
-// sync calls asynchronously as well, to maintain call and response ordering via
-// the channel, and this method will wait until the async call completes.
-func (cli *grpcClient) finishSyncCall(reqres *ReqRes) *abci.Response {
-	// It's possible that the callback is called twice, since the callback can
-	// be called immediately on SetCallback() in addition to after it has been
-	// set. This is because completing the ReqRes happens in a separate critical
-	// section from the one where the callback is called: there is a race where
-	// SetCallback() is called between completing the ReqRes and dispatching the
-	// callback.
-	//
-	// We also buffer the channel with 1 response, since SetCallback() will be
-	// called synchronously if the reqres is already completed, in which case
-	// it will block on sending to the channel since it hasn't gotten around to
-	// receiving from it yet.
-	//
-	// ReqRes should really handle callback dispatch internally, to guarantee
-	// that it's only called once and avoid the above race conditions.
-	var once sync.Once
-	ch := make(chan *abci.Response, 1)
-	reqres.SetCallback(func(res *abci.Response) {
-		once.Do(func() {
-			ch <- res
-		})
-	})
-	return <-ch
 }
 
 //----------------------------------------
@@ -401,4 +349,32 @@ func (cli *grpcClient) ApplySnapshotChunkSync(
 	params abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error) {
 	reqres := cli.ApplySnapshotChunkAsync(params)
 	return cli.finishSyncCall(reqres).GetApplySnapshotChunk(), cli.Error()
+}
+
+// finishSyncCall waits for an async call to complete. It is necessary to call all
+// sync calls asynchronously as well, to maintain call and response ordering via
+// the channel, and this method will wait until the async call completes.
+func (cli *grpcClient) finishSyncCall(reqres *ReqRes) *abci.Response {
+	// It's possible that the callback is called twice, since the callback can
+	// be called immediately on SetCallback() in addition to after it has been
+	// set. This is because completing the ReqRes happens in a separate critical
+	// section from the one where the callback is called: there is a race where
+	// SetCallback() is called between completing the ReqRes and dispatching the
+	// callback.
+	//
+	// We also buffer the channel with 1 response, since SetCallback() will be
+	// called synchronously if the reqres is already completed, in which case
+	// it will block on sending to the channel since it hasn't gotten around to
+	// receiving from it yet.
+	//
+	// ReqRes should really handle callback dispatch internally, to guarantee
+	// that it's only called once and avoid the above race conditions.
+	var once sync.Once
+	ch := make(chan *abci.Response, 1)
+	reqres.SetCallback(func(res *abci.Response) {
+		once.Do(func() {
+			ch <- res
+		})
+	})
+	return <-ch
 }

@@ -21,6 +21,7 @@ type RequestInitChain = abci.RequestInitChain
 type ResponseInitChain = abci.ResponseInitChain
 type RequestCommit = abci.RequestCommit
 type ResponseCommit = abci.ResponseCommit
+type ResponseDeliverTx = abci.ResponseDeliverTx
 type RequestListSnapshots = abci.RequestListSnapshots
 type ResponseListSnapshots = abci.ResponseListSnapshots
 type RequestOfferSnapshot = abci.RequestOfferSnapshot
@@ -34,6 +35,7 @@ type ResponseEcho = abci.ResponseEcho
 type RequestFlush = abci.RequestFlush
 type ResponseFlush = abci.ResponseFlush
 type ValidatorUpdate = abci.ValidatorUpdate
+type EventAttribute = abci.EventAttribute
 
 // Application is an interface that enables any finite, deterministic state machine
 // to be driven by a blockchain-based replication engine via the ABCI.

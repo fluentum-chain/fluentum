@@ -1,9 +1,9 @@
 package abcicli
 
 import (
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
 
 var _ Client = (*localClient)(nil)
