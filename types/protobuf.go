@@ -7,6 +7,7 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/secp256k1"
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 //-------------------------------------------------------
@@ -33,13 +34,14 @@ var TM2PB = tm2pb{}
 type tm2pb struct{}
 
 func (tm2pb) Header(header *Header) tmproto.Header {
+	lastBlockID := header.LastBlockID.ToProto()
 	return tmproto.Header{
-		Version: header.Version,
-		ChainID: header.ChainID,
+		Version: &header.Version,
+		ChainId: header.ChainID,
 		Height:  header.Height,
-		Time:    header.Time,
+		Time:    timestamppb.New(header.Time),
 
-		LastBlockId: header.LastBlockID.ToProto(),
+		LastBlockId: &lastBlockID,
 
 		LastCommitHash: header.LastCommitHash,
 		DataHash:       header.DataHash,
@@ -63,9 +65,10 @@ func (tm2pb) Validator(val *Validator) abci.Validator {
 }
 
 func (tm2pb) BlockID(blockID BlockID) tmproto.BlockID {
+	partSetHeader := TM2PB.PartSetHeader(blockID.PartSetHeader)
 	return tmproto.BlockID{
 		Hash:          blockID.Hash,
-		PartSetHeader: TM2PB.PartSetHeader(blockID.PartSetHeader),
+		PartSetHeader: &partSetHeader,
 	}
 }
 
@@ -83,7 +86,7 @@ func (tm2pb) ValidatorUpdate(val *Validator) abci.ValidatorUpdate {
 		panic(err)
 	}
 	return abci.ValidatorUpdate{
-		PubKey: pk,
+		PubKey: &pk,
 		Power:  val.VotingPower,
 	}
 }
@@ -103,8 +106,8 @@ func (tm2pb) ConsensusParams(params *tmproto.ConsensusParams) *abci.ConsensusPar
 			MaxBytes: params.Block.MaxBytes,
 			MaxGas:   params.Block.MaxGas,
 		},
-		Evidence:  &params.Evidence,
-		Validator: &params.Validator,
+		Evidence:  params.Evidence,
+		Validator: params.Validator,
 	}
 }
 
@@ -115,7 +118,7 @@ func (tm2pb) NewValidatorUpdate(pubkey crypto.PubKey, power int64) abci.Validato
 		panic(err)
 	}
 	return abci.ValidatorUpdate{
-		PubKey: pubkeyABCI,
+		PubKey: &pubkeyABCI,
 		Power:  power,
 	}
 }
@@ -131,7 +134,7 @@ type pb2tm struct{}
 func (pb2tm) ValidatorUpdates(vals []abci.ValidatorUpdate) ([]*Validator, error) {
 	tmVals := make([]*Validator, len(vals))
 	for i, v := range vals {
-		pub, err := cryptoenc.PubKeyFromProto(v.PubKey)
+		pub, err := cryptoenc.PubKeyFromProto(*v.PubKey)
 		if err != nil {
 			return nil, err
 		}

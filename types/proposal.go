@@ -9,6 +9,7 @@ import (
 	"github.com/fluentum-chain/fluentum/libs/protoio"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -130,7 +131,7 @@ func (p *Proposal) ToProto() *tmproto.Proposal {
 	pb.Height = p.Height
 	pb.Round = p.Round
 	pb.PolRound = p.POLRound
-	pb.Timestamp = p.Timestamp
+	pb.Timestamp = timestamppb.New(p.Timestamp)
 	pb.Signature = p.Signature
 
 	return pb
@@ -155,7 +156,7 @@ func ProposalFromProto(pp *tmproto.Proposal) (*Proposal, error) {
 	p.Height = pp.Height
 	p.Round = pp.Round
 	p.POLRound = pp.PolRound
-	p.Timestamp = pp.Timestamp
+	p.Timestamp = pp.Timestamp.AsTime()
 	p.Signature = pp.Signature
 
 	return p, p.ValidateBasic()

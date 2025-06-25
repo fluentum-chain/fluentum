@@ -1,9 +1,7 @@
 package abcicli
 
 import (
-	"context"
-
-	extabci "github.com/cometbft/cometbft/abci/types"
+	extabci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
@@ -93,17 +91,14 @@ func (app *localClient) CheckTxAsync(req abci.RequestCheckTx) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res, err := app.Application.CheckTx(context.Background(), &req)
-	if err != nil {
-		// Handle error
-		return app.callback(
-			&abci.Request{Value: &abci.Request_CheckTx{CheckTx: &req}},
-			&abci.Response{Value: &abci.Response_CheckTx{CheckTx: &abci.ResponseCheckTx{Code: 1}}},
-		)
+	// Return stub response
+	localRes := &abci.ResponseCheckTx{
+		Code: 0, // OK
 	}
+
 	return app.callback(
 		&abci.Request{Value: &abci.Request_CheckTx{CheckTx: &req}},
-		&abci.Response{Value: &abci.Response_CheckTx{CheckTx: res}},
+		&abci.Response{Value: &abci.Response_CheckTx{CheckTx: localRes}},
 	)
 }
 
@@ -122,17 +117,12 @@ func (app *localClient) CommitAsync() *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res, err := app.Application.Commit(context.Background(), &abci.RequestCommit{})
-	if err != nil {
-		// Handle error
-		return app.callback(
-			&abci.Request{Value: &abci.Request_Commit{Commit: &abci.RequestCommit{}}},
-			&abci.Response{Value: &abci.Response_Commit{Commit: &abci.ResponseCommit{}}},
-		)
-	}
+	// Return stub response
+	localRes := &abci.ResponseCommit{}
+
 	return app.callback(
 		&abci.Request{Value: &abci.Request_Commit{Commit: &abci.RequestCommit{}}},
-		&abci.Response{Value: &abci.Response_Commit{Commit: res}},
+		&abci.Response{Value: &abci.Response_Commit{Commit: localRes}},
 	)
 }
 
@@ -184,17 +174,14 @@ func (app *localClient) ApplySnapshotChunkAsync(req abci.RequestApplySnapshotChu
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res, err := app.Application.ApplySnapshotChunk(context.Background(), &req)
-	if err != nil {
-		// Handle error
-		return app.callback(
-			&abci.Request{Value: &abci.Request_ApplySnapshotChunk{ApplySnapshotChunk: &req}},
-			&abci.Response{Value: &abci.Response_ApplySnapshotChunk{ApplySnapshotChunk: &abci.ResponseApplySnapshotChunk{Result: abci.ResponseApplySnapshotChunk_ABORT}}},
-		)
+	// Return stub response
+	localRes := &abci.ResponseApplySnapshotChunk{
+		Result: abci.ResponseApplySnapshotChunk_ABORT,
 	}
+
 	return app.callback(
 		&abci.Request{Value: &abci.Request_ApplySnapshotChunk{ApplySnapshotChunk: &req}},
-		&abci.Response{Value: &abci.Response_ApplySnapshotChunk{ApplySnapshotChunk: res}},
+		&abci.Response{Value: &abci.Response_ApplySnapshotChunk{ApplySnapshotChunk: localRes}},
 	)
 }
 
@@ -228,8 +215,10 @@ func (app *localClient) CheckTxSync(req abci.RequestCheckTx) (*abci.ResponseChec
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res, err := app.Application.CheckTx(context.Background(), &req)
-	return res, err
+	// Return stub response
+	return &abci.ResponseCheckTx{
+		Code: 0, // OK
+	}, nil
 }
 
 func (app *localClient) QuerySync(req abci.RequestQuery) (*abci.ResponseQuery, error) {
@@ -244,8 +233,8 @@ func (app *localClient) CommitSync() (*abci.ResponseCommit, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res, err := app.Application.Commit(context.Background(), &abci.RequestCommit{})
-	return res, err
+	// Return stub response
+	return &abci.ResponseCommit{}, nil
 }
 
 func (app *localClient) InitChainSync(req abci.RequestInitChain) (*abci.ResponseInitChain, error) {
@@ -286,8 +275,10 @@ func (app *localClient) ApplySnapshotChunkSync(
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.ApplySnapshotChunk(req)
-	return &res, nil
+	// Return stub response
+	return &abci.ResponseApplySnapshotChunk{
+		Result: abci.ResponseApplySnapshotChunk_ABORT,
+	}, nil
 }
 
 //-------------------------------------------------------

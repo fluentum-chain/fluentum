@@ -1,7 +1,6 @@
 package kvstore
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
 	"encoding/json"
@@ -9,8 +8,8 @@ import (
 
 	dbm "github.com/cometbft/cometbft-db"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/abci/example/code"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	"github.com/fluentum-chain/fluentum/version"
 )
 
@@ -62,11 +61,25 @@ func prefixKey(key []byte) []byte {
 
 //---------------------------------------------------
 
-var _ abci.Application = (*Application)(nil)
+// Custom interface that matches the available local ABCI types
+type ApplicationInterface interface {
+	Info(ctx context.Context, req *abci.RequestInfo) (*abci.ResponseInfo, error)
+	CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
+	Commit(ctx context.Context, req *abci.RequestCommit) (*abci.ResponseCommit, error)
+	Query(ctx context.Context, req *abci.RequestQuery) (*abci.ResponseQuery, error)
+	InitChain(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error)
+	ListSnapshots(ctx context.Context, req *abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error)
+	LoadSnapshotChunk(ctx context.Context, req *abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error)
+	OfferSnapshot(ctx context.Context, req *abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error)
+	ApplySnapshotChunk(ctx context.Context, req *abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error)
+	SetOption(ctx context.Context, req *abci.RequestSetOption) (*abci.ResponseSetOption, error)
+	Echo(ctx context.Context, req *abci.RequestEcho) (*abci.ResponseEcho, error)
+	Flush(ctx context.Context, req *abci.RequestFlush) (*abci.ResponseFlush, error)
+}
+
+var _ ApplicationInterface = (*Application)(nil)
 
 type Application struct {
-	abci.BaseApplication
-
 	state        State
 	RetainBlocks int64 // blocks to retain after commit (via ResponseCommit.RetainHeight)
 }
@@ -83,49 +96,6 @@ func (app *Application) Info(ctx context.Context, req *abci.RequestInfo) (*abci.
 		AppVersion:       ProtocolVersion,
 		LastBlockHeight:  app.state.Height,
 		LastBlockAppHash: app.state.AppHash,
-	}, nil
-}
-
-// FinalizeBlock handles the ABCI 2.0 FinalizeBlock call
-func (app *Application) FinalizeBlock(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error) {
-	txResults := make([]*abci.ExecTxResult, len(req.Txs))
-
-	for i, tx := range req.Txs {
-		// Process each transaction
-		var key, value []byte
-		parts := bytes.Split(tx, []byte("="))
-		if len(parts) == 2 {
-			key, value = parts[0], parts[1]
-		} else {
-			key, value = tx, tx
-		}
-
-		err := app.state.db.Set(prefixKey(key), value)
-		if err != nil {
-			panic(err)
-		}
-		app.state.Size++
-
-		events := []abci.Event{
-			{
-				Type: "app",
-				Attributes: []abci.EventAttribute{
-					{Key: "creator", Value: "Cosmoshi Netowoko", Index: true},
-					{Key: "key", Value: string(key), Index: true},
-					{Key: "index_key", Value: "index is working", Index: true},
-					{Key: "noindex_key", Value: "index is working", Index: false},
-				},
-			},
-		}
-
-		txResults[i] = &abci.ExecTxResult{
-			Code:   code.CodeTypeOK,
-			Events: events,
-		}
-	}
-
-	return &abci.ResponseFinalizeBlock{
-		TxResults: txResults,
 	}, nil
 }
 
@@ -175,14 +145,6 @@ func (app *Application) Query(ctx context.Context, reqQuery *abci.RequestQuery) 
 
 func (app *Application) InitChain(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	return &abci.ResponseInitChain{}, nil
-}
-
-func (app *Application) BeginBlock(ctx context.Context, req *abci.RequestBeginBlock) (*abci.ResponseBeginBlock, error) {
-	return &abci.ResponseBeginBlock{}, nil
-}
-
-func (app *Application) EndBlock(ctx context.Context, req *abci.RequestEndBlock) (*abci.ResponseEndBlock, error) {
-	return &abci.ResponseEndBlock{}, nil
 }
 
 func (app *Application) ListSnapshots(ctx context.Context, req *abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error) {

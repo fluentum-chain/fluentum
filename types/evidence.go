@@ -84,7 +84,7 @@ func (dve *DuplicateVoteEvidence) ABCI() []abci.Evidence {
 			Power:   dve.ValidatorPower,
 		},
 		Height:           dve.VoteA.Height,
-		Time:             dve.Timestamp,
+		Time:             timestamppb.New(dve.Timestamp),
 		TotalVotingPower: dve.TotalVotingPower,
 	}}
 }
@@ -213,7 +213,7 @@ func (l *LightClientAttackEvidence) ABCI() []abci.Evidence {
 				Power:   val.VotingPower,
 			},
 			Height:           l.Height(),
-			Time:             l.Timestamp,
+			Time:             timestamppb.New(l.Timestamp),
 			TotalVotingPower: l.TotalVotingPower,
 		}
 	}
