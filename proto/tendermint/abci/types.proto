@@ -345,3 +345,31 @@ service ABCIApplication {
   rpc ApplySnapshotChunk(RequestApplySnapshotChunk)
       returns (ResponseApplySnapshotChunk);
 }
+
+// RequestCommit requests the application to commit to the current state and return the Merkle root hash.
+message RequestCommit {}
+
+// ResponseCommit contains the result of committing the application state.
+message ResponseCommit {
+  bytes data = 2;
+  int64 retain_height = 3;
+}
+
+// ResponseInitChain contains the result of initializing the chain.
+message ResponseInitChain {
+  repeated ValidatorUpdate validators = 1;
+  ConsensusParams consensus_params = 2;
+  bytes app_hash = 3;
+}
+
+// ResponseDeliverTx contains the result of delivering a transaction.
+message ResponseDeliverTx {
+  uint32 code = 1;
+  bytes data = 2;
+  string log = 3;
+  string info = 4;
+  int64 gas_wanted = 5 [json_name = "gas_wanted"];
+  int64 gas_used = 6 [json_name = "gas_used"];
+  repeated Event events = 7 [(gogoproto.nullable) = false, (gogoproto.jsontag) = "events,omitempty"];
+  string codespace = 8;
+}
