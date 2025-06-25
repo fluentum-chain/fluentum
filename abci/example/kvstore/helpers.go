@@ -1,16 +1,26 @@
 package kvstore
 
 import (
-	"github.com/fluentum-chain/fluentum/abci/types"
+	"context"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	pc "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
 )
 
 // RandVal creates one random validator, with a key derived
 // from the input value
-func RandVal(i int) types.ValidatorUpdate {
+func RandVal(i int) abci.ValidatorUpdate {
 	pubkey := tmrand.Bytes(32)
 	power := tmrand.Uint16() + 1
-	v := types.UpdateValidator(pubkey, int64(power), "")
+	v := abci.ValidatorUpdate{
+		PubKey: pc.PublicKey{
+			Sum: &pc.PublicKey_Ed25519{
+				Ed25519: pubkey,
+			},
+		},
+		Power: int64(power),
+	}
 	return v
 }
 
@@ -18,8 +28,8 @@ func RandVal(i int) types.ValidatorUpdate {
 // the application. Note that the keys are deterministically
 // derived from the index in the array, while the power is
 // random (Change this if not desired)
-func RandVals(cnt int) []types.ValidatorUpdate {
-	res := make([]types.ValidatorUpdate, cnt)
+func RandVals(cnt int) []abci.ValidatorUpdate {
+	res := make([]abci.ValidatorUpdate, cnt)
 	for i := 0; i < cnt; i++ {
 		res[i] = RandVal(i)
 	}
@@ -30,7 +40,7 @@ func RandVals(cnt int) []types.ValidatorUpdate {
 // which allows tests to pass and is fine as long as you
 // don't make any tx that modify the validator state
 func InitKVStore(app *PersistentKVStoreApplication) {
-	app.InitChain(types.RequestInitChain{
+	app.InitChain(context.Background(), &abci.RequestInitChain{
 		Validators: RandVals(1),
 	})
 }

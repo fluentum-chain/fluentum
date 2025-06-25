@@ -169,7 +169,13 @@ func (cli *grpcClient) SetResponseCallback(resCb Callback) {
 // but hopefully not :D
 
 func (cli *grpcClient) EchoAsync(msg string) *ReqRes {
-	req := abci.ToRequestEcho(msg)
+	// req := abci.ToRequestEcho(msg)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_Echo{
+			Echo: &abci.RequestEcho{Message: msg},
+		},
+	}
 	res, err := cli.client.Echo(context.Background(), req.GetEcho(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -178,7 +184,13 @@ func (cli *grpcClient) EchoAsync(msg string) *ReqRes {
 }
 
 func (cli *grpcClient) FlushAsync() *ReqRes {
-	req := abci.ToRequestFlush()
+	// req := abci.ToRequestFlush()
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_Flush{
+			Flush: &abci.RequestFlush{},
+		},
+	}
 	res, err := cli.client.Flush(context.Background(), req.GetFlush(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -187,7 +199,13 @@ func (cli *grpcClient) FlushAsync() *ReqRes {
 }
 
 func (cli *grpcClient) InfoAsync(params abci.RequestInfo) *ReqRes {
-	req := abci.ToRequestInfo(params)
+	// req := abci.ToRequestInfo(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_Info{
+			Info: &params,
+		},
+	}
 	res, err := cli.client.Info(context.Background(), req.GetInfo(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -196,7 +214,13 @@ func (cli *grpcClient) InfoAsync(params abci.RequestInfo) *ReqRes {
 }
 
 func (cli *grpcClient) SetOptionAsync(params abci.RequestSetOption) *ReqRes {
-	req := abci.ToRequestSetOption(params)
+	// req := abci.ToRequestSetOption(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_SetOption{
+			SetOption: &params,
+		},
+	}
 	res, err := cli.client.SetOption(context.Background(), req.GetSetOption(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -205,7 +229,13 @@ func (cli *grpcClient) SetOptionAsync(params abci.RequestSetOption) *ReqRes {
 }
 
 func (cli *grpcClient) CheckTxAsync(params abci.RequestCheckTx) *ReqRes {
-	req := abci.ToRequestCheckTx(params)
+	// req := abci.ToRequestCheckTx(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_CheckTx{
+			CheckTx: &params,
+		},
+	}
 	res, err := cli.client.CheckTx(context.Background(), req.GetCheckTx(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -214,7 +244,13 @@ func (cli *grpcClient) CheckTxAsync(params abci.RequestCheckTx) *ReqRes {
 }
 
 func (cli *grpcClient) QueryAsync(params abci.RequestQuery) *ReqRes {
-	req := abci.ToRequestQuery(params)
+	// req := abci.ToRequestQuery(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_Query{
+			Query: &params,
+		},
+	}
 	res, err := cli.client.Query(context.Background(), req.GetQuery(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -223,16 +259,28 @@ func (cli *grpcClient) QueryAsync(params abci.RequestQuery) *ReqRes {
 }
 
 func (cli *grpcClient) CommitAsync() *ReqRes {
-	req := abci.ToRequestCommit()
-	res, err := cli.client.Commit(context.Background(), req.GetCommit(), grpc.WaitForReady(true))
-	if err != nil {
-		cli.StopForError(err)
-	}
-	return cli.finishAsyncCall(req, &abci.Response{Value: &abci.Response_Commit{Commit: res}})
+	// TODO: Fix this when Request_Commit is added to protobuf
+	// req := &abci.Request{
+	// 	Value: &abci.Request_Commit{
+	// 		Commit: &abci.RequestCommit{},
+	// 	},
+	// }
+	// res, err := cli.client.Commit(context.Background(), req.GetCommit(), grpc.WaitForReady(true))
+	// if err != nil {
+	// 	cli.StopForError(err)
+	// }
+	// return cli.finishAsyncCall(req, &abci.Response{Value: &abci.Response_Commit{Commit: res}})
+	return nil
 }
 
 func (cli *grpcClient) InitChainAsync(params abci.RequestInitChain) *ReqRes {
-	req := abci.ToRequestInitChain(params)
+	// req := abci.ToRequestInitChain(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_InitChain{
+			InitChain: &params,
+		},
+	}
 	res, err := cli.client.InitChain(context.Background(), req.GetInitChain(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -241,7 +289,13 @@ func (cli *grpcClient) InitChainAsync(params abci.RequestInitChain) *ReqRes {
 }
 
 func (cli *grpcClient) ListSnapshotsAsync(params abci.RequestListSnapshots) *ReqRes {
-	req := abci.ToRequestListSnapshots(params)
+	// req := abci.ToRequestListSnapshots(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_ListSnapshots{
+			ListSnapshots: &params,
+		},
+	}
 	res, err := cli.client.ListSnapshots(context.Background(), req.GetListSnapshots(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -250,7 +304,13 @@ func (cli *grpcClient) ListSnapshotsAsync(params abci.RequestListSnapshots) *Req
 }
 
 func (cli *grpcClient) OfferSnapshotAsync(params abci.RequestOfferSnapshot) *ReqRes {
-	req := abci.ToRequestOfferSnapshot(params)
+	// req := abci.ToRequestOfferSnapshot(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_OfferSnapshot{
+			OfferSnapshot: &params,
+		},
+	}
 	res, err := cli.client.OfferSnapshot(context.Background(), req.GetOfferSnapshot(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -259,7 +319,13 @@ func (cli *grpcClient) OfferSnapshotAsync(params abci.RequestOfferSnapshot) *Req
 }
 
 func (cli *grpcClient) LoadSnapshotChunkAsync(params abci.RequestLoadSnapshotChunk) *ReqRes {
-	req := abci.ToRequestLoadSnapshotChunk(params)
+	// req := abci.ToRequestLoadSnapshotChunk(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_LoadSnapshotChunk{
+			LoadSnapshotChunk: &params,
+		},
+	}
 	res, err := cli.client.LoadSnapshotChunk(context.Background(), req.GetLoadSnapshotChunk(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -268,7 +334,13 @@ func (cli *grpcClient) LoadSnapshotChunkAsync(params abci.RequestLoadSnapshotChu
 }
 
 func (cli *grpcClient) ApplySnapshotChunkAsync(params abci.RequestApplySnapshotChunk) *ReqRes {
-	req := abci.ToRequestApplySnapshotChunk(params)
+	// req := abci.ToRequestApplySnapshotChunk(params)
+	// TODO: Fix this when protobuf is properly generated
+	req := &abci.Request{
+		Value: &abci.Request_ApplySnapshotChunk{
+			ApplySnapshotChunk: &params,
+		},
+	}
 	res, err := cli.client.ApplySnapshotChunk(context.Background(), req.GetApplySnapshotChunk(), grpc.WaitForReady(true))
 	if err != nil {
 		cli.StopForError(err)
@@ -320,8 +392,10 @@ func (cli *grpcClient) QuerySync(req abci.RequestQuery) (*abci.ResponseQuery, er
 }
 
 func (cli *grpcClient) CommitSync() (*abci.ResponseCommit, error) {
-	reqres := cli.CommitAsync()
-	return cli.finishSyncCall(reqres).GetCommit(), cli.Error()
+	// TODO: Fix this when Request_Commit is added to protobuf
+	// reqres := cli.CommitAsync()
+	// return cli.finishSyncCall(reqres).GetCommit(), cli.Error()
+	return nil, nil
 }
 
 func (cli *grpcClient) InitChainSync(params abci.RequestInitChain) (*abci.ResponseInitChain, error) {

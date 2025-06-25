@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
+
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
@@ -23,11 +25,16 @@ const (
 
 // DefaultConsensusParams returns a default ConsensusParams.
 func DefaultConsensusParams() *tmproto.ConsensusParams {
+	blockParams := DefaultBlockParams()
+	evidenceParams := DefaultEvidenceParams()
+	validatorParams := DefaultValidatorParams()
+	versionParams := DefaultVersionParams()
+
 	return &tmproto.ConsensusParams{
-		Block:     DefaultBlockParams(),
-		Evidence:  DefaultEvidenceParams(),
-		Validator: DefaultValidatorParams(),
-		Version:   DefaultVersionParams(),
+		Block:     &blockParams,
+		Evidence:  &evidenceParams,
+		Validator: &validatorParams,
+		Version:   &versionParams,
 	}
 }
 
@@ -142,7 +149,7 @@ func HashConsensusParams(params tmproto.ConsensusParams) []byte {
 		BlockMaxGas:   params.Block.MaxGas,
 	}
 
-	bz, err := hp.Marshal()
+	bz, err := proto.Marshal(&hp)
 	if err != nil {
 		panic(err)
 	}

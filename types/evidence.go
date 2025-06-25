@@ -9,13 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
-	"github.com/gogo/protobuf/proto"
 )
 
 // Evidence represents any provable malicious activity by a validator.
@@ -149,7 +151,7 @@ func (dve *DuplicateVoteEvidence) ToProto() *tmproto.DuplicateVoteEvidence {
 		VoteB:            voteB,
 		TotalVotingPower: dve.TotalVotingPower,
 		ValidatorPower:   dve.ValidatorPower,
-		Timestamp:        dve.Timestamp,
+		Timestamp:        timestamppb.New(dve.Timestamp),
 	}
 	return &tp
 }
@@ -175,7 +177,7 @@ func DuplicateVoteEvidenceFromProto(pb *tmproto.DuplicateVoteEvidence) (*Duplica
 		VoteB:            vB,
 		TotalVotingPower: pb.TotalVotingPower,
 		ValidatorPower:   pb.ValidatorPower,
-		Timestamp:        pb.Timestamp,
+		Timestamp:        timestamppb.AsTime(pb.Timestamp),
 	}
 
 	return dve, dve.ValidateBasic()
@@ -391,7 +393,7 @@ func (l *LightClientAttackEvidence) ToProto() (*tmproto.LightClientAttackEvidenc
 		CommonHeight:        l.CommonHeight,
 		ByzantineValidators: byzVals,
 		TotalVotingPower:    l.TotalVotingPower,
-		Timestamp:           l.Timestamp,
+		Timestamp:           timestamppb.New(l.Timestamp),
 	}, nil
 }
 
@@ -420,7 +422,7 @@ func LightClientAttackEvidenceFromProto(lpb *tmproto.LightClientAttackEvidence) 
 		CommonHeight:        lpb.CommonHeight,
 		ByzantineValidators: byzVals,
 		TotalVotingPower:    lpb.TotalVotingPower,
-		Timestamp:           lpb.Timestamp,
+		Timestamp:           timestamppb.AsTime(lpb.Timestamp),
 	}
 
 	return l, l.ValidateBasic()

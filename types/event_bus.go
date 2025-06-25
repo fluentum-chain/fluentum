@@ -135,25 +135,37 @@ func (b *EventBus) PublishEventNewBlock(data EventDataNewBlock) error {
 	// no explicit deadline for publishing events
 	ctx := context.Background()
 
+	// Convert slice of pointers to slice of values
+	events := make([]abci.Event, len(data.Events))
+	for i, event := range data.Events {
+		events[i] = *event
+	}
+
 	// In ABCI 2.0, events are collected from FinalizeBlock response
-	events := b.validateAndStringifyEvents(data.Events, b.Logger.With("block", data.Block.StringShort()))
+	stringifiedEvents := b.validateAndStringifyEvents(events, b.Logger.With("block", data.Block.StringShort()))
 
 	// add predefined new block event
-	events[EventTypeKey] = append(events[EventTypeKey], EventNewBlock)
+	stringifiedEvents[EventTypeKey] = append(stringifiedEvents[EventTypeKey], EventNewBlock)
 
-	return b.pubsub.PublishWithEvents(ctx, data, events)
+	return b.pubsub.PublishWithEvents(ctx, data, stringifiedEvents)
 }
 
 func (b *EventBus) PublishEventNewBlockHeader(data EventDataNewBlockHeader) error {
 	// no explicit deadline for publishing events
 	ctx := context.Background()
 
-	events := b.validateAndStringifyEvents(data.Events, b.Logger.With("header", data.Header))
+	// Convert slice of pointers to slice of values
+	events := make([]abci.Event, len(data.Events))
+	for i, event := range data.Events {
+		events[i] = *event
+	}
+
+	stringifiedEvents := b.validateAndStringifyEvents(events, b.Logger.With("header", data.Header))
 
 	// add predefined new block header event
-	events[EventTypeKey] = append(events[EventTypeKey], EventNewBlockHeader)
+	stringifiedEvents[EventTypeKey] = append(stringifiedEvents[EventTypeKey], EventNewBlockHeader)
 
-	return b.pubsub.PublishWithEvents(ctx, data, events)
+	return b.pubsub.PublishWithEvents(ctx, data, stringifiedEvents)
 }
 
 func (b *EventBus) PublishEventNewEvidence(evidence EventDataNewEvidence) error {

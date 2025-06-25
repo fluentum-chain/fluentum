@@ -141,7 +141,7 @@ func (app *Application) Commit(ctx context.Context, req *abci.RequestCommit) (*a
 	app.state.Height++
 	saveState(app.state)
 
-	resp := &abci.ResponseCommit{Data: appHash}
+	resp := &abci.ResponseCommit{}
 	if app.RetainBlocks > 0 && app.state.Height >= app.RetainBlocks {
 		resp.RetainHeight = app.state.Height - app.RetainBlocks + 1
 	}
@@ -171,4 +171,44 @@ func (app *Application) Query(ctx context.Context, reqQuery *abci.RequestQuery) 
 	} else {
 		return &abci.ResponseQuery{Log: "exists", Value: value, Height: app.state.Height}, nil
 	}
+}
+
+func (app *Application) InitChain(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
+	return &abci.ResponseInitChain{}, nil
+}
+
+func (app *Application) BeginBlock(ctx context.Context, req *abci.RequestBeginBlock) (*abci.ResponseBeginBlock, error) {
+	return &abci.ResponseBeginBlock{}, nil
+}
+
+func (app *Application) EndBlock(ctx context.Context, req *abci.RequestEndBlock) (*abci.ResponseEndBlock, error) {
+	return &abci.ResponseEndBlock{}, nil
+}
+
+func (app *Application) ListSnapshots(ctx context.Context, req *abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error) {
+	return &abci.ResponseListSnapshots{}, nil
+}
+
+func (app *Application) LoadSnapshotChunk(ctx context.Context, req *abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error) {
+	return &abci.ResponseLoadSnapshotChunk{}, nil
+}
+
+func (app *Application) OfferSnapshot(ctx context.Context, req *abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error) {
+	return &abci.ResponseOfferSnapshot{Result: abci.ResponseOfferSnapshot_ABORT}, nil
+}
+
+func (app *Application) ApplySnapshotChunk(ctx context.Context, req *abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error) {
+	return &abci.ResponseApplySnapshotChunk{Result: abci.ResponseApplySnapshotChunk_ABORT}, nil
+}
+
+func (app *Application) SetOption(ctx context.Context, req *abci.RequestSetOption) (*abci.ResponseSetOption, error) {
+	return &abci.ResponseSetOption{}, nil
+}
+
+func (app *Application) Echo(ctx context.Context, req *abci.RequestEcho) (*abci.ResponseEcho, error) {
+	return &abci.ResponseEcho{Message: req.Message}, nil
+}
+
+func (app *Application) Flush(ctx context.Context, req *abci.RequestFlush) (*abci.ResponseFlush, error) {
+	return &abci.ResponseFlush{}, nil
 }
