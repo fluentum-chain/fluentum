@@ -20,6 +20,7 @@ type Client interface {
 	service.Service
 
 	Error() error
+	SetResponseCallback(Callback)
 
 	// Info/Query Connection
 	InfoSync(req abci.RequestInfo) (*abci.ResponseInfo, error)

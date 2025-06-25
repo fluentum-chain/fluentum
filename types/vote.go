@@ -10,7 +10,7 @@ import (
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	"github.com/fluentum-chain/fluentum/libs/protoio"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -124,9 +124,9 @@ func (vote *Vote) String() string {
 
 	var typeString string
 	switch vote.Type {
-	case tmproto.PrevoteType:
+	case PrevoteType:
 		typeString = "Prevote"
-	case tmproto.PrecommitType:
+	case PrecommitType:
 		typeString = "Precommit"
 	default:
 		panic("Unknown vote type")
@@ -213,8 +213,8 @@ func (vote *Vote) ToProto() *tmproto.Vote {
 		Type:             vote.Type,
 		Height:           vote.Height,
 		Round:            vote.Round,
-		BlockID:          vote.BlockId.ToProto(),
-		Timestamp:        timestamp.New(vote.Timestamp.AsTime()),
+		BlockId:          vote.BlockId.ToProto(),
+		Timestamp:        timestamppb.New(vote.Timestamp),
 		ValidatorAddress: vote.ValidatorAddress,
 		ValidatorIndex:   vote.ValidatorIndex,
 		Signature:        vote.Signature,
@@ -228,7 +228,7 @@ func VoteFromProto(pv *tmproto.Vote) (*Vote, error) {
 		return nil, errors.New("nil vote")
 	}
 
-	blockID, err := BlockIDFromProto(&pv.BlockID)
+	blockID, err := BlockIDFromProto(&pv.BlockId)
 	if err != nil {
 		return nil, err
 	}

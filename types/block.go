@@ -798,7 +798,7 @@ func CommitToVoteSet(chainID string, commit *Commit, vals *ValidatorSet) *VoteSe
 			Height:           commit.Height,
 			Round:            commit.Round,
 			Type:             PrecommitType,
-			BlockID:          commitSig.BlockID(commit.BlockID),
+			BlockId:          commitSig.BlockID(commit.BlockID),
 			Timestamp:        commitSig.Timestamp,
 			Signature:        commitSig.Signature,
 		}
@@ -822,7 +822,7 @@ func (commit *Commit) GetVote(valIdx int32) *Vote {
 		Type:             PrecommitType,
 		Height:           commit.Height,
 		Round:            commit.Round,
-		BlockID:          commitSig.BlockID(commit.BlockID),
+		BlockId:          commitSig.BlockID(commit.BlockID),
 		Timestamp:        commitSig.Timestamp,
 		ValidatorAddress: commitSig.ValidatorAddress,
 		ValidatorIndex:   valIdx,

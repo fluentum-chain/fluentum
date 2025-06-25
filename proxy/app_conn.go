@@ -1,10 +1,8 @@
 package proxy
 
 import (
-	"context"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 	abcicli "github.com/fluentum-chain/fluentum/abci/client"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
 
 //go:generate ../scripts/mockery_generate.sh AppConnConsensus|AppConnMempool|AppConnQuery|AppConnSnapshot
@@ -16,17 +14,16 @@ type AppConnConsensus interface {
 	SetResponseCallback(abcicli.Callback)
 	Error() error
 
-	InitChainSync(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error)
-	FinalizeBlockSync(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error)
-	CommitSync(ctx context.Context) (*abci.ResponseCommit, error)
+	InitChainSync(req abci.RequestInitChain) (*abci.ResponseInitChain, error)
+	CommitSync() (*abci.ResponseCommit, error)
 }
 
 type AppConnMempool interface {
 	SetResponseCallback(abcicli.Callback)
 	Error() error
 
-	CheckTxAsync(abci.RequestCheckTx) *abcicli.ReqRes
-	CheckTxSync(abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
+	CheckTxAsync(req abci.RequestCheckTx) *abcicli.ReqRes
+	CheckTxSync(req abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
 
 	FlushAsync() *abcicli.ReqRes
 	FlushSync() error
@@ -36,8 +33,8 @@ type AppConnQuery interface {
 	Error() error
 
 	EchoSync(string) (*abci.ResponseEcho, error)
-	InfoSync(abci.RequestInfo) (*abci.ResponseInfo, error)
-	QuerySync(abci.RequestQuery) (*abci.ResponseQuery, error)
+	InfoSync(req abci.RequestInfo) (*abci.ResponseInfo, error)
+	QuerySync(req abci.RequestQuery) (*abci.ResponseQuery, error)
 
 	//	SetOptionSync(key string, value string) (res types.Result)
 }
@@ -45,10 +42,10 @@ type AppConnQuery interface {
 type AppConnSnapshot interface {
 	Error() error
 
-	ListSnapshotsSync(abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error)
-	OfferSnapshotSync(abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error)
-	LoadSnapshotChunkSync(abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error)
-	ApplySnapshotChunkSync(abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error)
+	ListSnapshotsSync(req abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error)
+	OfferSnapshotSync(req abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error)
+	LoadSnapshotChunkSync(req abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error)
+	ApplySnapshotChunkSync(req abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error)
 }
 
 //-----------------------------------------------------------------------------------------
@@ -72,16 +69,12 @@ func (app *appConnConsensus) Error() error {
 	return app.appConn.Error()
 }
 
-func (app *appConnConsensus) InitChainSync(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
-	return app.appConn.InitChainSync(ctx, req)
+func (app *appConnConsensus) InitChainSync(req abci.RequestInitChain) (*abci.ResponseInitChain, error) {
+	return app.appConn.InitChainSync(req)
 }
 
-func (app *appConnConsensus) FinalizeBlockSync(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error) {
-	return app.appConn.FinalizeBlockSync(ctx, req)
-}
-
-func (app *appConnConsensus) CommitSync(ctx context.Context) (*abci.ResponseCommit, error) {
-	return app.appConn.CommitSync(ctx)
+func (app *appConnConsensus) CommitSync() (*abci.ResponseCommit, error) {
+	return app.appConn.CommitSync()
 }
 
 //------------------------------------------------
