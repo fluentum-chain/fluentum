@@ -12,7 +12,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	pc "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/abci/example/code"
-	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
 	"github.com/fluentum-chain/fluentum/abci/types"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	"github.com/fluentum-chain/fluentum/libs/log"
