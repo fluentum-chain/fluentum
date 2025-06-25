@@ -23,7 +23,8 @@ func (v ValidatorUpdates) Len() int {
 
 // XXX: doesn't distinguish same validator with different power
 func (v ValidatorUpdates) Less(i, j int) bool {
-	return v[i].PubKey.Compare(v[j].PubKey) <= 0
+	// Compare by power since protobuf types don't have Compare method
+	return v[i].Power <= v[j].Power
 }
 
 func (v ValidatorUpdates) Swap(i, j int) {

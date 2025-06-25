@@ -24,9 +24,10 @@ func CanonicalizeBlockID(bid tmproto.BlockID) *tmproto.CanonicalBlockID {
 	if rbid == nil || rbid.IsZero() {
 		cbid = nil
 	} else {
+		partSetHeader := CanonicalizePartSetHeader(*bid.PartSetHeader)
 		cbid = &tmproto.CanonicalBlockID{
 			Hash:          bid.Hash,
-			PartSetHeader: CanonicalizePartSetHeader(bid.PartSetHeader),
+			PartSetHeader: &partSetHeader,
 		}
 	}
 
@@ -40,27 +41,37 @@ func CanonicalizePartSetHeader(psh tmproto.PartSetHeader) tmproto.CanonicalPartS
 
 // CanonicalizeVote transforms the given Proposal to a CanonicalProposal.
 func CanonicalizeProposal(chainID string, proposal *tmproto.Proposal) tmproto.CanonicalProposal {
+	var blockID *tmproto.CanonicalBlockID
+	if proposal.BlockId != nil {
+		blockID = CanonicalizeBlockID(*proposal.BlockId)
+	}
+
 	return tmproto.CanonicalProposal{
-		Type:      tmproto.ProposalType,
+		Type:      tmproto.SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL,
 		Height:    proposal.Height,       // encoded as sfixed64
 		Round:     int64(proposal.Round), // encoded as sfixed64
-		POLRound:  int64(proposal.PolRound),
-		BlockID:   CanonicalizeBlockID(proposal.BlockID),
+		PolRound:  int64(proposal.PolRound),
+		BlockId:   blockID,
 		Timestamp: proposal.Timestamp,
-		ChainID:   chainID,
+		ChainId:   chainID,
 	}
 }
 
 // CanonicalizeVote transforms the given Vote to a CanonicalVote, which does
 // not contain ValidatorIndex and ValidatorAddress fields.
 func CanonicalizeVote(chainID string, vote *tmproto.Vote) tmproto.CanonicalVote {
+	var blockID *tmproto.CanonicalBlockID
+	if vote.BlockId != nil {
+		blockID = CanonicalizeBlockID(*vote.BlockId)
+	}
+
 	return tmproto.CanonicalVote{
 		Type:      vote.Type,
 		Height:    vote.Height,       // encoded as sfixed64
 		Round:     int64(vote.Round), // encoded as sfixed64
-		BlockID:   CanonicalizeBlockID(vote.BlockID),
+		BlockId:   blockID,
 		Timestamp: vote.Timestamp,
-		ChainID:   chainID,
+		ChainId:   chainID,
 	}
 }
 
