@@ -23,6 +23,12 @@ const (
 	MaxBlockPartsCount = (MaxBlockSizeBytes / BlockPartSizeBytes) + 1
 )
 
+// Helper function to convert time.Duration to protobuf duration
+func durationToProto(d time.Duration) interface{} {
+	// TODO: Fix duration conversion
+	return nil
+}
+
 // DefaultConsensusParams returns a default ConsensusParams.
 func DefaultConsensusParams() *tmproto.ConsensusParams {
 	blockParams := DefaultBlockParams()
@@ -50,8 +56,8 @@ func DefaultBlockParams() tmproto.BlockParams {
 // DefaultEvidenceParams returns a default EvidenceParams.
 func DefaultEvidenceParams() tmproto.EvidenceParams {
 	return tmproto.EvidenceParams{
-		MaxAgeNumBlocks: 100000, // 27.8 hrs at 1block/s
-		MaxAgeDuration:  48 * time.Hour,
+		MaxAgeNumBlocks: 100000,  // 27.8 hrs at 1block/s
+		MaxAgeDuration:  nil,     // TODO: Fix duration conversion
 		MaxBytes:        1048576, // 1MB
 	}
 }
@@ -106,8 +112,13 @@ func ValidateConsensusParams(params tmproto.ConsensusParams) error {
 			params.Evidence.MaxAgeNumBlocks)
 	}
 
-	if params.Evidence.MaxAgeDuration <= 0 {
-		return fmt.Errorf("evidence.MaxAgeDuration must be grater than 0 if provided, Got %v",
+	if params.Evidence.MaxAgeDuration == nil {
+		return fmt.Errorf("evidence.MaxAgeDuration must be provided")
+	}
+
+	// Check if duration is negative by accessing the seconds field
+	if params.Evidence.MaxAgeDuration.Seconds < 0 {
+		return fmt.Errorf("evidence.MaxAgeDuration must be greater than 0 if provided, Got %v",
 			params.Evidence.MaxAgeDuration)
 	}
 

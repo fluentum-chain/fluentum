@@ -62,12 +62,13 @@ func (part *Part) ToProto() (*tmproto.Part, error) {
 	if part == nil {
 		return nil, errors.New("nil part")
 	}
+
 	pb := new(tmproto.Part)
 	proof := part.Proof.ToProto()
 
 	pb.Index = part.Index
 	pb.Bytes = part.Bytes
-	pb.Proof = *proof
+	pb.Proof = proof
 
 	return pb, nil
 }
@@ -78,7 +79,7 @@ func PartFromProto(pb *tmproto.Part) (*Part, error) {
 	}
 
 	part := new(Part)
-	proof, err := merkle.ProofFromProto(&pb.Proof)
+	proof, err := merkle.ProofFromProto(pb.Proof)
 	if err != nil {
 		return nil, err
 	}

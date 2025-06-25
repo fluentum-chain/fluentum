@@ -177,7 +177,7 @@ func DuplicateVoteEvidenceFromProto(pb *tmproto.DuplicateVoteEvidence) (*Duplica
 		VoteB:            vB,
 		TotalVotingPower: pb.TotalVotingPower,
 		ValidatorPower:   pb.ValidatorPower,
-		Timestamp:        timestamppb.AsTime(pb.Timestamp),
+		Timestamp:        pb.Timestamp.AsTime(),
 	}
 
 	return dve, dve.ValidateBasic()
@@ -422,7 +422,7 @@ func LightClientAttackEvidenceFromProto(lpb *tmproto.LightClientAttackEvidence) 
 		CommonHeight:        lpb.CommonHeight,
 		ByzantineValidators: byzVals,
 		TotalVotingPower:    lpb.TotalVotingPower,
-		Timestamp:           timestamppb.AsTime(lpb.Timestamp),
+		Timestamp:           lpb.Timestamp.AsTime(),
 	}
 
 	return l, l.ValidateBasic()

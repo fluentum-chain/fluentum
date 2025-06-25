@@ -36,7 +36,7 @@ type Proposal struct {
 // If there is no POLRound, polRound should be -1.
 func NewProposal(height int64, round int32, polRound int32, blockID BlockID) *Proposal {
 	return &Proposal{
-		Type:      tmproto.ProposalType,
+		Type:      tmproto.SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL,
 		Height:    height,
 		Round:     round,
 		BlockID:   blockID,
@@ -47,7 +47,7 @@ func NewProposal(height int64, round int32, polRound int32, blockID BlockID) *Pr
 
 // ValidateBasic performs basic validation.
 func (p *Proposal) ValidateBasic() error {
-	if p.Type != tmproto.ProposalType {
+	if p.Type != tmproto.SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL {
 		return errors.New("invalid Type")
 	}
 	if p.Height < 0 {
@@ -124,7 +124,8 @@ func (p *Proposal) ToProto() *tmproto.Proposal {
 	}
 	pb := new(tmproto.Proposal)
 
-	pb.BlockID = p.BlockID.ToProto()
+	blockID := p.BlockID.ToProto()
+	pb.BlockId = &blockID
 	pb.Type = p.Type
 	pb.Height = p.Height
 	pb.Round = p.Round
@@ -144,7 +145,7 @@ func ProposalFromProto(pp *tmproto.Proposal) (*Proposal, error) {
 
 	p := new(Proposal)
 
-	blockID, err := BlockIDFromProto(&pp.BlockID)
+	blockID, err := BlockIDFromProto(pp.BlockId)
 	if err != nil {
 		return nil, err
 	}

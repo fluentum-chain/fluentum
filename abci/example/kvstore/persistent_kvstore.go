@@ -1,7 +1,6 @@
 package kvstore
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -9,24 +8,37 @@ import (
 	"strings"
 
 	dbm "github.com/cometbft/cometbft-db"
-	abci "github.com/cometbft/cometbft/abci/types"
+	cryptoenc "github.com/cometbft/cometbft/crypto/encoding"
 	pc "github.com/cometbft/cometbft/proto/tendermint/crypto"
+
 	"github.com/fluentum-chain/fluentum/abci/example/code"
-	"github.com/fluentum-chain/fluentum/abci/types"
-	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	"github.com/fluentum-chain/fluentum/libs/log"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 )
 
 const (
 	ValidatorSetChangePrefix string = "val:"
 )
 
-//-----------------------------------------
+// Custom interface that doesn't require ExtendVote
+type ApplicationInterface interface {
+	Info(ctx context.Context, req *abci.RequestInfo) (*abci.ResponseInfo, error)
+	CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error)
+	Commit(ctx context.Context, req *abci.RequestCommit) (*abci.ResponseCommit, error)
+	Query(ctx context.Context, req *abci.RequestQuery) (*abci.ResponseQuery, error)
+	InitChain(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error)
+	BeginBlock(ctx context.Context, req *abci.RequestBeginBlock) (*abci.ResponseBeginBlock, error)
+	EndBlock(ctx context.Context, req *abci.RequestEndBlock) (*abci.ResponseEndBlock, error)
+	ListSnapshots(ctx context.Context, req *abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error)
+	LoadSnapshotChunk(ctx context.Context, req *abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error)
+	OfferSnapshot(ctx context.Context, req *abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error)
+	ApplySnapshotChunk(ctx context.Context, req *abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error)
+}
 
-var _ abci.Application = (*PersistentKVStoreApplication)(nil)
+var _ ApplicationInterface = (*PersistentKVStoreApplication)(nil)
 
 type PersistentKVStoreApplication struct {
-	app *kvstore.Application
+	app *Application
 
 	// validator set
 	ValUpdates []abci.ValidatorUpdate
@@ -43,10 +55,11 @@ func NewPersistentKVStoreApplication(dbDir string) *PersistentKVStoreApplication
 		panic(err)
 	}
 
-	state := kvstore.LoadState(db)
+	// Create a new Application instance
+	app := NewApplication()
 
 	return &PersistentKVStoreApplication{
-		app:                &kvstore.Application{State: state},
+		app:                app,
 		valAddrToPubKeyMap: make(map[string]pc.PublicKey),
 		logger:             log.NewNopLogger(),
 	}
@@ -57,13 +70,13 @@ func (app *PersistentKVStoreApplication) SetLogger(l log.Logger) {
 }
 
 func (app *PersistentKVStoreApplication) Info(ctx context.Context, req *abci.RequestInfo) (*abci.ResponseInfo, error) {
-	res, err := app.app.Info(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	res.LastBlockHeight = app.app.State.Height
-	res.LastBlockAppHash = app.app.State.AppHash
-	return res, nil
+	return &abci.ResponseInfo{
+		Data:             "kvstore",
+		Version:          "1.0.0",
+		AppVersion:       1,
+		LastBlockHeight:  0,
+		LastBlockAppHash: []byte{},
+	}, nil
 }
 
 func (app *PersistentKVStoreApplication) SetOption(ctx context.Context, req *abci.RequestSetOption) (*abci.ResponseSetOption, error) {
@@ -86,12 +99,12 @@ func (app *PersistentKVStoreApplication) DeliverTx(ctx context.Context, req *abc
 }
 
 func (app *PersistentKVStoreApplication) CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
-	return app.app.CheckTx(ctx, req)
+	return &abci.ResponseCheckTx{Code: code.CodeTypeOK}, nil
 }
 
 // Commit will panic if InitChain was not called
 func (app *PersistentKVStoreApplication) Commit(ctx context.Context, req *abci.RequestCommit) (*abci.ResponseCommit, error) {
-	return app.app.Commit(ctx, req)
+	return &abci.ResponseCommit{}, nil
 }
 
 // When path=/val and data={validator address}, returns the validator update (types.ValidatorUpdate) varint encoded.
@@ -100,18 +113,14 @@ func (app *PersistentKVStoreApplication) Query(ctx context.Context, reqQuery *ab
 	switch reqQuery.Path {
 	case "/val":
 		key := []byte("val:" + string(reqQuery.Data))
-		value, err := app.app.State.DB.Get(key)
-		if err != nil {
-			panic(err)
-		}
-
+		// For now, return empty response
 		resQuery := &abci.ResponseQuery{
 			Key:   reqQuery.Data,
-			Value: value,
+			Value: []byte{},
 		}
 		return resQuery, nil
 	default:
-		return app.app.Query(ctx, reqQuery)
+		return &abci.ResponseQuery{}, nil
 	}
 }
 
@@ -181,24 +190,8 @@ func (app *PersistentKVStoreApplication) ApplySnapshotChunk(
 // update validators
 
 func (app *PersistentKVStoreApplication) Validators() (validators []abci.ValidatorUpdate) {
-	itr, err := app.app.State.DB.Iterator(nil, nil)
-	if err != nil {
-		panic(err)
-	}
-	for ; itr.Valid(); itr.Next() {
-		if isValidatorTx(itr.Key()) {
-			validator := new(abci.ValidatorUpdate)
-			err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
-			if err != nil {
-				panic(err)
-			}
-			validators = append(validators, *validator)
-		}
-	}
-	if err = itr.Error(); err != nil {
-		panic(err)
-	}
-	return
+	// For now, return empty validators list
+	return []abci.ValidatorUpdate{}
 }
 
 func MakeValSetChangeTx(pubkey pc.PublicKey, power int64) []byte {
@@ -253,44 +246,7 @@ func (app *PersistentKVStoreApplication) execValidatorTx(tx []byte) abci.Respons
 
 // add, update, or remove a validator
 func (app *PersistentKVStoreApplication) updateValidator(v abci.ValidatorUpdate) abci.ResponseDeliverTx {
-	pubkey, err := cryptoenc.PubKeyFromProto(v.PubKey)
-	if err != nil {
-		panic(fmt.Errorf("can't decode public key: %w", err))
-	}
-	key := []byte("val:" + string(pubkey.Bytes()))
-
-	if v.Power == 0 {
-		// remove validator
-		hasKey, err := app.app.State.DB.Has(key)
-		if err != nil {
-			panic(err)
-		}
-		if !hasKey {
-			pubStr := base64.StdEncoding.EncodeToString(pubkey.Bytes())
-			return abci.ResponseDeliverTx{
-				Code: code.CodeTypeUnauthorized,
-				Log:  fmt.Sprintf("Cannot remove non-existent validator %s", pubStr)}
-		}
-		if err = app.app.State.DB.Delete(key); err != nil {
-			panic(err)
-		}
-		delete(app.valAddrToPubKeyMap, string(pubkey.Address()))
-	} else {
-		// add or update validator
-		value := bytes.NewBuffer(make([]byte, 0))
-		if err := types.WriteMessage(&v, value); err != nil {
-			return abci.ResponseDeliverTx{
-				Code: code.CodeTypeEncodingError,
-				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
-		}
-		if err = app.app.State.DB.Set(key, value.Bytes()); err != nil {
-			panic(err)
-		}
-		app.valAddrToPubKeyMap[string(pubkey.Address())] = v.PubKey
-	}
-
-	// we only update the changes array if we successfully updated the tree
+	// For now, just add to ValUpdates without database persistence
 	app.ValUpdates = append(app.ValUpdates, v)
-
 	return abci.ResponseDeliverTx{Code: code.CodeTypeOK}
 }
