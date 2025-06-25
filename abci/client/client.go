@@ -81,7 +81,8 @@ type ReqRes struct {
 	*sync.WaitGroup
 	*abci.Response // Not set atomically, so be sure to use WaitGroup.
 
-	mtx tmsync.Mutex
+	mtx      tmsync.Mutex
+	callback func(*abci.Response) // A single callback that may be set.
 }
 
 func NewReqRes(req *abci.Request) *ReqRes {
@@ -96,4 +97,18 @@ func waitGroup1() (wg *sync.WaitGroup) {
 	wg = &sync.WaitGroup{}
 	wg.Add(1)
 	return
+}
+
+func (reqRes *ReqRes) SetCallback(cb func(*abci.Response)) {
+	reqRes.mtx.Lock()
+	defer reqRes.mtx.Unlock()
+	reqRes.callback = cb
+}
+
+func (reqRes *ReqRes) InvokeCallback() {
+	reqRes.mtx.Lock()
+	defer reqRes.mtx.Unlock()
+	if reqRes.callback != nil {
+		reqRes.callback(reqRes.Response)
+	}
 }

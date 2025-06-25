@@ -23,6 +23,14 @@ import (
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	tmversion "github.com/fluentum-chain/fluentum/proto/tendermint/version"
 	"github.com/fluentum-chain/fluentum/version"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+// Type aliases for backward compatibility
+const (
+	PrevoteType   = tmproto.SignedMsgType_SIGNED_MSG_TYPE_PREVOTE
+	PrecommitType = tmproto.SignedMsgType_SIGNED_MSG_TYPE_PRECOMMIT
+	ProposalType  = tmproto.SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL
 )
 
 const (
@@ -454,7 +462,7 @@ func (h *Header) Hash() tmbytes.HexBytes {
 	if h == nil || len(h.ValidatorsHash) == 0 {
 		return nil
 	}
-	hbz, err := h.Version.Marshal()
+	hbz, err := proto.Marshal(&h.Version)
 	if err != nil {
 		return nil
 	}
@@ -465,7 +473,7 @@ func (h *Header) Hash() tmbytes.HexBytes {
 	}
 
 	pbbi := h.LastBlockID.ToProto()
-	bzbi, err := pbbi.Marshal()
+	bzbi, err := proto.Marshal(&pbbi)
 	if err != nil {
 		return nil
 	}
@@ -531,12 +539,13 @@ func (h *Header) ToProto() *tmproto.Header {
 		return nil
 	}
 
+	lastBlockID := h.LastBlockID.ToProto()
 	return &tmproto.Header{
 		Version:            &h.Version,
 		ChainId:            h.ChainID,
 		Height:             h.Height,
-		Time:               h.Time,
-		LastBlockId:        h.LastBlockID.ToProto(),
+		Time:               timestamppb.New(h.Time),
+		LastBlockId:        &lastBlockID,
 		ValidatorsHash:     h.ValidatorsHash,
 		NextValidatorsHash: h.NextValidatorsHash,
 		ConsensusHash:      h.ConsensusHash,
@@ -558,15 +567,15 @@ func HeaderFromProto(ph *tmproto.Header) (Header, error) {
 
 	h := new(Header)
 
-	bi, err := BlockIDFromProto(&ph.LastBlockId)
+	bi, err := BlockIDFromProto(ph.LastBlockId)
 	if err != nil {
 		return Header{}, err
 	}
 
-	h.Version = ph.Version
-	h.ChainID = ph.ChainID
+	h.Version = *ph.Version
+	h.ChainID = ph.ChainId
 	h.Height = ph.Height
-	h.Time = ph.Time
+	h.Time = ph.Time.AsTime()
 	h.LastBlockID = *bi
 	h.ValidatorsHash = ph.ValidatorsHash
 	h.NextValidatorsHash = ph.NextValidatorsHash
@@ -777,14 +786,25 @@ func NewCommit(height int64, round int32, blockID BlockID, commitSigs []CommitSi
 // Panics if signatures from the commit can't be added to the voteset.
 // Inverse of VoteSet.MakeCommit().
 func CommitToVoteSet(chainID string, commit *Commit, vals *ValidatorSet) *VoteSet {
-	voteSet := NewVoteSet(chainID, commit.Height, commit.Round, tmproto.PrecommitType, vals)
-	for idx, commitSig := range commit.Signatures {
+	voteSet := NewVoteSet(chainID, commit.Height, commit.Round, PrecommitType, vals)
+	for i, commitSig := range commit.Signatures {
 		if commitSig.Absent() {
 			continue // OK, some precommits can be missing.
 		}
-		added, err := voteSet.AddVote(commit.GetVote(int32(idx)))
-		if !added || err != nil {
-			panic(fmt.Sprintf("Failed to reconstruct LastCommit: %v", err))
+		_, val := vals.GetByIndex(int32(i))
+		vote := &Vote{
+			ValidatorAddress: val.Address,
+			ValidatorIndex:   int32(i),
+			Height:           commit.Height,
+			Round:            commit.Round,
+			Type:             PrecommitType,
+			BlockID:          commitSig.BlockID(commit.BlockID),
+			Timestamp:        commitSig.Timestamp,
+			Signature:        commitSig.Signature,
+		}
+		_, err := voteSet.AddVote(vote)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to reconstruct vote set: %v", err))
 		}
 	}
 	return voteSet
@@ -794,9 +814,12 @@ func CommitToVoteSet(chainID string, commit *Commit, vals *ValidatorSet) *VoteSe
 // Returns nil if the precommit at valIdx is nil.
 // Panics if valIdx >= commit.Size().
 func (commit *Commit) GetVote(valIdx int32) *Vote {
+	if int(valIdx) >= len(commit.Signatures) {
+		return nil
+	}
 	commitSig := commit.Signatures[valIdx]
 	return &Vote{
-		Type:             tmproto.PrecommitType,
+		Type:             PrecommitType,
 		Height:           commit.Height,
 		Round:            commit.Round,
 		BlockID:          commitSig.BlockID(commit.BlockID),
@@ -824,7 +847,7 @@ func (commit *Commit) VoteSignBytes(chainID string, valIdx int32) []byte {
 // Type returns the vote type of the commit, which is always VoteTypePrecommit
 // Implements VoteSetReader.
 func (commit *Commit) Type() byte {
-	return byte(tmproto.PrecommitType)
+	return byte(PrecommitType)
 }
 
 // GetHeight returns height of the commit.
@@ -911,7 +934,7 @@ func (commit *Commit) Hash() tmbytes.HexBytes {
 		bs := make([][]byte, len(commit.Signatures))
 		for i, commitSig := range commit.Signatures {
 			pbcs := commitSig.ToProto()
-			bz, err := pbcs.Marshal()
+			bz, err := proto.Marshal(pbcs)
 			if err != nil {
 				panic(err)
 			}
@@ -954,46 +977,46 @@ func (commit *Commit) ToProto() *tmproto.Commit {
 	}
 
 	c := new(tmproto.Commit)
-	sigs := make([]tmproto.CommitSig, len(commit.Signatures))
-	for i := range commit.Signatures {
-		sigs[i] = *commit.Signatures[i].ToProto()
+	sigs := make([]*tmproto.CommitSig, len(commit.Signatures))
+	for i, sig := range commit.Signatures {
+		sigs[i] = sig.ToProto()
 	}
-	c.Signatures = sigs
 
+	blockID := commit.BlockID.ToProto()
 	c.Height = commit.Height
 	c.Round = commit.Round
-	c.BlockID = commit.BlockID.ToProto()
+	c.BlockId = &blockID
+	c.Signatures = sigs
 
 	return c
 }
 
-// FromProto sets a protobuf Commit to the given pointer.
+// CommitFromProto sets a protobuf Commit to the given pointer.
 // It returns an error if the commit is invalid.
 func CommitFromProto(cp *tmproto.Commit) (*Commit, error) {
 	if cp == nil {
 		return nil, errors.New("nil Commit")
 	}
 
-	var (
-		commit = new(Commit)
-	)
+	commit := new(Commit)
 
-	bi, err := BlockIDFromProto(&cp.BlockID)
+	bi, err := BlockIDFromProto(cp.BlockId)
 	if err != nil {
 		return nil, err
 	}
 
 	sigs := make([]CommitSig, len(cp.Signatures))
-	for i := range cp.Signatures {
-		if err := sigs[i].FromProto(cp.Signatures[i]); err != nil {
+	for i, sig := range cp.Signatures {
+		err := sigs[i].FromProto(*sig)
+		if err != nil {
 			return nil, err
 		}
 	}
-	commit.Signatures = sigs
 
 	commit.Height = cp.Height
 	commit.Round = cp.Round
 	commit.BlockID = *bi
+	commit.Signatures = sigs
 
 	return commit, commit.ValidateBasic()
 }

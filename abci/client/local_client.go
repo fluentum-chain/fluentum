@@ -1,6 +1,7 @@
 package abcicli
 
 import (
+	extabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
@@ -16,7 +17,7 @@ type localClient struct {
 	service.BaseService
 
 	mtx *tmsync.Mutex
-	abci.Application
+	extabci.Application
 	Callback
 }
 
@@ -26,7 +27,7 @@ var _ Client = (*localClient)(nil)
 // methods of the given app.
 //
 // Both Async and Sync methods ignore the given context.Context parameter.
-func NewLocalClient(mtx *tmsync.Mutex, app abci.Application) Client {
+func NewLocalClient(mtx *tmsync.Mutex, app extabci.Application) Client {
 	if mtx == nil {
 		mtx = new(tmsync.Mutex)
 	}
