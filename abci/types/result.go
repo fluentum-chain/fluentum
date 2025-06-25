@@ -2,8 +2,10 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/gogo/protobuf/jsonpb"
+	"github.com/gogo/protobuf/proto"
 )
 
 const (
@@ -11,54 +13,40 @@ const (
 )
 
 // IsOK returns true if Code is OK.
-func (r ResponseCheckTx) IsOK() bool {
-	return r.Code == CodeTypeOK
+func IsOK(code uint32) bool {
+	return code == CodeTypeOK
 }
 
 // IsErr returns true if Code is something other than OK.
-func (r ResponseCheckTx) IsErr() bool {
-	return r.Code != CodeTypeOK
-}
-
-// IsOK returns true if Code is OK.
-func (r ResponseDeliverTx) IsOK() bool {
-	return r.Code == CodeTypeOK
-}
-
-// IsErr returns true if Code is something other than OK.
-func (r ResponseDeliverTx) IsErr() bool {
-	return r.Code != CodeTypeOK
-}
-
-// IsOK returns true if Code is OK.
-func (r ResponseQuery) IsOK() bool {
-	return r.Code == CodeTypeOK
-}
-
-// IsErr returns true if Code is something other than OK.
-func (r ResponseQuery) IsErr() bool {
-	return r.Code != CodeTypeOK
+func IsErr(code uint32) bool {
+	return code != CodeTypeOK
 }
 
 //---------------------------------------------------------------------------
 // JSON marshaling helpers for protobuf types
 
 var (
-	jsonpbMarshaller = jsonpb.Marshaler{
+	jsonMarshaller = jsonpb.Marshaler{
 		EnumsAsInts:  true,
 		EmitDefaults: true,
 	}
-	jsonpbUnmarshaller = jsonpb.Unmarshaler{}
+	jsonUnmarshaller = jsonpb.Unmarshaler{}
 )
 
 // MarshalJSON marshals a protobuf message to JSON
 func MarshalJSON(msg interface{}) ([]byte, error) {
-	s, err := jsonpbMarshaller.MarshalToString(msg)
-	return []byte(s), err
+	if protoMsg, ok := msg.(proto.Message); ok {
+		s, err := jsonMarshaller.MarshalToString(protoMsg)
+		return []byte(s), err
+	}
+	return nil, fmt.Errorf("message does not implement proto.Message")
 }
 
 // UnmarshalJSON unmarshals JSON to a protobuf message
 func UnmarshalJSON(b []byte, msg interface{}) error {
-	reader := bytes.NewBuffer(b)
-	return jsonpbUnmarshaller.Unmarshal(reader, msg)
+	if protoMsg, ok := msg.(proto.Message); ok {
+		reader := bytes.NewBuffer(b)
+		return jsonUnmarshaller.Unmarshal(reader, protoMsg)
+	}
+	return fmt.Errorf("message does not implement proto.Message")
 }

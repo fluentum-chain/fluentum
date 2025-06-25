@@ -31,10 +31,12 @@ func (bm *BlockMeta) ToProto() *tmproto.BlockMeta {
 		return nil
 	}
 
+	blockID := bm.BlockID.ToProto()
+	header := bm.Header.ToProto()
 	pb := &tmproto.BlockMeta{
-		BlockID:   bm.BlockID.ToProto(),
+		BlockId:   &blockID,
 		BlockSize: int64(bm.BlockSize),
-		Header:    *bm.Header.ToProto(),
+		Header:    header,
 		NumTxs:    int64(bm.NumTxs),
 	}
 	return pb
@@ -47,12 +49,12 @@ func BlockMetaFromProto(pb *tmproto.BlockMeta) (*BlockMeta, error) {
 
 	bm := new(BlockMeta)
 
-	bi, err := BlockIDFromProto(&pb.BlockID)
+	bi, err := BlockIDFromProto(pb.BlockId)
 	if err != nil {
 		return nil, err
 	}
 
-	h, err := HeaderFromProto(&pb.Header)
+	h, err := HeaderFromProto(pb.Header)
 	if err != nil {
 		return nil, err
 	}
