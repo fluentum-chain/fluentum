@@ -1,6 +1,8 @@
 package abcicli
 
 import (
+	"context"
+
 	extabci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
@@ -69,10 +71,17 @@ func (app *localClient) InfoAsync(req abci.RequestInfo) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.Info(req)
+	res, err := app.Application.Info(context.Background(), &req)
+	if err != nil {
+		// Handle error
+		return app.callback(
+			&abci.Request{Value: &abci.Request_Info{Info: &req}},
+			&abci.Response{Value: &abci.Response_Info{Info: &abci.ResponseInfo{}}},
+		)
+	}
 	return app.callback(
 		&abci.Request{Value: &abci.Request_Info{Info: &req}},
-		&abci.Response{Value: &abci.Response_Info{Info: &res}},
+		&abci.Response{Value: &abci.Response_Info{Info: res}},
 	)
 }
 
@@ -80,10 +89,17 @@ func (app *localClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.SetOption(req)
+	res, err := app.Application.SetOption(context.Background(), &req)
+	if err != nil {
+		// Handle error
+		return app.callback(
+			&abci.Request{Value: &abci.Request_SetOption{SetOption: &req}},
+			&abci.Response{Value: &abci.Response_SetOption{SetOption: &abci.ResponseSetOption{}}},
+		)
+	}
 	return app.callback(
 		&abci.Request{Value: &abci.Request_SetOption{SetOption: &req}},
-		&abci.Response{Value: &abci.Response_SetOption{SetOption: &res}},
+		&abci.Response{Value: &abci.Response_SetOption{SetOption: res}},
 	)
 }
 
@@ -106,10 +122,17 @@ func (app *localClient) QueryAsync(req abci.RequestQuery) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.Query(req)
+	res, err := app.Application.Query(context.Background(), &req)
+	if err != nil {
+		// Handle error
+		return app.callback(
+			&abci.Request{Value: &abci.Request_Query{Query: &req}},
+			&abci.Response{Value: &abci.Response_Query{Query: &abci.ResponseQuery{}}},
+		)
+	}
 	return app.callback(
 		&abci.Request{Value: &abci.Request_Query{Query: &req}},
-		&abci.Response{Value: &abci.Response_Query{Query: &res}},
+		&abci.Response{Value: &abci.Response_Query{Query: res}},
 	)
 }
 
@@ -118,22 +141,27 @@ func (app *localClient) CommitAsync() *ReqRes {
 	defer app.mtx.Unlock()
 
 	// Return stub response
-	localRes := &abci.ResponseCommit{}
+	req := &abci.Request{}
+	res := &abci.Response{}
 
-	return app.callback(
-		&abci.Request{Value: &abci.Request_Commit{Commit: &abci.RequestCommit{}}},
-		&abci.Response{Value: &abci.Response_Commit{Commit: localRes}},
-	)
+	return app.callback(req, res)
 }
 
 func (app *localClient) InitChainAsync(req abci.RequestInitChain) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.InitChain(req)
+	res, err := app.Application.InitChain(context.Background(), &req)
+	if err != nil {
+		// Handle error
+		return app.callback(
+			&abci.Request{Value: &abci.Request_InitChain{InitChain: &req}},
+			&abci.Response{Value: &abci.Response_InitChain{InitChain: &abci.ResponseInitChain{}}},
+		)
+	}
 	return app.callback(
 		&abci.Request{Value: &abci.Request_InitChain{InitChain: &req}},
-		&abci.Response{Value: &abci.Response_InitChain{InitChain: &res}},
+		&abci.Response{Value: &abci.Response_InitChain{InitChain: res}},
 	)
 }
 
@@ -141,10 +169,17 @@ func (app *localClient) ListSnapshotsAsync(req abci.RequestListSnapshots) *ReqRe
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.ListSnapshots(req)
+	res, err := app.Application.ListSnapshots(context.Background(), &req)
+	if err != nil {
+		// Handle error
+		return app.callback(
+			&abci.Request{Value: &abci.Request_ListSnapshots{ListSnapshots: &req}},
+			&abci.Response{Value: &abci.Response_ListSnapshots{ListSnapshots: &abci.ResponseListSnapshots{}}},
+		)
+	}
 	return app.callback(
 		&abci.Request{Value: &abci.Request_ListSnapshots{ListSnapshots: &req}},
-		&abci.Response{Value: &abci.Response_ListSnapshots{ListSnapshots: &res}},
+		&abci.Response{Value: &abci.Response_ListSnapshots{ListSnapshots: res}},
 	)
 }
 
@@ -152,10 +187,17 @@ func (app *localClient) OfferSnapshotAsync(req abci.RequestOfferSnapshot) *ReqRe
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.OfferSnapshot(req)
+	res, err := app.Application.OfferSnapshot(context.Background(), &req)
+	if err != nil {
+		// Handle error
+		return app.callback(
+			&abci.Request{Value: &abci.Request_OfferSnapshot{OfferSnapshot: &req}},
+			&abci.Response{Value: &abci.Response_OfferSnapshot{OfferSnapshot: &abci.ResponseOfferSnapshot{}}},
+		)
+	}
 	return app.callback(
 		&abci.Request{Value: &abci.Request_OfferSnapshot{OfferSnapshot: &req}},
-		&abci.Response{Value: &abci.Response_OfferSnapshot{OfferSnapshot: &res}},
+		&abci.Response{Value: &abci.Response_OfferSnapshot{OfferSnapshot: res}},
 	)
 }
 
@@ -163,10 +205,17 @@ func (app *localClient) LoadSnapshotChunkAsync(req abci.RequestLoadSnapshotChunk
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.LoadSnapshotChunk(req)
+	res, err := app.Application.LoadSnapshotChunk(context.Background(), &req)
+	if err != nil {
+		// Handle error
+		return app.callback(
+			&abci.Request{Value: &abci.Request_LoadSnapshotChunk{LoadSnapshotChunk: &req}},
+			&abci.Response{Value: &abci.Response_LoadSnapshotChunk{LoadSnapshotChunk: &abci.ResponseLoadSnapshotChunk{}}},
+		)
+	}
 	return app.callback(
 		&abci.Request{Value: &abci.Request_LoadSnapshotChunk{LoadSnapshotChunk: &req}},
-		&abci.Response{Value: &abci.Response_LoadSnapshotChunk{LoadSnapshotChunk: &res}},
+		&abci.Response{Value: &abci.Response_LoadSnapshotChunk{LoadSnapshotChunk: res}},
 	)
 }
 
@@ -199,16 +248,16 @@ func (app *localClient) InfoSync(req abci.RequestInfo) (*abci.ResponseInfo, erro
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.Info(req)
-	return &res, nil
+	res, err := app.Application.Info(context.Background(), &req)
+	return res, err
 }
 
 func (app *localClient) SetOptionSync(req abci.RequestSetOption) (*abci.ResponseSetOption, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.SetOption(req)
-	return &res, nil
+	res, err := app.Application.SetOption(context.Background(), &req)
+	return res, err
 }
 
 func (app *localClient) CheckTxSync(req abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
@@ -225,8 +274,8 @@ func (app *localClient) QuerySync(req abci.RequestQuery) (*abci.ResponseQuery, e
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.Query(req)
-	return &res, nil
+	res, err := app.Application.Query(context.Background(), &req)
+	return res, err
 }
 
 func (app *localClient) CommitSync() (*abci.ResponseCommit, error) {
@@ -241,24 +290,24 @@ func (app *localClient) InitChainSync(req abci.RequestInitChain) (*abci.Response
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.InitChain(req)
-	return &res, nil
+	res, err := app.Application.InitChain(context.Background(), &req)
+	return res, err
 }
 
 func (app *localClient) ListSnapshotsSync(req abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.ListSnapshots(req)
-	return &res, nil
+	res, err := app.Application.ListSnapshots(context.Background(), &req)
+	return res, err
 }
 
 func (app *localClient) OfferSnapshotSync(req abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.OfferSnapshot(req)
-	return &res, nil
+	res, err := app.Application.OfferSnapshot(context.Background(), &req)
+	return res, err
 }
 
 func (app *localClient) LoadSnapshotChunkSync(
@@ -266,8 +315,8 @@ func (app *localClient) LoadSnapshotChunkSync(
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.LoadSnapshotChunk(req)
-	return &res, nil
+	res, err := app.Application.LoadSnapshotChunk(context.Background(), &req)
+	return res, err
 }
 
 func (app *localClient) ApplySnapshotChunkSync(
@@ -286,7 +335,7 @@ func (app *localClient) ApplySnapshotChunkSync(
 func (app *localClient) callback(req *abci.Request, res *abci.Response) *ReqRes {
 	reqRes := NewReqRes(req)
 	reqRes.Response = res
-	reqRes.SetDone()
+	reqRes.WaitGroup.Done()
 	app.Callback(req, res)
 	return reqRes
 }
@@ -294,6 +343,6 @@ func (app *localClient) callback(req *abci.Request, res *abci.Response) *ReqRes 
 func newLocalReqRes(req *abci.Request, res *abci.Response) *ReqRes {
 	reqRes := NewReqRes(req)
 	reqRes.Response = res
-	reqRes.SetDone()
+	reqRes.WaitGroup.Done()
 	return reqRes
 }

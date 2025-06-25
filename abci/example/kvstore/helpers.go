@@ -3,9 +3,9 @@ package kvstore
 import (
 	"context"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	pc "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
+	pc "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 // RandVal creates one random validator, with a key derived
@@ -14,7 +14,7 @@ func RandVal(i int) abci.ValidatorUpdate {
 	pubkey := tmrand.Bytes(32)
 	power := tmrand.Uint16() + 1
 	v := abci.ValidatorUpdate{
-		PubKey: pc.PublicKey{
+		PubKey: &pc.PublicKey{
 			Sum: &pc.PublicKey_Ed25519{
 				Ed25519: pubkey,
 			},

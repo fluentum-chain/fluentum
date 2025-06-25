@@ -10,6 +10,7 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"github.com/golang/protobuf/proto"
 )
 
 // TxKeySize is the size of the transaction key index
@@ -156,5 +157,5 @@ func TxProofFromProto(pb tmproto.TxProof) (TxProof, error) {
 func ComputeProtoSizeForTxs(txs []Tx) int64 {
 	data := Data{Txs: txs}
 	pdData := data.ToProto()
-	return int64(pdData.Size())
+	return int64(proto.Size(&pdData))
 }
