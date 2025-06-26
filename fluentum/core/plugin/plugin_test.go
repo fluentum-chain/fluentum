@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 func TestAIValidatorPlugin(t *testing.T) {

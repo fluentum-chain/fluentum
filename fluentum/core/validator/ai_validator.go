@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fluentum-chain/fluentum/types"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-	"github.com/fluentum-chain/fluentum/fluentum/core/types"
 )
 
 // AIValidator integrates QMoE consensus into Fluentum validator nodes

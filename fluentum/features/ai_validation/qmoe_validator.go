@@ -18,8 +18,8 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/fluentum-chain/fluentum/types"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-	"github.com/fluentum-chain/fluentum/fluentum/core/types"
 )
 
 // QMoEValidator implements AIValidatorPlugin for Quantized Mixture-of-Experts consensus

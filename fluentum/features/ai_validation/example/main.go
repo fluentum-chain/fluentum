@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-	"github.com/fluentum-chain/fluentum/fluentum/core/types"
+	"github.com/fluentum-chain/fluentum/types"
 	"github.com/fluentum-chain/fluentum/fluentum/core/validator"
 )
 

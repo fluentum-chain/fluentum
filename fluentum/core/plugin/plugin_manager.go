@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 	"plugin"
 	"sync"
+	"time"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // PluginManager manages the loading and lifecycle of Fluentum plugins

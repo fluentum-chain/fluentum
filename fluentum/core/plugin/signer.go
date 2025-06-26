@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // SignerPlugin is the interface that all signing plugins must implement
