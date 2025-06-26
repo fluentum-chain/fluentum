@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	dbm "github.com/cometbft/cometbft-db"
+	dbm "github.com/tendermint/tendermint-db"
 	"github.com/gogo/protobuf/proto"
 
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"

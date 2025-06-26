@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"

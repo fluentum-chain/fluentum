@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmcon "github.com/fluentum-chain/fluentum/consensus"
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	"github.com/fluentum-chain/fluentum/libs/log"

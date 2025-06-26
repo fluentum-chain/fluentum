@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	dbm "github.com/cometbft/cometbft-db"
+	dbm "github.com/tendermint/tendermint-db"
 
 	"github.com/fluentum-chain/fluentum/store"
 	"github.com/fluentum-chain/fluentum/test/loadtime/report"

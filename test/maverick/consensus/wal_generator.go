@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	db "github.com/cometbft/cometbft-db"
+	db "github.com/tendermint/tendermint-db"
 
 	"github.com/fluentum-chain/fluentum/abci/example/kvstore"
 	cfg "github.com/fluentum-chain/fluentum/config"

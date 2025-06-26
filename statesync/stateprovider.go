@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	dbm "github.com/cometbft/cometbft-db"
+	dbm "github.com/tendermint/tendermint-db"
 
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"

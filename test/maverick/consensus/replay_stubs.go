@@ -3,7 +3,7 @@ package consensus
 import (
 	"context"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
 	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
