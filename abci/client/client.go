@@ -3,51 +3,40 @@ package client
 import (
 	"context"
 	"fmt"
-	"sync"
 
-	"github.com/cometbft/cometbft/abci/types"
-	"github.com/fluentum-chain/fluentum/libs/service"
-	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
-	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-const (
-	dialRetryIntervalSeconds = 3
-	echoRetryIntervalSeconds = 1
-)
-
-// Client matches CometBFT's v0.38.17 ABCI 2.0 specification
+// Client matches CometBFT's ABCI 2.0 specification
 type Client interface {
-	service.Service
-
 	// Mempool methods
-	CheckTx(context.Context, *types.RequestCheckTx) (*types.ResponseCheckTx, error)
-	CheckTxAsync(context.Context, *types.RequestCheckTx) *ReqRes
+	CheckTx(context.Context, *cmtabci.RequestCheckTx) (*cmtabci.ResponseCheckTx, error)
+	CheckTxAsync(context.Context, *cmtabci.RequestCheckTx) *ReqRes
 	Flush(context.Context) error
 
 	// Consensus methods
-	FinalizeBlock(context.Context, *types.RequestFinalizeBlock) (*types.ResponseFinalizeBlock, error)
-	PrepareProposal(context.Context, *types.RequestPrepareProposal) (*types.ResponsePrepareProposal, error)
-	ProcessProposal(context.Context, *types.RequestProcessProposal) (*types.ResponseProcessProposal, error)
-	ExtendVote(context.Context, *types.RequestExtendVote) (*types.ResponseExtendVote, error)
-	VerifyVoteExtension(context.Context, *types.RequestVerifyVoteExtension) (*types.ResponseVerifyVoteExtension, error)
-	Commit(context.Context, *types.RequestCommit) (*types.ResponseCommit, error)
-	InitChain(context.Context, *types.RequestInitChain) (*types.ResponseInitChain, error)
+	FinalizeBlock(context.Context, *cmtabci.RequestFinalizeBlock) (*cmtabci.ResponseFinalizeBlock, error)
+	PrepareProposal(context.Context, *cmtabci.RequestPrepareProposal) (*cmtabci.ResponsePrepareProposal, error)
+	ProcessProposal(context.Context, *cmtabci.RequestProcessProposal) (*cmtabci.ResponseProcessProposal, error)
+	ExtendVote(context.Context, *cmtabci.RequestExtendVote) (*cmtabci.ResponseExtendVote, error)
+	VerifyVoteExtension(context.Context, *cmtabci.RequestVerifyVoteExtension) (*cmtabci.ResponseVerifyVoteExtension, error)
+	Commit(context.Context, *cmtabci.RequestCommit) (*cmtabci.ResponseCommit, error)
+	InitChain(context.Context, *cmtabci.RequestInitChain) (*cmtabci.ResponseInitChain, error)
 
 	// Query methods
-	Info(context.Context, *types.RequestInfo) (*types.ResponseInfo, error)
-	Query(context.Context, *types.RequestQuery) (*types.ResponseQuery, error)
+	Info(context.Context, *cmtabci.RequestInfo) (*cmtabci.ResponseInfo, error)
+	Query(context.Context, *cmtabci.RequestQuery) (*cmtabci.ResponseQuery, error)
 
 	// Snapshot methods
-	ListSnapshots(context.Context, *types.RequestListSnapshots) (*types.ResponseListSnapshots, error)
-	OfferSnapshot(context.Context, *types.RequestOfferSnapshot) (*types.ResponseOfferSnapshot, error)
-	LoadSnapshotChunk(context.Context, *types.RequestLoadSnapshotChunk) (*types.ResponseLoadSnapshotChunk, error)
-	ApplySnapshotChunk(context.Context, *types.RequestApplySnapshotChunk) (*types.ResponseApplySnapshotChunk, error)
+	ListSnapshots(context.Context, *cmtabci.RequestListSnapshots) (*cmtabci.ResponseListSnapshots, error)
+	OfferSnapshot(context.Context, *cmtabci.RequestOfferSnapshot) (*cmtabci.ResponseOfferSnapshot, error)
+	LoadSnapshotChunk(context.Context, *cmtabci.RequestLoadSnapshotChunk) (*cmtabci.ResponseLoadSnapshotChunk, error)
+	ApplySnapshotChunk(context.Context, *cmtabci.RequestApplySnapshotChunk) (*cmtabci.ResponseApplySnapshotChunk, error)
 
 	// Common
 	Error() error
-	SetResponseCallback(cb Callback)
-	SetLogger(logger Logger)
+	SetResponseCallback(Callback)
+	SetLogger(Logger)
 }
 
 //----------------------------------------
@@ -64,41 +53,4 @@ func NewClient(addr, transport string, mustConnect bool) (client Client, err err
 		err = fmt.Errorf("unknown abci transport %s", transport)
 	}
 	return
-}
-
-type ReqRes struct {
-	*abci.Request
-	*sync.WaitGroup
-	*abci.Response // Not set atomically, so be sure to use WaitGroup.
-
-	mtx      tmsync.Mutex
-	callback func(*abci.Response) // A single callback that may be set.
-}
-
-func NewReqRes(req *abci.Request) *ReqRes {
-	return &ReqRes{
-		Request:   req,
-		WaitGroup: waitGroup1(),
-		Response:  nil,
-	}
-}
-
-func waitGroup1() (wg *sync.WaitGroup) {
-	wg = &sync.WaitGroup{}
-	wg.Add(1)
-	return
-}
-
-func (reqRes *ReqRes) SetCallback(cb func(*abci.Response)) {
-	reqRes.mtx.Lock()
-	defer reqRes.mtx.Unlock()
-	reqRes.callback = cb
-}
-
-func (reqRes *ReqRes) InvokeCallback() {
-	reqRes.mtx.Lock()
-	defer reqRes.mtx.Unlock()
-	if reqRes.callback != nil {
-		reqRes.callback(reqRes.Response)
-	}
 }
