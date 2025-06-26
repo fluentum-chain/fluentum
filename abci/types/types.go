@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	cometbftabci "github.com/cometbft/cometbft/abci/types"
+	cometbftcrypto "github.com/cometbft/cometbft/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 )
 
@@ -48,14 +49,14 @@ type BlockParams = cometbftabci.BlockParams
 type EvidenceParams = cometbftabci.EvidenceParams
 type ValidatorParams = cometbftabci.ValidatorParams
 type VersionParams = cometbftabci.VersionParams
-type Header = cometbftabci.Header
-type BlockID = cometbftabci.BlockID
-type PartSetHeader = cometbftabci.PartSetHeader
+type Header = cometbfttypes.Header
+type BlockID = cometbfttypes.BlockID
+type PartSetHeader = cometbfttypes.PartSetHeader
 
 // Validator types
 type Validator = cometbftabci.Validator
 type ValidatorUpdate = cometbftabci.ValidatorUpdate
-type PubKey = cometbftabci.PubKey
+type PubKey = cometbftcrypto.PubKey
 
 // Transaction and execution types
 type ExecTxResult = cometbftabci.ExecTxResult
@@ -123,7 +124,7 @@ type CometBFTPartSetHeader = cometbfttypes.PartSetHeader
 // Helper functions for type conversions
 
 // ToCometBFTHeader converts our Header to CometBFT Header
-func ToCometBFTHeader(h Header) CometBFTHeader {
+func ToCometBFTHeader(h Header) cometbfttypes.Header {
 	return cometbfttypes.Header{
 		Version:            h.Version,
 		ChainID:            h.ChainID,
@@ -143,7 +144,7 @@ func ToCometBFTHeader(h Header) CometBFTHeader {
 }
 
 // FromCometBFTHeader converts CometBFT Header to our Header
-func FromCometBFTHeader(h CometBFTHeader) Header {
+func FromCometBFTHeader(h cometbfttypes.Header) Header {
 	return Header{
 		Version:            h.Version,
 		ChainID:            h.ChainID,
@@ -163,7 +164,7 @@ func FromCometBFTHeader(h CometBFTHeader) Header {
 }
 
 // ToCometBFTBlockID converts our BlockID to CometBFT BlockID
-func ToCometBFTBlockID(b BlockID) CometBFTBlockID {
+func ToCometBFTBlockID(b BlockID) cometbfttypes.BlockID {
 	return cometbfttypes.BlockID{
 		Hash:          b.Hash,
 		PartSetHeader: ToCometBFTPartSetHeader(b.PartSetHeader),
@@ -171,7 +172,7 @@ func ToCometBFTBlockID(b BlockID) CometBFTBlockID {
 }
 
 // FromCometBFTBlockID converts CometBFT BlockID to our BlockID
-func FromCometBFTBlockID(b CometBFTBlockID) BlockID {
+func FromCometBFTBlockID(b cometbfttypes.BlockID) BlockID {
 	return BlockID{
 		Hash:          b.Hash,
 		PartSetHeader: FromCometBFTPartSetHeader(b.PartSetHeader),
@@ -179,7 +180,7 @@ func FromCometBFTBlockID(b CometBFTBlockID) BlockID {
 }
 
 // ToCometBFTPartSetHeader converts our PartSetHeader to CometBFT PartSetHeader
-func ToCometBFTPartSetHeader(p PartSetHeader) CometBFTPartSetHeader {
+func ToCometBFTPartSetHeader(p PartSetHeader) cometbfttypes.PartSetHeader {
 	return cometbfttypes.PartSetHeader{
 		Total: p.Total,
 		Hash:  p.Hash,
@@ -187,7 +188,7 @@ func ToCometBFTPartSetHeader(p PartSetHeader) CometBFTPartSetHeader {
 }
 
 // FromCometBFTPartSetHeader converts CometBFT PartSetHeader to our PartSetHeader
-func FromCometBFTPartSetHeader(p CometBFTPartSetHeader) PartSetHeader {
+func FromCometBFTPartSetHeader(p cometbfttypes.PartSetHeader) PartSetHeader {
 	return PartSetHeader{
 		Total: p.Total,
 		Hash:  p.Hash,
@@ -222,7 +223,7 @@ func AddAttribute(event *Event, key, value string, index bool) {
 	})
 }
 
-// NewExecTxResult creates a new transaction execution result
+// NewExecTxResult creates a new ExecTxResult
 func NewExecTxResult(code uint32, data []byte, log string) *ExecTxResult {
 	return &ExecTxResult{
 		Code: code,
@@ -231,7 +232,7 @@ func NewExecTxResult(code uint32, data []byte, log string) *ExecTxResult {
 	}
 }
 
-// NewResponseCheckTx creates a new CheckTx response
+// NewResponseCheckTx creates a new ResponseCheckTx
 func NewResponseCheckTx(code uint32, data []byte, log string, gasWanted, gasUsed int64) *ResponseCheckTx {
 	return &ResponseCheckTx{
 		Code:      code,
@@ -242,7 +243,7 @@ func NewResponseCheckTx(code uint32, data []byte, log string, gasWanted, gasUsed
 	}
 }
 
-// NewResponseQuery creates a new Query response
+// NewResponseQuery creates a new ResponseQuery
 func NewResponseQuery(code uint32, value []byte, log string) *ResponseQuery {
 	return &ResponseQuery{
 		Code:  code,
@@ -251,7 +252,7 @@ func NewResponseQuery(code uint32, value []byte, log string) *ResponseQuery {
 	}
 }
 
-// Application interface matches CometBFT's expected interface exactly
+// Application interface defines the ABCI application methods
 type Application interface {
 	// Info/Query Connection
 	Info(context.Context, *RequestInfo) (*ResponseInfo, error)
