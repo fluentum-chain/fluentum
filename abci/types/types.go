@@ -2,7 +2,7 @@ package types
 
 import (
 	"context"
-	cometbftabciv1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	cometbftabci "github.com/cometbft/cometbft/abci/types"
 	cometbftcrypto "github.com/cometbft/cometbft/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 )
@@ -10,99 +10,99 @@ import (
 // ABCI Types - Direct aliases to CometBFT v0.38.17 types for full compatibility
 
 // Request types
-type Request = cometbftabciv1.Request
-type CheckTxRequest = cometbftabciv1.CheckTxRequest
-type FinalizeBlockRequest = cometbftabciv1.FinalizeBlockRequest
-type CommitRequest = cometbftabciv1.CommitRequest
-type InfoRequest = cometbftabciv1.InfoRequest
-type QueryRequest = cometbftabciv1.QueryRequest
-type InitChainRequest = cometbftabciv1.InitChainRequest
-type PrepareProposalRequest = cometbftabciv1.PrepareProposalRequest
-type ProcessProposalRequest = cometbftabciv1.ProcessProposalRequest
-type ExtendVoteRequest = cometbftabciv1.ExtendVoteRequest
-type VerifyVoteExtensionRequest = cometbftabciv1.VerifyVoteExtensionRequest
-type ListSnapshotsRequest = cometbftabciv1.ListSnapshotsRequest
-type OfferSnapshotRequest = cometbftabciv1.OfferSnapshotRequest
-type LoadSnapshotChunkRequest = cometbftabciv1.LoadSnapshotChunkRequest
-type ApplySnapshotChunkRequest = cometbftabciv1.ApplySnapshotChunkRequest
+type Request = cometbftabci.Request
+type CheckTxRequest = cometbftabci.RequestCheckTx
+type FinalizeBlockRequest = cometbftabci.RequestFinalizeBlock
+type CommitRequest = cometbftabci.RequestCommit
+type InfoRequest = cometbftabci.RequestInfo
+type QueryRequest = cometbftabci.RequestQuery
+type InitChainRequest = cometbftabci.RequestInitChain
+type PrepareProposalRequest = cometbftabci.RequestPrepareProposal
+type ProcessProposalRequest = cometbftabci.RequestProcessProposal
+type ExtendVoteRequest = cometbftabci.RequestExtendVote
+type VerifyVoteExtensionRequest = cometbftabci.RequestVerifyVoteExtension
+type ListSnapshotsRequest = cometbftabci.RequestListSnapshots
+type OfferSnapshotRequest = cometbftabci.RequestOfferSnapshot
+type LoadSnapshotChunkRequest = cometbftabci.RequestLoadSnapshotChunk
+type ApplySnapshotChunkRequest = cometbftabci.RequestApplySnapshotChunk
 
 // Response types
-type Response = cometbftabciv1.Response
-type CheckTxResponse = cometbftabciv1.CheckTxResponse
-type FinalizeBlockResponse = cometbftabciv1.FinalizeBlockResponse
-type CommitResponse = cometbftabciv1.CommitResponse
-type InfoResponse = cometbftabciv1.InfoResponse
-type QueryResponse = cometbftabciv1.QueryResponse
-type InitChainResponse = cometbftabciv1.InitChainResponse
-type PrepareProposalResponse = cometbftabciv1.PrepareProposalResponse
-type ProcessProposalResponse = cometbftabciv1.ProcessProposalResponse
-type ExtendVoteResponse = cometbftabciv1.ExtendVoteResponse
-type VerifyVoteExtensionResponse = cometbftabciv1.VerifyVoteExtensionResponse
-type ListSnapshotsResponse = cometbftabciv1.ListSnapshotsResponse
-type OfferSnapshotResponse = cometbftabciv1.OfferSnapshotResponse
-type LoadSnapshotChunkResponse = cometbftabciv1.LoadSnapshotChunkResponse
-type ApplySnapshotChunkResponse = cometbftabciv1.ApplySnapshotChunkResponse
+type Response = cometbftabci.Response
+type CheckTxResponse = cometbftabci.ResponseCheckTx
+type FinalizeBlockResponse = cometbftabci.ResponseFinalizeBlock
+type CommitResponse = cometbftabci.ResponseCommit
+type InfoResponse = cometbftabci.ResponseInfo
+type QueryResponse = cometbftabci.ResponseQuery
+type InitChainResponse = cometbftabci.ResponseInitChain
+type PrepareProposalResponse = cometbftabci.ResponsePrepareProposal
+type ProcessProposalResponse = cometbftabci.ResponseProcessProposal
+type ExtendVoteResponse = cometbftabci.ResponseExtendVote
+type VerifyVoteExtensionResponse = cometbftabci.ResponseVerifyVoteExtension
+type ListSnapshotsResponse = cometbftabci.ResponseListSnapshots
+type OfferSnapshotResponse = cometbftabci.ResponseOfferSnapshot
+type LoadSnapshotChunkResponse = cometbftabci.ResponseLoadSnapshotChunk
+type ApplySnapshotChunkResponse = cometbftabci.ResponseApplySnapshotChunk
 
 // Consensus and block types
-type ConsensusParams = cometbftabciv1.ConsensusParams
-type BlockParams = cometbftabciv1.BlockParams
-type EvidenceParams = cometbftabciv1.EvidenceParams
-type ValidatorParams = cometbftabciv1.ValidatorParams
-type VersionParams = cometbftabciv1.VersionParams
+type ConsensusParams = cometbftabci.ConsensusParams
+type BlockParams = cometbftabci.BlockParams
+type EvidenceParams = cometbftabci.EvidenceParams
+type ValidatorParams = cometbftabci.ValidatorParams
+type VersionParams = cometbftabci.VersionParams
 type Header = cometbfttypes.Header
 type BlockID = cometbfttypes.BlockID
 type PartSetHeader = cometbfttypes.PartSetHeader
 
 // Validator types
-type Validator = cometbftabciv1.Validator
-type ValidatorUpdate = cometbftabciv1.ValidatorUpdate
+type Validator = cometbftabci.Validator
+type ValidatorUpdate = cometbftabci.ValidatorUpdate
 type PubKey = cometbftcrypto.PubKey
 
 // Transaction and execution types
-type ExecTxResult = cometbftabciv1.ExecTxResult
-type Event = cometbftabciv1.Event
-type EventAttribute = cometbftabciv1.EventAttribute
-type TxResult = cometbftabciv1.TxResult
+type ExecTxResult = cometbftabci.ExecTxResult
+type Event = cometbftabci.Event
+type EventAttribute = cometbftabci.EventAttribute
+type TxResult = cometbftabci.TxResult
 
 // Snapshot types
-type Snapshot = cometbftabciv1.Snapshot
+type Snapshot = cometbftabci.Snapshot
 
 // Vote and commit types
-type VoteInfo = cometbftabciv1.VoteInfo
-type ExtendedVoteInfo = cometbftabciv1.ExtendedVoteInfo
-type CommitInfo = cometbftabciv1.CommitInfo
-type ExtendedCommitInfo = cometbftabciv1.ExtendedCommitInfo
-type Misbehavior = cometbftabciv1.Misbehavior
+type VoteInfo = cometbftabci.VoteInfo
+type ExtendedVoteInfo = cometbftabci.ExtendedVoteInfo
+type CommitInfo = cometbftabci.CommitInfo
+type ExtendedCommitInfo = cometbftabci.ExtendedCommitInfo
+type Misbehavior = cometbftabci.Misbehavior
 
 // Proof types
-type ProofOp = cometbftabciv1.ProofOp
-type ProofOps = cometbftabciv1.ProofOps
+type ProofOp = cometbftabci.ProofOp
+type ProofOps = cometbftabci.ProofOps
 
 // CheckTx types
-type CheckTxType = cometbftabciv1.CheckTxType
+type CheckTxType = cometbftabci.CheckTxType
 
 // Response status types
-type ResponseProcessProposal_Status = cometbftabciv1.ResponseProcessProposal_Status
-type ResponseVerifyVoteExtension_Status = cometbftabciv1.ResponseVerifyVoteExtension_Status
-type ResponseOfferSnapshot_Result = cometbftabciv1.ResponseOfferSnapshot_Result
-type ResponseApplySnapshotChunk_Result = cometbftabciv1.ResponseApplySnapshotChunk_Result
+type ResponseProcessProposal_Status = cometbftabci.ResponseProcessProposal_Status
+type ResponseVerifyVoteExtension_Status = cometbftabci.ResponseVerifyVoteExtension_Status
+type ResponseOfferSnapshot_Result = cometbftabci.ResponseOfferSnapshot_Result
+type ResponseApplySnapshotChunk_Result = cometbftabci.ResponseApplySnapshotChunk_Result
 
 // Constants for response statuses
 const (
-	ResponseProcessProposal_ACCEPT  = cometbftabciv1.ResponseProcessProposal_ACCEPT
-	ResponseProcessProposal_REJECT  = cometbftabciv1.ResponseProcessProposal_REJECT
-	ResponseVerifyVoteExtension_ACCEPT = cometbftabciv1.ResponseVerifyVoteExtension_ACCEPT
-	ResponseVerifyVoteExtension_REJECT = cometbftabciv1.ResponseVerifyVoteExtension_REJECT
-	ResponseOfferSnapshot_ACCEPT   = cometbftabciv1.ResponseOfferSnapshot_ACCEPT
-	ResponseOfferSnapshot_REJECT   = cometbftabciv1.ResponseOfferSnapshot_REJECT
-	ResponseApplySnapshotChunk_ACCEPT = cometbftabciv1.ResponseApplySnapshotChunk_ACCEPT
-	ResponseApplySnapshotChunk_REJECT = cometbftabciv1.ResponseApplySnapshotChunk_REJECT
+	ResponseProcessProposal_ACCEPT  = cometbftabci.ResponseProcessProposal_ACCEPT
+	ResponseProcessProposal_REJECT  = cometbftabci.ResponseProcessProposal_REJECT
+	ResponseVerifyVoteExtension_ACCEPT = cometbftabci.ResponseVerifyVoteExtension_ACCEPT
+	ResponseVerifyVoteExtension_REJECT = cometbftabci.ResponseVerifyVoteExtension_REJECT
+	ResponseOfferSnapshot_ACCEPT   = cometbftabci.ResponseOfferSnapshot_ACCEPT
+	ResponseOfferSnapshot_REJECT   = cometbftabci.ResponseOfferSnapshot_REJECT
+	ResponseApplySnapshotChunk_ACCEPT = cometbftabci.ResponseApplySnapshotChunk_ACCEPT
+	ResponseApplySnapshotChunk_REJECT = cometbftabci.ResponseApplySnapshotChunk_REJECT
 )
 
 // CheckTx type constants
 const (
-	CheckTxType_New     = cometbftabciv1.CheckTxType_New
-	CheckTxType_Recheck = cometbftabciv1.CheckTxType_Recheck
+	CheckTxType_New     = cometbftabci.CheckTxType_New
+	CheckTxType_Recheck = cometbftabci.CheckTxType_Recheck
 )
 
 // Error codes (using CometBFT's constants)

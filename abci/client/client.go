@@ -4,39 +4,39 @@ import (
 	"context"
 	"fmt"
 
-	cometbftabciv1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	cometbftabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // Client matches CometBFT's ABCI 2.0 specification
 type Client interface {
 	// Echo method for testing
-	Echo(context.Context, string) (*cometbftabciv1.EchoResponse, error)
+	Echo(context.Context, string) (*cometbftabci.ResponseEcho, error)
 	
 	// Mempool methods
-	CheckTx(context.Context, *cometbftabciv1.CheckTxRequest) (*cometbftabciv1.CheckTxResponse, error)
-	CheckTxAsync(context.Context, *cometbftabciv1.CheckTxRequest) *ReqRes
+	CheckTx(context.Context, *cometbftabci.RequestCheckTx) (*cometbftabci.ResponseCheckTx, error)
+	CheckTxAsync(context.Context, *cometbftabci.RequestCheckTx) *ReqRes
 	Flush(context.Context) error
 
 	// Consensus methods
-	FinalizeBlock(context.Context, *cometbftabciv1.FinalizeBlockRequest) (*cometbftabciv1.FinalizeBlockResponse, error)
-	FinalizeBlockAsync(context.Context, *cometbftabciv1.FinalizeBlockRequest) *ReqRes
-	PrepareProposal(context.Context, *cometbftabciv1.PrepareProposalRequest) (*cometbftabciv1.PrepareProposalResponse, error)
-	ProcessProposal(context.Context, *cometbftabciv1.ProcessProposalRequest) (*cometbftabciv1.ProcessProposalResponse, error)
-	ExtendVote(context.Context, *cometbftabciv1.ExtendVoteRequest) (*cometbftabciv1.ExtendVoteResponse, error)
-	VerifyVoteExtension(context.Context, *cometbftabciv1.VerifyVoteExtensionRequest) (*cometbftabciv1.VerifyVoteExtensionResponse, error)
-	Commit(context.Context) (*cometbftabciv1.CommitResponse, error)
+	FinalizeBlock(context.Context, *cometbftabci.RequestFinalizeBlock) (*cometbftabci.ResponseFinalizeBlock, error)
+	FinalizeBlockAsync(context.Context, *cometbftabci.RequestFinalizeBlock) *ReqRes
+	PrepareProposal(context.Context, *cometbftabci.RequestPrepareProposal) (*cometbftabci.ResponsePrepareProposal, error)
+	ProcessProposal(context.Context, *cometbftabci.RequestProcessProposal) (*cometbftabci.ResponseProcessProposal, error)
+	ExtendVote(context.Context, *cometbftabci.RequestExtendVote) (*cometbftabci.ResponseExtendVote, error)
+	VerifyVoteExtension(context.Context, *cometbftabci.RequestVerifyVoteExtension) (*cometbftabci.ResponseVerifyVoteExtension, error)
+	Commit(context.Context) (*cometbftabci.ResponseCommit, error)
 	CommitAsync(context.Context) *ReqRes
-	InitChain(context.Context, *cometbftabciv1.InitChainRequest) (*cometbftabciv1.InitChainResponse, error)
+	InitChain(context.Context, *cometbftabci.RequestInitChain) (*cometbftabci.ResponseInitChain, error)
 
 	// Query methods
-	Info(context.Context, *cometbftabciv1.InfoRequest) (*cometbftabciv1.InfoResponse, error)
-	Query(context.Context, *cometbftabciv1.QueryRequest) (*cometbftabciv1.QueryResponse, error)
+	Info(context.Context, *cometbftabci.RequestInfo) (*cometbftabci.ResponseInfo, error)
+	Query(context.Context, *cometbftabci.RequestQuery) (*cometbftabci.ResponseQuery, error)
 
 	// Snapshot methods
-	ListSnapshots(context.Context, *cometbftabciv1.ListSnapshotsRequest) (*cometbftabciv1.ListSnapshotsResponse, error)
-	OfferSnapshot(context.Context, *cometbftabciv1.OfferSnapshotRequest) (*cometbftabciv1.OfferSnapshotResponse, error)
-	LoadSnapshotChunk(context.Context, *cometbftabciv1.LoadSnapshotChunkRequest) (*cometbftabciv1.LoadSnapshotChunkResponse, error)
-	ApplySnapshotChunk(context.Context, *cometbftabciv1.ApplySnapshotChunkRequest) (*cometbftabciv1.ApplySnapshotChunkResponse, error)
+	ListSnapshots(context.Context, *cometbftabci.RequestListSnapshots) (*cometbftabci.ResponseListSnapshots, error)
+	OfferSnapshot(context.Context, *cometbftabci.RequestOfferSnapshot) (*cometbftabci.ResponseOfferSnapshot, error)
+	LoadSnapshotChunk(context.Context, *cometbftabci.RequestLoadSnapshotChunk) (*cometbftabci.ResponseLoadSnapshotChunk, error)
+	ApplySnapshotChunk(context.Context, *cometbftabci.RequestApplySnapshotChunk) (*cometbftabci.ResponseApplySnapshotChunk, error)
 
 	// Common
 	Error() error

@@ -112,3 +112,5 @@ replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 
 replace github.com/fluentum-chain/fluentum => .
+
+replace github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.38.17
