@@ -8,8 +8,8 @@ import (
 	"math"
 	"sync"
 
-	cmabci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/proxy"
+	cmabci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/proxy"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	"github.com/fluentum-chain/fluentum/libs/log"

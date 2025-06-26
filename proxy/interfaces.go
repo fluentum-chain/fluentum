@@ -3,8 +3,8 @@ package proxy
 import (
 	"context"
 
-	abcicli "github.com/cometbft/cometbft/abci/client"
-	"github.com/cometbft/cometbft/abci/types"
+	abcicli "github.com/tendermint/tendermint/abci/client"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 // Core ABCI connections

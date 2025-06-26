@@ -1,7 +1,9 @@
 package types
 
 import (
-	abci "github.com/cometbft/cometbft/abci/types"
+	"time"
+
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 )
 

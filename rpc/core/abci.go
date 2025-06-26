@@ -1,7 +1,7 @@
 package core
 
 import (
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/bytes"
 	"github.com/fluentum-chain/fluentum/proxy"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"

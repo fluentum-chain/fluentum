@@ -3,8 +3,9 @@ package types
 import (
 	"context"
 	"fmt"
+	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmpubsub "github.com/fluentum-chain/fluentum/libs/pubsub"
 	"github.com/fluentum-chain/fluentum/libs/service"

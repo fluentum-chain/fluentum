@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 

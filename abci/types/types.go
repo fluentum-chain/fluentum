@@ -2,9 +2,9 @@ package types
 
 import (
 	"context"
-	cometbftabci "github.com/cometbft/cometbft/abci/types"
-	cometbftcrypto "github.com/cometbft/cometbft/crypto"
-	cometbfttypes "github.com/cometbft/cometbft/types"
+	cometbftabci "github.com/tendermint/tendermint/abci/types"
+	cometbftcrypto "github.com/tendermint/tendermint/crypto"
+	cometbfttypes "github.com/tendermint/tendermint/types"
 )
 
 // ABCI Types - Direct aliases to CometBFT v0.38.17 types for full compatibility
