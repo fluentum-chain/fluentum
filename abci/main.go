@@ -7,6 +7,7 @@ import (
 
 	"github.com/fluentum-chain/fluentum/abci"
 	"github.com/fluentum-chain/fluentum/abci/types"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 func main() {

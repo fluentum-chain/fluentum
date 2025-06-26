@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/fluentum-chain/fluentum/abci/types"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // VerifyCompliance checks that all implementations comply with the ABCI interface
@@ -130,12 +131,12 @@ func VerifyOptionalInterfaces() error {
 // VerifyTypeCompatibility checks that all types are compatible with CometBFT
 func VerifyTypeCompatibility() error {
 	// Check that response codes are properly defined
-	if types.CodeTypeOK != 0 {
-		return fmt.Errorf("CodeTypeOK should be 0, got %d", types.CodeTypeOK)
+	if types.CodeTypeOK != cmtabci.CodeTypeOK {
+		return fmt.Errorf("CodeTypeOK should be %d, got %d", cmtabci.CodeTypeOK, types.CodeTypeOK)
 	}
 	
-	if types.CodeTypeErr != 1 {
-		return fmt.Errorf("CodeTypeErr should be 1, got %d", types.CodeTypeErr)
+	if types.CodeTypeErr != cmtabci.CodeTypeErr {
+		return fmt.Errorf("CodeTypeErr should be %d, got %d", cmtabci.CodeTypeErr, types.CodeTypeErr)
 	}
 	
 	// Check helper functions

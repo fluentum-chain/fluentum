@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/fluentum-chain/fluentum/abci/types"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/require"
 )
 

@@ -22,20 +22,18 @@ type grpcClient struct {
 }
 
 // NewGRPCClient creates a new gRPC client
-func NewGRPCClient(addr string, mustConnect bool) Client {
+func NewGRPCClient(addr string, logger Logger) (Client, error) {
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		if mustConnect {
-			panic(fmt.Sprintf("failed to connect to gRPC server: %v", err))
-		}
-		return &grpcClient{conn: nil}
+		return nil, fmt.Errorf("failed to connect to gRPC server: %w", err)
 	}
 
 	client := cmtproto.NewABCIApplicationClient(conn)
 	return &grpcClient{
 		client: client,
 		conn:   conn,
-	}
+		logger: logger,
+	}, nil
 }
 
 func (c *grpcClient) SetResponseCallback(cb Callback) {
@@ -57,24 +55,22 @@ func (c *grpcClient) Error() error {
 
 // Mempool methods
 func (c *grpcClient) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx) (*cmtabci.ResponseCheckTx, error) {
-	ctx, cancel := contextWithTimeout(ctx, 0)
-	defer cancel()
-
-	if err := validateTxData(req.Tx); err != nil {
-		return nil, fmt.Errorf("CheckTx validation failed: %w", err)
-	}
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 
 	pbReq := &cmtproto.RequestCheckTx{
 		Tx:   req.Tx,
 		Type: cmtproto.CheckTxType(req.Type),
 	}
+
 	pbRes, err := c.client.CheckTx(ctx, pbReq)
 	if err != nil {
 		if c.logger != nil {
-			c.logger.Error("CheckTx failed", "err", err)
+			c.logger.Error("CheckTx failed", "error", err)
 		}
 		return nil, fmt.Errorf("CheckTx failed: %w", err)
 	}
+
 	return &cmtabci.ResponseCheckTx{
 		Code:      pbRes.Code,
 		Data:      pbRes.Data,
@@ -82,42 +78,20 @@ func (c *grpcClient) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx) (
 		Info:      pbRes.Info,
 		GasWanted: pbRes.GasWanted,
 		GasUsed:   pbRes.GasUsed,
-		Events:    fromProtoEvents(pbRes.Events),
+		Events:    convertEvents(pbRes.Events),
 		Codespace: pbRes.Codespace,
 	}, nil
 }
 
-// Helper to convert proto events to abci events
-func fromProtoEvents(events []*cmtproto.Event) []cmtabci.Event {
-	if events == nil {
-		return nil
-	}
-	result := make([]cmtabci.Event, len(events))
-	for i, ev := range events {
-		attrs := make([]cmtabci.EventAttribute, len(ev.Attributes))
-		for j, attr := range ev.Attributes {
-			attrs[j] = cmtabci.EventAttribute{
-				Key:   attr.Key,
-				Value: attr.Value,
-				Index: attr.Index,
-			}
-		}
-		result[i] = cmtabci.Event{
-			Type:       ev.Type,
-			Attributes: attrs,
-		}
-	}
-	return result
-}
-
 func (c *grpcClient) CheckTxAsync(ctx context.Context, req *cmtabci.RequestCheckTx) *ReqRes {
-	reqRes := NewReqRes(&cmtabci.Request{Value: &cmtabci.Request_CheckTx{CheckTx: req}})
+	reqRes := NewReqRes(req)
 	go func() {
 		res, err := c.CheckTx(ctx, req)
 		if err != nil {
-			reqRes.ErrorCh <- err
+			reqRes.Response = nil
+			reqRes.Error = err
 		} else {
-			reqRes.ResponseCh <- res
+			reqRes.Response = res
 		}
 		reqRes.Done()
 	}()
@@ -131,35 +105,46 @@ func (c *grpcClient) Flush(ctx context.Context) error {
 
 // Consensus methods
 func (c *grpcClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFinalizeBlock) (*cmtabci.ResponseFinalizeBlock, error) {
-	ctx, cancel := contextWithTimeout(ctx, 0)
-	defer cancel()
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 
-	if err := validateBlockHeight(req.Height); err != nil {
-		return nil, fmt.Errorf("FinalizeBlock validation failed: %w", err)
-	}
-
-	protoReq := &cmtproto.RequestFinalizeBlock{
+	pbReq := &cmtproto.RequestFinalizeBlock{
 		Height: req.Height,
 		Txs:    req.Txs,
 		Hash:   req.Hash,
-		Header: req.Header,
+		Header: convertHeader(req.Header),
 	}
 
-	res, err := c.client.FinalizeBlock(ctx, protoReq)
+	pbRes, err := c.client.FinalizeBlock(ctx, pbReq)
 	if err != nil {
 		if c.logger != nil {
-			c.logger.Error("FinalizeBlock failed", "err", err)
+			c.logger.Error("FinalizeBlock failed", "error", err)
 		}
 		return nil, fmt.Errorf("FinalizeBlock failed: %w", err)
 	}
 
 	return &cmtabci.ResponseFinalizeBlock{
-		TxResults:             res.TxResults,
-		ValidatorUpdates:      res.ValidatorUpdates,
-		ConsensusParamUpdates: res.ConsensusParamUpdates,
-		AppHash:               res.AppHash,
-		Events:                res.Events,
+		TxResults:             convertTxResults(pbRes.TxResults),
+		ValidatorUpdates:      convertValidatorUpdates(pbRes.ValidatorUpdates),
+		ConsensusParamUpdates: convertConsensusParams(pbRes.ConsensusParamUpdates),
+		AppHash:               pbRes.AppHash,
+		Events:                convertEvents(pbRes.Events),
 	}, nil
+}
+
+func (c *grpcClient) FinalizeBlockAsync(ctx context.Context, req *cmtabci.RequestFinalizeBlock) *ReqRes {
+	reqRes := NewReqRes(req)
+	go func() {
+		res, err := c.FinalizeBlock(ctx, req)
+		if err != nil {
+			reqRes.Response = nil
+			reqRes.Error = err
+		} else {
+			reqRes.Response = res
+		}
+		reqRes.Done()
+	}()
+	return reqRes
 }
 
 func (c *grpcClient) PrepareProposal(ctx context.Context, req *cmtabci.RequestPrepareProposal) (*cmtabci.ResponsePrepareProposal, error) {
@@ -272,127 +257,125 @@ func (c *grpcClient) VerifyVoteExtension(ctx context.Context, req *cmtabci.Reque
 }
 
 func (c *grpcClient) Commit(ctx context.Context, req *cmtabci.RequestCommit) (*cmtabci.ResponseCommit, error) {
-	ctx, cancel := contextWithTimeout(ctx, 0)
-	defer cancel()
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 
-	protoReq := &cmtproto.RequestCommit{}
-	res, err := c.client.Commit(ctx, protoReq)
+	pbReq := &cmtproto.RequestCommit{}
+
+	pbRes, err := c.client.Commit(ctx, pbReq)
 	if err != nil {
 		if c.logger != nil {
-			c.logger.Error("Commit failed", "err", err)
+			c.logger.Error("Commit failed", "error", err)
 		}
 		return nil, fmt.Errorf("Commit failed: %w", err)
 	}
 
 	return &cmtabci.ResponseCommit{
-		Data:         res.Data,
-		RetainHeight: res.RetainHeight,
+		Data:         pbRes.Data,
+		RetainHeight: pbRes.RetainHeight,
 	}, nil
 }
 
-func (c *grpcClient) InitChain(ctx context.Context, req *cmtabci.RequestInitChain) (*cmtabci.ResponseInitChain, error) {
-	ctx, cancel := contextWithTimeout(ctx, 0)
-	defer cancel()
+func (c *grpcClient) CommitAsync(ctx context.Context, req *cmtabci.RequestCommit) *ReqRes {
+	reqRes := NewReqRes(req)
+	go func() {
+		res, err := c.Commit(ctx, req)
+		if err != nil {
+			reqRes.Response = nil
+			reqRes.Error = err
+		} else {
+			reqRes.Response = res
+		}
+		reqRes.Done()
+	}()
+	return reqRes
+}
 
-	protoReq := &cmtproto.RequestInitChain{
-		Time:    req.Time,
-		ChainId: req.ChainId,
-		ConsensusParams: &cmtproto.ConsensusParams{
-			Block: &cmtproto.BlockParams{
-				MaxBytes: req.ConsensusParams.Block.MaxBytes,
-				MaxGas:   req.ConsensusParams.Block.MaxGas,
-			},
-			Evidence: &cmtproto.EvidenceParams{
-				MaxAgeNumBlocks: req.ConsensusParams.Evidence.MaxAgeNumBlocks,
-				MaxAgeDuration:  req.ConsensusParams.Evidence.MaxAgeDuration,
-				MaxBytes:        req.ConsensusParams.Evidence.MaxBytes,
-			},
-			Validator: &cmtproto.ValidatorParams{
-				PubKeyTypes: req.ConsensusParams.Validator.PubKeyTypes,
-			},
-			Version: &cmtproto.VersionParams{
-				AppVersion: req.ConsensusParams.Version.AppVersion,
-			},
-		},
-		Validators: req.Validators,
-		AppStateBytes: req.AppStateBytes,
-		InitialHeight: req.InitialHeight,
+func (c *grpcClient) InitChain(ctx context.Context, req *cmtabci.RequestInitChain) (*cmtabci.ResponseInitChain, error) {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	pbReq := &cmtproto.RequestInitChain{
+		Time:            req.Time,
+		ChainId:         req.ChainId,
+		ConsensusParams: convertConsensusParams(req.ConsensusParams),
+		Validators:      convertValidatorUpdates(req.Validators),
+		AppStateBytes:   req.AppStateBytes,
+		InitialHeight:   req.InitialHeight,
 	}
 
-	res, err := c.client.InitChain(ctx, protoReq)
+	pbRes, err := c.client.InitChain(ctx, pbReq)
 	if err != nil {
 		if c.logger != nil {
-			c.logger.Error("InitChain failed", "err", err)
+			c.logger.Error("InitChain failed", "error", err)
 		}
 		return nil, fmt.Errorf("InitChain failed: %w", err)
 	}
 
 	return &cmtabci.ResponseInitChain{
-		ConsensusParams: res.ConsensusParams,
-		Validators:      res.Validators,
-		AppHash:         res.AppHash,
+		ConsensusParams: convertConsensusParams(pbRes.ConsensusParams),
+		Validators:      convertValidatorUpdates(pbRes.Validators),
+		AppHash:         pbRes.AppHash,
 	}, nil
 }
 
 // Query methods
 func (c *grpcClient) Info(ctx context.Context, req *cmtabci.RequestInfo) (*cmtabci.ResponseInfo, error) {
-	ctx, cancel := contextWithTimeout(ctx, 0)
-	defer cancel()
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 
-	protoReq := &cmtproto.RequestInfo{
-		Version: req.Version,
+	pbReq := &cmtproto.RequestInfo{
+		Version:      req.Version,
 		BlockVersion: req.BlockVersion,
-		P2PVersion: req.P2PVersion,
-		AbciVersion: req.AbciVersion,
+		P2PVersion:   req.P2PVersion,
 	}
 
-	res, err := c.client.Info(ctx, protoReq)
+	pbRes, err := c.client.Info(ctx, pbReq)
 	if err != nil {
 		if c.logger != nil {
-			c.logger.Error("Info failed", "err", err)
+			c.logger.Error("Info failed", "error", err)
 		}
 		return nil, fmt.Errorf("Info failed: %w", err)
 	}
 
 	return &cmtabci.ResponseInfo{
-		Data:             res.Data,
-		Version:          res.Version,
-		AppVersion:       res.AppVersion,
-		BlockVersion:     res.BlockVersion,
-		P2PVersion:       res.P2PVersion,
-		AbciVersion:      res.AbciVersion,
+		Data:             pbRes.Data,
+		Version:          pbRes.Version,
+		AppVersion:       pbRes.AppVersion,
+		LastBlockHeight:  pbRes.LastBlockHeight,
+		LastBlockAppHash: pbRes.LastBlockAppHash,
 	}, nil
 }
 
 func (c *grpcClient) Query(ctx context.Context, req *cmtabci.RequestQuery) (*cmtabci.ResponseQuery, error) {
-	ctx, cancel := contextWithTimeout(ctx, 0)
-	defer cancel()
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 
-	protoReq := &cmtproto.RequestQuery{
+	pbReq := &cmtproto.RequestQuery{
 		Data:   req.Data,
 		Path:   req.Path,
 		Height: req.Height,
 		Prove:  req.Prove,
 	}
 
-	res, err := c.client.Query(ctx, protoReq)
+	pbRes, err := c.client.Query(ctx, pbReq)
 	if err != nil {
 		if c.logger != nil {
-			c.logger.Error("Query failed", "err", err)
+			c.logger.Error("Query failed", "error", err)
 		}
 		return nil, fmt.Errorf("Query failed: %w", err)
 	}
 
 	return &cmtabci.ResponseQuery{
-		Code:   res.Code,
-		Log:    res.Log,
-		Info:   res.Info,
-		Index:  res.Index,
-		Key:    res.Key,
-		Value:  res.Value,
-		ProofOps: res.ProofOps,
-		Height: res.Height,
-		Codespace: res.Codespace,
+		Code:      pbRes.Code,
+		Log:       pbRes.Log,
+		Info:      pbRes.Info,
+		Index:     pbRes.Index,
+		Key:       pbRes.Key,
+		Value:     pbRes.Value,
+		ProofOps:  pbRes.ProofOps,
+		Height:    pbRes.Height,
+		Codespace: pbRes.Codespace,
 	}, nil
 }
 
@@ -483,4 +466,119 @@ func (c *grpcClient) ApplySnapshotChunk(ctx context.Context, req *cmtabci.Reques
 		RefetchChunks: res.RefetchChunks,
 		RejectSenders: res.RejectSenders,
 	}, nil
+}
+
+func (c *grpcClient) Close() error {
+	return c.conn.Close()
+}
+
+// Helper conversion functions
+func convertEvents(pbEvents []*cmtproto.Event) []cmtabci.Event {
+	if pbEvents == nil {
+		return nil
+	}
+	events := make([]cmtabci.Event, len(pbEvents))
+	for i, e := range pbEvents {
+		events[i] = cmtabci.Event{
+			Type:       e.Type,
+			Attributes: convertAttributes(e.Attributes),
+		}
+	}
+	return events
+}
+
+func convertAttributes(pbAttrs []*cmtproto.EventAttribute) []cmtabci.EventAttribute {
+	if pbAttrs == nil {
+		return nil
+	}
+	attrs := make([]cmtabci.EventAttribute, len(pbAttrs))
+	for i, a := range pbAttrs {
+		attrs[i] = cmtabci.EventAttribute{
+			Key:   a.Key,
+			Value: a.Value,
+			Index: a.Index,
+		}
+	}
+	return attrs
+}
+
+func convertTxResults(pbResults []*cmtproto.ExecTxResult) []*cmtabci.ExecTxResult {
+	if pbResults == nil {
+		return nil
+	}
+	results := make([]*cmtabci.ExecTxResult, len(pbResults))
+	for i, r := range pbResults {
+		results[i] = &cmtabci.ExecTxResult{
+			Code:      r.Code,
+			Data:      r.Data,
+			Log:       r.Log,
+			Info:      r.Info,
+			GasWanted: r.GasWanted,
+			GasUsed:   r.GasUsed,
+			Events:    convertEvents(r.Events),
+		}
+	}
+	return results
+}
+
+func convertValidatorUpdates(pbUpdates []*cmtproto.ValidatorUpdate) []cmtabci.ValidatorUpdate {
+	if pbUpdates == nil {
+		return nil
+	}
+	updates := make([]cmtabci.ValidatorUpdate, len(pbUpdates))
+	for i, u := range pbUpdates {
+		updates[i] = cmtabci.ValidatorUpdate{
+			PubKey: u.PubKey,
+			Power:  u.Power,
+		}
+	}
+	return updates
+}
+
+func convertConsensusParams(pbParams *cmtproto.ConsensusParams) *cmtabci.ConsensusParams {
+	if pbParams == nil {
+		return nil
+	}
+	return &cmtabci.ConsensusParams{
+		Block:     pbParams.Block,
+		Evidence:  pbParams.Evidence,
+		Validator: pbParams.Validator,
+		Version:   pbParams.Version,
+	}
+}
+
+func convertHeader(header *cmtabci.Header) *cmtproto.Header {
+	if header == nil {
+		return nil
+	}
+	return &cmtproto.Header{
+		Version:            header.Version,
+		ChainId:            header.ChainId,
+		Height:             header.Height,
+		Time:               header.Time,
+		LastBlockId:        convertBlockID(header.LastBlockId),
+		LastCommitHash:     header.LastCommitHash,
+		DataHash:           header.DataHash,
+		ValidatorsHash:     header.ValidatorsHash,
+		NextValidatorsHash: header.NextValidatorsHash,
+		ConsensusHash:      header.ConsensusHash,
+		AppHash:            header.AppHash,
+		LastResultsHash:    header.LastResultsHash,
+		EvidenceHash:       header.EvidenceHash,
+		ProposerAddress:    header.ProposerAddress,
+	}
+}
+
+func convertBlockID(blockID cmtabci.BlockID) *cmtproto.BlockID {
+	return &cmtproto.BlockID{
+		Hash:          blockID.Hash,
+		PartSetHeader: convertPartSetHeader(blockID.PartSetHeader),
+	}
+}
+
+func convertPartSetHeader(psh cmtabci.PartSetHeader) *cmtproto.PartSetHeader {
+	return &cmtproto.PartSetHeader{
+		Total: psh.Total,
+		Hash:  psh.Hash,
+	}
 } 

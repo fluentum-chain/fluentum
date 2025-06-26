@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/fluentum-chain/fluentum/abci/types"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // MyApp is an example ABCI application implementation
@@ -17,7 +18,7 @@ type MyApp struct {
 	state     map[string][]byte
 	height    int64
 	chainID   string
-	events    []types.Event
+	events    []cmtabci.Event
 	gasMeter  *SimpleGasMeter
 	
 	// Thread safety
@@ -30,7 +31,7 @@ func NewMyApp(chainID string) *MyApp {
 		state:    make(map[string][]byte),
 		height:   0,
 		chainID:  chainID,
-		events:   []types.Event{},
+		events:   []cmtabci.Event{},
 		gasMeter: NewSimpleGasMeter(1000000), // 1M gas limit
 	}
 }
@@ -40,7 +41,7 @@ func (app *MyApp) Info(ctx context.Context, req *types.RequestInfo) (*types.Resp
 	app.mtx.RLock()
 	defer app.mtx.RUnlock()
 	
-	return &types.ResponseInfo{
+	return &cmtabci.ResponseInfo{
 		Data:             fmt.Sprintf("MyApp v1.0.0 (chain: %s)", app.chainID),
 		Version:          "1.0.0",
 		AppVersion:       1,
@@ -53,7 +54,7 @@ func (app *MyApp) Info(ctx context.Context, req *types.RequestInfo) (*types.Resp
 func (app *MyApp) CheckTx(ctx context.Context, req *types.RequestCheckTx) (*types.ResponseCheckTx, error) {
 	// Validate transaction format
 	if len(req.Tx) == 0 {
-		return &types.ResponseCheckTx{
+		return &cmtabci.ResponseCheckTx{
 			Code:      types.CodeTypeEncodingError,
 			Log:       "empty transaction",
 			GasWanted: 0,
@@ -63,7 +64,7 @@ func (app *MyApp) CheckTx(ctx context.Context, req *types.RequestCheckTx) (*type
 	
 	// Simple validation: check if transaction is at least 4 bytes
 	if len(req.Tx) < 4 {
-		return &types.ResponseCheckTx{
+		return &cmtabci.ResponseCheckTx{
 			Code:      types.CodeTypeEncodingError,
 			Log:       "transaction too short",
 			GasWanted: 0,
@@ -74,13 +75,13 @@ func (app *MyApp) CheckTx(ctx context.Context, req *types.RequestCheckTx) (*type
 	// Estimate gas (simple: 1 gas per byte)
 	gasWanted := int64(len(req.Tx))
 	
-	return &types.ResponseCheckTx{
+	return &cmtabci.ResponseCheckTx{
 		Code:      types.CodeTypeOK,
 		Data:      []byte("valid"),
 		Log:       "transaction valid",
 		GasWanted: gasWanted,
 		GasUsed:   0,
-		Events:    []types.Event{},
+		Events:    []cmtabci.Event{},
 		Codespace: "",
 	}, nil
 }
@@ -94,14 +95,14 @@ func (app *MyApp) FinalizeBlock(ctx context.Context, req *types.RequestFinalizeB
 	app.height = req.Height
 	
 	// Clear events for new block
-	app.events = []types.Event{}
+	app.events = []cmtabci.Event{}
 	
 	// Process all transactions
-	txResults := make([]*types.ExecTxResult, len(req.Txs))
+	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
 	for i, tx := range req.Txs {
 		result, err := app.processTransaction(ctx, tx)
 		if err != nil {
-			result = &types.ExecTxResult{
+			result = &cmtabci.ExecTxResult{
 				Code:   types.CodeTypeInternalError,
 				Log:    fmt.Sprintf("processing error: %v", err),
 				GasUsed: 0,
@@ -111,18 +112,18 @@ func (app *MyApp) FinalizeBlock(ctx context.Context, req *types.RequestFinalizeB
 	}
 	
 	// Create block event
-	blockEvent := types.Event{
+	blockEvent := cmtabci.Event{
 		Type: "block",
-		Attributes: []types.EventAttribute{
+		Attributes: []cmtabci.EventAttribute{
 			{Key: "height", Value: fmt.Sprintf("%d", app.height), Index: true},
 			{Key: "num_txs", Value: fmt.Sprintf("%d", len(req.Txs)), Index: false},
 		},
 	}
 	app.events = append(app.events, blockEvent)
 	
-	return &types.ResponseFinalizeBlock{
+	return &cmtabci.ResponseFinalizeBlock{
 		TxResults:             txResults,
-		ValidatorUpdates:      []types.ValidatorUpdate{},
+		ValidatorUpdates:      []cmtabci.ValidatorUpdate{},
 		ConsensusParamUpdates: nil,
 		AppHash:               app.getAppHash(),
 		Events:                app.events,
@@ -137,7 +138,7 @@ func (app *MyApp) Commit(ctx context.Context, req *types.RequestCommit) (*types.
 	// In a real application, you would persist the state here
 	// For this example, we just return the app hash
 	
-	return &types.ResponseCommit{
+	return &cmtabci.ResponseCommit{
 		Data:         app.getAppHash(),
 		RetainHeight: app.height,
 	}, nil
@@ -160,7 +161,7 @@ func (app *MyApp) InitChain(ctx context.Context, req *types.RequestInitChain) (*
 		app.state["genesis"] = req.AppStateBytes
 	}
 	
-	return &types.ResponseInitChain{
+	return &cmtabci.ResponseInitChain{
 		ConsensusParams: req.ConsensusParams,
 		Validators:      req.Validators,
 		AppHash:         app.getAppHash(),
@@ -177,21 +178,21 @@ func (app *MyApp) Query(ctx context.Context, req *types.RequestQuery) (*types.Re
 		key := string(req.Data)
 		value, exists := app.state[key]
 		if !exists {
-			return &types.ResponseQuery{
+			return &cmtabci.ResponseQuery{
 				Code:   types.CodeTypeUnknownAddress,
 				Log:    fmt.Sprintf("key not found: %s", key),
 				Height: app.height,
 			}, nil
 		}
 		
-		return &types.ResponseQuery{
+		return &cmtabci.ResponseQuery{
 			Code:   types.CodeTypeOK,
 			Value:  value,
 			Height: app.height,
 		}, nil
 	}
 	
-	return &types.ResponseQuery{
+	return &cmtabci.ResponseQuery{
 		Code:   types.CodeTypeUnknownRequest,
 		Log:    fmt.Sprintf("unknown query path: %s", req.Path),
 		Height: app.height,
@@ -201,13 +202,13 @@ func (app *MyApp) Query(ctx context.Context, req *types.RequestQuery) (*types.Re
 // Helper methods
 
 // processTransaction processes a single transaction
-func (app *MyApp) processTransaction(ctx context.Context, tx []byte) (*types.ExecTxResult, error) {
+func (app *MyApp) processTransaction(ctx context.Context, tx []byte) (*cmtabci.ExecTxResult, error) {
 	// Reset gas meter for new transaction
 	app.gasMeter.Reset()
 	
 	// Simple transaction format: first 4 bytes are command, rest is data
 	if len(tx) < 4 {
-		return &types.ExecTxResult{
+		return &cmtabci.ExecTxResult{
 			Code:     types.CodeTypeEncodingError,
 			Log:      "transaction too short",
 			GasUsed:  0,
@@ -220,14 +221,14 @@ func (app *MyApp) processTransaction(ctx context.Context, tx []byte) (*types.Exe
 	// Consume gas for processing
 	gasUsed := int64(len(tx))
 	if err := app.gasMeter.ConsumeGas(gasUsed, "tx_processing"); err != nil {
-		return &types.ExecTxResult{
+		return &cmtabci.ExecTxResult{
 			Code:     types.CodeTypeOutOfGas,
 			Log:      "out of gas",
 			GasUsed:  app.gasMeter.GasConsumed(),
 		}, nil
 	}
 	
-	var result *types.ExecTxResult
+	var result *cmtabci.ExecTxResult
 	
 	switch command {
 	case "SET ":
@@ -235,7 +236,7 @@ func (app *MyApp) processTransaction(ctx context.Context, tx []byte) (*types.Exe
 	case "GET ":
 		result = app.handleGet(data)
 	default:
-		result = &types.ExecTxResult{
+		result = &cmtabci.ExecTxResult{
 			Code:     types.CodeTypeUnknownRequest,
 			Log:      fmt.Sprintf("unknown command: %s", command),
 			GasUsed:  gasUsed,
@@ -243,9 +244,9 @@ func (app *MyApp) processTransaction(ctx context.Context, tx []byte) (*types.Exe
 	}
 	
 	// Add transaction event
-	txEvent := types.Event{
+	txEvent := cmtabci.Event{
 		Type: "transaction",
-		Attributes: []types.EventAttribute{
+		Attributes: []cmtabci.EventAttribute{
 			{Key: "command", Value: command, Index: true},
 			{Key: "gas_used", Value: fmt.Sprintf("%d", gasUsed), Index: false},
 		},
@@ -256,11 +257,11 @@ func (app *MyApp) processTransaction(ctx context.Context, tx []byte) (*types.Exe
 }
 
 // handleSet handles SET commands
-func (app *MyApp) handleSet(data []byte) *types.ExecTxResult {
+func (app *MyApp) handleSet(data []byte) *cmtabci.ExecTxResult {
 	// Simple format: key=value
 	parts := bytes.Split(data, []byte("="))
 	if len(parts) != 2 {
-		return &types.ExecTxResult{
+		return &cmtabci.ExecTxResult{
 			Code:     types.CodeTypeEncodingError,
 			Log:      "invalid SET format, expected key=value",
 			GasUsed:  int64(len(data)),
@@ -272,7 +273,7 @@ func (app *MyApp) handleSet(data []byte) *types.ExecTxResult {
 	
 	app.state[key] = value
 	
-	return &types.ExecTxResult{
+	return &cmtabci.ExecTxResult{
 		Code:     types.CodeTypeOK,
 		Data:     []byte("set"),
 		Log:      fmt.Sprintf("set %s", key),
@@ -281,19 +282,19 @@ func (app *MyApp) handleSet(data []byte) *types.ExecTxResult {
 }
 
 // handleGet handles GET commands
-func (app *MyApp) handleGet(data []byte) *types.ExecTxResult {
+func (app *MyApp) handleGet(data []byte) *cmtabci.ExecTxResult {
 	key := string(data)
 	value, exists := app.state[key]
 	
 	if !exists {
-		return &types.ExecTxResult{
+		return &cmtabci.ExecTxResult{
 			Code:     types.CodeTypeUnknownAddress,
 			Log:      fmt.Sprintf("key not found: %s", key),
 			GasUsed:  int64(len(data)),
 		}
 	}
 	
-	return &types.ExecTxResult{
+	return &cmtabci.ExecTxResult{
 		Code:     types.CodeTypeOK,
 		Data:     value,
 		Log:      fmt.Sprintf("get %s", key),

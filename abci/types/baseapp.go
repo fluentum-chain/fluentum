@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // BaseApplication provides default implementations for all ABCI methods
@@ -10,7 +11,7 @@ type BaseApplication struct{}
 
 // Info/Query Connection
 func (BaseApplication) Info(ctx context.Context, req *RequestInfo) (*ResponseInfo, error) {
-	return &ResponseInfo{
+	return &cmtabci.ResponseInfo{
 		Data:             "base_application",
 		Version:          "1.0.0",
 		AppVersion:       1,
@@ -20,7 +21,7 @@ func (BaseApplication) Info(ctx context.Context, req *RequestInfo) (*ResponseInf
 }
 
 func (BaseApplication) Query(ctx context.Context, req *RequestQuery) (*ResponseQuery, error) {
-	return &ResponseQuery{
+	return &cmtabci.ResponseQuery{
 		Code:   CodeTypeOK,
 		Log:    "query successful",
 		Height: req.Height,
@@ -29,13 +30,13 @@ func (BaseApplication) Query(ctx context.Context, req *RequestQuery) (*ResponseQ
 
 // Mempool Connection
 func (BaseApplication) CheckTx(ctx context.Context, req *RequestCheckTx) (*ResponseCheckTx, error) {
-	return &ResponseCheckTx{
+	return &cmtabci.ResponseCheckTx{
 		Code:      CodeTypeOK,
 		Data:      []byte{},
 		Log:       "check tx successful",
 		GasWanted: 0,
 		GasUsed:   0,
-		Events:    []Event{},
+		Events:    []cmtabci.Event{},
 		Codespace: "",
 	}, nil
 }
@@ -43,65 +44,65 @@ func (BaseApplication) CheckTx(ctx context.Context, req *RequestCheckTx) (*Respo
 // Consensus Connection
 func (BaseApplication) PrepareProposal(ctx context.Context, req *RequestPrepareProposal) (*ResponsePrepareProposal, error) {
 	// Default implementation: return transactions as-is
-	return &ResponsePrepareProposal{
+	return &cmtabci.ResponsePrepareProposal{
 		Txs: req.Txs,
 	}, nil
 }
 
 func (BaseApplication) ProcessProposal(ctx context.Context, req *RequestProcessProposal) (*ResponseProcessProposal, error) {
 	// Default implementation: accept all proposals
-	return &ResponseProcessProposal{
-		Status: ResponseProcessProposal_ACCEPT,
+	return &cmtabci.ResponseProcessProposal{
+		Status: cmtabci.ResponseProcessProposal_ACCEPT,
 	}, nil
 }
 
 func (BaseApplication) FinalizeBlock(ctx context.Context, req *RequestFinalizeBlock) (*ResponseFinalizeBlock, error) {
 	// Default implementation: create empty results for all transactions
-	txResults := make([]*ExecTxResult, len(req.Txs))
+	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
 	for i := range req.Txs {
-		txResults[i] = &ExecTxResult{
+		txResults[i] = &cmtabci.ExecTxResult{
 			Code:      CodeTypeOK,
 			Data:      []byte{},
 			Log:       "transaction processed",
 			Info:      "",
-			Events:    []Event{},
+			Events:    []cmtabci.Event{},
 			GasUsed:   0,
 			GasWanted: 0,
 		}
 	}
 
-	return &ResponseFinalizeBlock{
+	return &cmtabci.ResponseFinalizeBlock{
 		TxResults:             txResults,
-		ValidatorUpdates:      []ValidatorUpdate{},
+		ValidatorUpdates:      []cmtabci.ValidatorUpdate{},
 		ConsensusParamUpdates: nil,
 		AppHash:               []byte{},
-		Events:                []Event{},
+		Events:                []cmtabci.Event{},
 	}, nil
 }
 
 func (BaseApplication) ExtendVote(ctx context.Context, req *RequestExtendVote) (*ResponseExtendVote, error) {
 	// Default implementation: return empty vote extension
-	return &ResponseExtendVote{
+	return &cmtabci.ResponseExtendVote{
 		VoteExtension: []byte{},
 	}, nil
 }
 
 func (BaseApplication) VerifyVoteExtension(ctx context.Context, req *RequestVerifyVoteExtension) (*ResponseVerifyVoteExtension, error) {
 	// Default implementation: accept all vote extensions
-	return &ResponseVerifyVoteExtension{
-		Status: ResponseVerifyVoteExtension_ACCEPT,
+	return &cmtabci.ResponseVerifyVoteExtension{
+		Status: cmtabci.ResponseVerifyVoteExtension_ACCEPT,
 	}, nil
 }
 
 func (BaseApplication) Commit(ctx context.Context, req *RequestCommit) (*ResponseCommit, error) {
-	return &ResponseCommit{
+	return &cmtabci.ResponseCommit{
 		Data:         []byte{},
 		RetainHeight: 0,
 	}, nil
 }
 
 func (BaseApplication) InitChain(ctx context.Context, req *RequestInitChain) (*ResponseInitChain, error) {
-	return &ResponseInitChain{
+	return &cmtabci.ResponseInitChain{
 		ConsensusParams: req.ConsensusParams,
 		Validators:      req.Validators,
 		AppHash:         []byte{},
@@ -110,26 +111,26 @@ func (BaseApplication) InitChain(ctx context.Context, req *RequestInitChain) (*R
 
 // State Sync Connection (optional)
 func (BaseApplication) ListSnapshots(ctx context.Context, req *RequestListSnapshots) (*ResponseListSnapshots, error) {
-	return &ResponseListSnapshots{
-		Snapshots: []*Snapshot{},
+	return &cmtabci.ResponseListSnapshots{
+		Snapshots: []*cmtabci.Snapshot{},
 	}, nil
 }
 
 func (BaseApplication) OfferSnapshot(ctx context.Context, req *RequestOfferSnapshot) (*ResponseOfferSnapshot, error) {
-	return &ResponseOfferSnapshot{
-		Result: ResponseOfferSnapshot_REJECT,
+	return &cmtabci.ResponseOfferSnapshot{
+		Result: cmtabci.ResponseOfferSnapshot_REJECT,
 	}, nil
 }
 
 func (BaseApplication) LoadSnapshotChunk(ctx context.Context, req *RequestLoadSnapshotChunk) (*ResponseLoadSnapshotChunk, error) {
-	return &ResponseLoadSnapshotChunk{
+	return &cmtabci.ResponseLoadSnapshotChunk{
 		Chunk: []byte{},
 	}, nil
 }
 
 func (BaseApplication) ApplySnapshotChunk(ctx context.Context, req *RequestApplySnapshotChunk) (*ResponseApplySnapshotChunk, error) {
-	return &ResponseApplySnapshotChunk{
-		Result:        ResponseApplySnapshotChunk_REJECT,
+	return &cmtabci.ResponseApplySnapshotChunk{
+		Result:        cmtabci.ResponseApplySnapshotChunk_REJECT,
 		RefetchChunks: []uint32{},
 		RejectSenders: []string{},
 	}, nil
