@@ -21,6 +21,7 @@ type socketClient struct {
 	nextReqID uint64
 	logger    Logger
 	closed    bool
+	err       error
 }
 
 func NewSocketClient(conn net.Conn, logger Logger) Client {
@@ -89,7 +90,7 @@ func (c *socketClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFi
 	})
 	defer c.removeRequest(reqRes.ID)
 
-	select {
+		select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case res := <-reqRes.ResponseCh:
@@ -589,4 +590,11 @@ func (c *socketClient) recvRoutine() {
 			}
 		}
 	}
+}
+
+// Error returns the current error state of the client
+func (c *socketClient) Error() error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	return c.err
 } 

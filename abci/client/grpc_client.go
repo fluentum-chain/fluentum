@@ -58,28 +58,31 @@ func (c *grpcClient) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx) (
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	pbReq := &cmtproto.RequestCheckTx{
+	protoReq := &cmtproto.CheckTxRequest{
 		Tx:   req.Tx,
 		Type: cmtproto.CheckTxType(req.Type),
 	}
 
-	pbRes, err := c.client.CheckTx(ctx, pbReq)
+	protoRes, err := c.client.CheckTx(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("CheckTx failed", "error", err)
 		}
-		return nil, fmt.Errorf("CheckTx failed: %w", err)
+		return nil, fmt.Errorf("gRPC CheckTx failed: %w", err)
 	}
 
 	return &cmtabci.ResponseCheckTx{
-		Code:      pbRes.Code,
-		Data:      pbRes.Data,
-		Log:       pbRes.Log,
-		Info:      pbRes.Info,
-		GasWanted: pbRes.GasWanted,
-		GasUsed:   pbRes.GasUsed,
-		Events:    convertEvents(pbRes.Events),
-		Codespace: pbRes.Codespace,
+		Code:         protoRes.Code,
+		Data:         protoRes.Data,
+		Log:          protoRes.Log,
+		Info:         protoRes.Info,
+		GasWanted:    protoRes.GasWanted,
+		GasUsed:      protoRes.GasUsed,
+		Events:       fromProtoEvents(protoRes.Events),
+		Codespace:    protoRes.Codespace,
+		Sender:       protoRes.Sender,
+		Priority:     protoRes.Priority,
+		MempoolError: protoRes.MempoolError,
 	}, nil
 }
 
@@ -88,7 +91,6 @@ func (c *grpcClient) CheckTxAsync(ctx context.Context, req *cmtabci.RequestCheck
 	go func() {
 		res, err := c.CheckTx(ctx, req)
 		if err != nil {
-			reqRes.Response = nil
 			reqRes.Error = err
 		} else {
 			reqRes.Response = res
@@ -108,27 +110,30 @@ func (c *grpcClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFina
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	pbReq := &cmtproto.RequestFinalizeBlock{
-		Height: req.Height,
-		Txs:    req.Txs,
-		Hash:   req.Hash,
-		Header: convertHeader(req.Header),
+	protoReq := &cmtproto.FinalizeBlockRequest{
+		Txs:                req.Txs,
+		DecidedLastCommit:  toProtoCommitInfo(req.DecidedLastCommit),
+		Misbehavior:        toProtoMisbehavior(req.Misbehavior),
+		Hash:               req.Hash,
+		Height:             req.Height,
+		Time:               req.Time,
+		NextValidatorsHash: req.NextValidatorsHash,
+		ProposerAddress:    req.ProposerAddress,
 	}
 
-	pbRes, err := c.client.FinalizeBlock(ctx, pbReq)
+	protoRes, err := c.client.FinalizeBlock(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("FinalizeBlock failed", "error", err)
 		}
-		return nil, fmt.Errorf("FinalizeBlock failed: %w", err)
+		return nil, fmt.Errorf("gRPC FinalizeBlock failed: %w", err)
 	}
 
 	return &cmtabci.ResponseFinalizeBlock{
-		TxResults:             convertTxResults(pbRes.TxResults),
-		ValidatorUpdates:      convertValidatorUpdates(pbRes.ValidatorUpdates),
-		ConsensusParamUpdates: convertConsensusParams(pbRes.ConsensusParamUpdates),
-		AppHash:               pbRes.AppHash,
-		Events:                convertEvents(pbRes.Events),
+		TxResults:             fromProtoExecTxResults(protoRes.TxResults),
+		ConsensusParamUpdates: fromProtoConsensusParams(protoRes.ConsensusParamUpdates),
+		AppHash:               protoRes.AppHash,
+		RetainHeight:          protoRes.RetainHeight,
 	}, nil
 }
 
@@ -137,7 +142,6 @@ func (c *grpcClient) FinalizeBlockAsync(ctx context.Context, req *cmtabci.Reques
 	go func() {
 		res, err := c.FinalizeBlock(ctx, req)
 		if err != nil {
-			reqRes.Response = nil
 			reqRes.Error = err
 		} else {
 			reqRes.Response = res
@@ -155,21 +159,27 @@ func (c *grpcClient) PrepareProposal(ctx context.Context, req *cmtabci.RequestPr
 		return nil, fmt.Errorf("invalid max tx bytes: %d", req.MaxTxBytes)
 	}
 
-	protoReq := &cmtproto.RequestPrepareProposal{
+	protoReq := &cmtproto.PrepareProposalRequest{
 		MaxTxBytes: req.MaxTxBytes,
 		Txs:        req.Txs,
+		LocalLastCommit: toProtoExtendedCommitInfo(req.LocalLastCommit),
+		Misbehavior:     toProtoMisbehavior(req.Misbehavior),
+		Height:          req.Height,
+		Time:            req.Time,
+		NextValidatorsHash: req.NextValidatorsHash,
+		ProposerAddress:    req.ProposerAddress,
 	}
 
-	res, err := c.client.PrepareProposal(ctx, protoReq)
+	protoRes, err := c.client.PrepareProposal(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("PrepareProposal failed", "err", err)
 		}
-		return nil, fmt.Errorf("PrepareProposal failed: %w", err)
+		return nil, fmt.Errorf("gRPC PrepareProposal failed: %w", err)
 	}
 
 	return &cmtabci.ResponsePrepareProposal{
-		Txs: res.Txs,
+		Txs: protoRes.Txs,
 	}, nil
 }
 
@@ -181,23 +191,27 @@ func (c *grpcClient) ProcessProposal(ctx context.Context, req *cmtabci.RequestPr
 		return nil, fmt.Errorf("ProcessProposal validation failed: %w", err)
 	}
 
-	protoReq := &cmtproto.RequestProcessProposal{
-		Height: req.Height,
-		Txs:    req.Txs,
-		Hash:   req.Hash,
-		Header: req.Header,
+	protoReq := &cmtproto.ProcessProposalRequest{
+		Txs:                req.Txs,
+		ProposedLastCommit: toProtoCommitInfo(req.ProposedLastCommit),
+		Misbehavior:        toProtoMisbehavior(req.Misbehavior),
+		Hash:               req.Hash,
+		Height:             req.Height,
+		Time:               req.Time,
+		NextValidatorsHash: req.NextValidatorsHash,
+		ProposerAddress:    req.ProposerAddress,
 	}
 
-	res, err := c.client.ProcessProposal(ctx, protoReq)
+	protoRes, err := c.client.ProcessProposal(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("ProcessProposal failed", "err", err)
 		}
-		return nil, fmt.Errorf("ProcessProposal failed: %w", err)
+		return nil, fmt.Errorf("gRPC ProcessProposal failed: %w", err)
 	}
 
 	return &cmtabci.ResponseProcessProposal{
-		Status: cmtabci.ResponseProcessProposal_Status(res.Status),
+		Status: cmtabci.ResponseProcessProposal_Status(protoRes.Status),
 	}, nil
 }
 
@@ -209,22 +223,21 @@ func (c *grpcClient) ExtendVote(ctx context.Context, req *cmtabci.RequestExtendV
 		return nil, fmt.Errorf("ExtendVote validation failed: %w", err)
 	}
 
-	protoReq := &cmtproto.RequestExtendVote{
-		Height: req.Height,
-		Round:  req.Round,
+	protoReq := &cmtproto.ExtendVoteRequest{
 		Hash:   req.Hash,
+		Height: req.Height,
 	}
 
-	res, err := c.client.ExtendVote(ctx, protoReq)
+	protoRes, err := c.client.ExtendVote(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("ExtendVote failed", "err", err)
 		}
-		return nil, fmt.Errorf("ExtendVote failed: %w", err)
+		return nil, fmt.Errorf("gRPC ExtendVote failed: %w", err)
 	}
 
 	return &cmtabci.ResponseExtendVote{
-		VoteExtension: res.VoteExtension,
+		VoteExtension: protoRes.VoteExtension,
 	}, nil
 }
 
@@ -236,23 +249,23 @@ func (c *grpcClient) VerifyVoteExtension(ctx context.Context, req *cmtabci.Reque
 		return nil, fmt.Errorf("VerifyVoteExtension validation failed: %w", err)
 	}
 
-	protoReq := &cmtproto.RequestVerifyVoteExtension{
-		Height:        req.Height,
-		Round:         req.Round,
-		Hash:          req.Hash,
-		VoteExtension: req.VoteExtension,
+	protoReq := &cmtproto.VerifyVoteExtensionRequest{
+		Hash:            req.Hash,
+		ValidatorProTxHash: req.ValidatorProTxHash,
+		Height:          req.Height,
+		VoteExtension:   req.VoteExtension,
 	}
 
-	res, err := c.client.VerifyVoteExtension(ctx, protoReq)
+	protoRes, err := c.client.VerifyVoteExtension(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("VerifyVoteExtension failed", "err", err)
 		}
-		return nil, fmt.Errorf("VerifyVoteExtension failed: %w", err)
+		return nil, fmt.Errorf("gRPC VerifyVoteExtension failed: %w", err)
 	}
 
 	return &cmtabci.ResponseVerifyVoteExtension{
-		Status: cmtabci.ResponseVerifyVoteExtension_Status(res.Status),
+		Status: cmtabci.ResponseVerifyVoteExtension_Status(protoRes.Status),
 	}, nil
 }
 
@@ -260,19 +273,19 @@ func (c *grpcClient) Commit(ctx context.Context, req *cmtabci.RequestCommit) (*c
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	pbReq := &cmtproto.RequestCommit{}
+	protoReq := &cmtproto.CommitRequest{}
 
-	pbRes, err := c.client.Commit(ctx, pbReq)
+	protoRes, err := c.client.Commit(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("Commit failed", "error", err)
 		}
-		return nil, fmt.Errorf("Commit failed: %w", err)
+		return nil, fmt.Errorf("gRPC Commit failed: %w", err)
 	}
 
 	return &cmtabci.ResponseCommit{
-		Data:         pbRes.Data,
-		RetainHeight: pbRes.RetainHeight,
+		Data:         protoRes.Data,
+		RetainHeight: protoRes.RetainHeight,
 	}, nil
 }
 
@@ -281,7 +294,6 @@ func (c *grpcClient) CommitAsync(ctx context.Context, req *cmtabci.RequestCommit
 	go func() {
 		res, err := c.Commit(ctx, req)
 		if err != nil {
-			reqRes.Response = nil
 			reqRes.Error = err
 		} else {
 			reqRes.Response = res
@@ -295,27 +307,27 @@ func (c *grpcClient) InitChain(ctx context.Context, req *cmtabci.RequestInitChai
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	pbReq := &cmtproto.RequestInitChain{
+	protoReq := &cmtproto.InitChainRequest{
 		Time:            req.Time,
 		ChainId:         req.ChainId,
-		ConsensusParams: convertConsensusParams(req.ConsensusParams),
-		Validators:      convertValidatorUpdates(req.Validators),
+		ConsensusParams: toProtoConsensusParams(req.ConsensusParams),
+		Validators:      toProtoValidatorUpdates(req.Validators),
 		AppStateBytes:   req.AppStateBytes,
 		InitialHeight:   req.InitialHeight,
 	}
 
-	pbRes, err := c.client.InitChain(ctx, pbReq)
+	protoRes, err := c.client.InitChain(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("InitChain failed", "error", err)
 		}
-		return nil, fmt.Errorf("InitChain failed: %w", err)
+		return nil, fmt.Errorf("gRPC InitChain failed: %w", err)
 	}
 
 	return &cmtabci.ResponseInitChain{
-		ConsensusParams: convertConsensusParams(pbRes.ConsensusParams),
-		Validators:      convertValidatorUpdates(pbRes.Validators),
-		AppHash:         pbRes.AppHash,
+		ConsensusParams: fromProtoConsensusParams(protoRes.ConsensusParams),
+		Validators:      fromProtoValidatorUpdates(protoRes.Validators),
+		AppHash:         protoRes.AppHash,
 	}, nil
 }
 
@@ -324,26 +336,27 @@ func (c *grpcClient) Info(ctx context.Context, req *cmtabci.RequestInfo) (*cmtab
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	pbReq := &cmtproto.RequestInfo{
-		Version:      req.Version,
+	protoReq := &cmtproto.InfoRequest{
+		Version:     req.Version,
 		BlockVersion: req.BlockVersion,
-		P2PVersion:   req.P2PVersion,
+		P2PVersion:  req.P2PVersion,
+		AbciVersion: req.AbciVersion,
 	}
 
-	pbRes, err := c.client.Info(ctx, pbReq)
+	protoRes, err := c.client.Info(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("Info failed", "error", err)
 		}
-		return nil, fmt.Errorf("Info failed: %w", err)
+		return nil, fmt.Errorf("gRPC Info failed: %w", err)
 	}
 
 	return &cmtabci.ResponseInfo{
-		Data:             pbRes.Data,
-		Version:          pbRes.Version,
-		AppVersion:       pbRes.AppVersion,
-		LastBlockHeight:  pbRes.LastBlockHeight,
-		LastBlockAppHash: pbRes.LastBlockAppHash,
+		Data:             protoRes.Data,
+		Version:          protoRes.Version,
+		AppVersion:       protoRes.AppVersion,
+		LastBlockHeight:  protoRes.LastBlockHeight,
+		LastBlockAppHash: protoRes.LastBlockAppHash,
 	}, nil
 }
 
@@ -351,31 +364,31 @@ func (c *grpcClient) Query(ctx context.Context, req *cmtabci.RequestQuery) (*cmt
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	pbReq := &cmtproto.RequestQuery{
+	protoReq := &cmtproto.QueryRequest{
 		Data:   req.Data,
 		Path:   req.Path,
 		Height: req.Height,
 		Prove:  req.Prove,
 	}
 
-	pbRes, err := c.client.Query(ctx, pbReq)
+	protoRes, err := c.client.Query(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("Query failed", "error", err)
 		}
-		return nil, fmt.Errorf("Query failed: %w", err)
+		return nil, fmt.Errorf("gRPC Query failed: %w", err)
 	}
 
 	return &cmtabci.ResponseQuery{
-		Code:      pbRes.Code,
-		Log:       pbRes.Log,
-		Info:      pbRes.Info,
-		Index:     pbRes.Index,
-		Key:       pbRes.Key,
-		Value:     pbRes.Value,
-		ProofOps:  pbRes.ProofOps,
-		Height:    pbRes.Height,
-		Codespace: pbRes.Codespace,
+		Code:      protoRes.Code,
+		Log:       protoRes.Log,
+		Info:      protoRes.Info,
+		Index:     protoRes.Index,
+		Key:       protoRes.Key,
+		Value:     protoRes.Value,
+		ProofOps:  fromProtoProofOps(protoRes.ProofOps),
+		Height:    protoRes.Height,
+		Codespace: protoRes.Codespace,
 	}, nil
 }
 
@@ -384,17 +397,17 @@ func (c *grpcClient) ListSnapshots(ctx context.Context, req *cmtabci.RequestList
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	protoReq := &cmtproto.RequestListSnapshots{}
+	protoReq := &cmtproto.ListSnapshotsRequest{}
 	res, err := c.client.ListSnapshots(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("ListSnapshots failed", "err", err)
 		}
-		return nil, fmt.Errorf("ListSnapshots failed: %w", err)
+		return nil, fmt.Errorf("gRPC ListSnapshots failed: %w", err)
 	}
 
 	return &cmtabci.ResponseListSnapshots{
-		Snapshots: res.Snapshots,
+		Snapshots: fromProtoSnapshots(res.Snapshots),
 	}, nil
 }
 
@@ -402,21 +415,21 @@ func (c *grpcClient) OfferSnapshot(ctx context.Context, req *cmtabci.RequestOffe
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	protoReq := &cmtproto.RequestOfferSnapshot{
-		Snapshot: req.Snapshot,
+	protoReq := &cmtproto.OfferSnapshotRequest{
+		Snapshot: toProtoSnapshot(req.Snapshot),
 		AppHash:  req.AppHash,
 	}
 
-	res, err := c.client.OfferSnapshot(ctx, protoReq)
+	protoRes, err := c.client.OfferSnapshot(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("OfferSnapshot failed", "err", err)
 		}
-		return nil, fmt.Errorf("OfferSnapshot failed: %w", err)
+		return nil, fmt.Errorf("gRPC OfferSnapshot failed: %w", err)
 	}
 
 	return &cmtabci.ResponseOfferSnapshot{
-		Result: cmtabci.ResponseOfferSnapshot_Result(res.Result),
+		Result: cmtabci.ResponseOfferSnapshot_Result(protoRes.Result),
 	}, nil
 }
 
@@ -424,22 +437,22 @@ func (c *grpcClient) LoadSnapshotChunk(ctx context.Context, req *cmtabci.Request
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	protoReq := &cmtproto.RequestLoadSnapshotChunk{
+	protoReq := &cmtproto.LoadSnapshotChunkRequest{
 		Height: req.Height,
 		Format: req.Format,
 		Chunk:  req.Chunk,
 	}
 
-	res, err := c.client.LoadSnapshotChunk(ctx, protoReq)
+	protoRes, err := c.client.LoadSnapshotChunk(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("LoadSnapshotChunk failed", "err", err)
 		}
-		return nil, fmt.Errorf("LoadSnapshotChunk failed: %w", err)
+		return nil, fmt.Errorf("gRPC LoadSnapshotChunk failed: %w", err)
 	}
 
 	return &cmtabci.ResponseLoadSnapshotChunk{
-		Chunk: res.Chunk,
+		Chunk: protoRes.Chunk,
 	}, nil
 }
 
@@ -447,24 +460,24 @@ func (c *grpcClient) ApplySnapshotChunk(ctx context.Context, req *cmtabci.Reques
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	protoReq := &cmtproto.RequestApplySnapshotChunk{
+	protoReq := &cmtproto.ApplySnapshotChunkRequest{
 		Index:  req.Index,
 		Chunk:  req.Chunk,
 		Sender: req.Sender,
 	}
 
-	res, err := c.client.ApplySnapshotChunk(ctx, protoReq)
+	protoRes, err := c.client.ApplySnapshotChunk(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("ApplySnapshotChunk failed", "err", err)
 		}
-		return nil, fmt.Errorf("ApplySnapshotChunk failed: %w", err)
+		return nil, fmt.Errorf("gRPC ApplySnapshotChunk failed: %w", err)
 	}
 
 	return &cmtabci.ResponseApplySnapshotChunk{
-		Result:        cmtabci.ResponseApplySnapshotChunk_Result(res.Result),
-		RefetchChunks: res.RefetchChunks,
-		RejectSenders: res.RejectSenders,
+		Result:         cmtabci.ResponseApplySnapshotChunk_Result(protoRes.Result),
+		RefetchChunks:  protoRes.RefetchChunks,
+		RejectSenders:  protoRes.RejectSenders,
 	}, nil
 }
 
@@ -581,4 +594,479 @@ func convertPartSetHeader(psh cmtabci.PartSetHeader) *cmtproto.PartSetHeader {
 		Total: psh.Total,
 		Hash:  psh.Hash,
 	}
+}
+
+func toProtoCommitInfo(commit *cmtabci.CommitInfo) *cmtproto.CommitInfo {
+	if commit == nil {
+		return nil
+	}
+	return &cmtproto.CommitInfo{
+		Round: commit.Round,
+		Votes: toProtoVoteInfos(commit.Votes),
+	}
+}
+
+func fromProtoCommitInfo(commit *cmtproto.CommitInfo) *cmtabci.CommitInfo {
+	if commit == nil {
+		return nil
+	}
+	return &cmtabci.CommitInfo{
+		Round: commit.Round,
+		Votes: fromProtoVoteInfos(commit.Votes),
+	}
+}
+
+func toProtoExtendedCommitInfo(commit *cmtabci.ExtendedCommitInfo) *cmtproto.ExtendedCommitInfo {
+	if commit == nil {
+		return nil
+	}
+	return &cmtproto.ExtendedCommitInfo{
+		Round: commit.Round,
+		Votes: toProtoExtendedVoteInfos(commit.Votes),
+	}
+}
+
+func fromProtoExtendedCommitInfo(commit *cmtproto.ExtendedCommitInfo) *cmtabci.ExtendedCommitInfo {
+	if commit == nil {
+		return nil
+	}
+	return &cmtabci.ExtendedCommitInfo{
+		Round: commit.Round,
+		Votes: fromProtoExtendedVoteInfos(commit.Votes),
+	}
+}
+
+func toProtoVoteInfos(votes []cmtabci.VoteInfo) []*cmtproto.VoteInfo {
+	if votes == nil {
+		return nil
+	}
+	protoVotes := make([]*cmtproto.VoteInfo, len(votes))
+	for i, vote := range votes {
+		protoVotes[i] = &cmtproto.VoteInfo{
+			Validator:       toProtoValidator(vote.Validator),
+			SignedLastBlock: vote.SignedLastBlock,
+		}
+	}
+	return protoVotes
+}
+
+func fromProtoVoteInfos(votes []*cmtproto.VoteInfo) []cmtabci.VoteInfo {
+	if votes == nil {
+		return nil
+	}
+	abciVotes := make([]cmtabci.VoteInfo, len(votes))
+	for i, vote := range votes {
+		abciVotes[i] = cmtabci.VoteInfo{
+			Validator:       fromProtoValidator(vote.Validator),
+			SignedLastBlock: vote.SignedLastBlock,
+		}
+	}
+	return abciVotes
+}
+
+func toProtoExtendedVoteInfos(votes []cmtabci.ExtendedVoteInfo) []*cmtproto.ExtendedVoteInfo {
+	if votes == nil {
+		return nil
+	}
+	protoVotes := make([]*cmtproto.ExtendedVoteInfo, len(votes))
+	for i, vote := range votes {
+		protoVotes[i] = &cmtproto.ExtendedVoteInfo{
+			Validator:          toProtoValidator(vote.Validator),
+			SignedLastBlock:    vote.SignedLastBlock,
+			VoteExtension:      vote.VoteExtension,
+			ExtensionSignature: vote.ExtensionSignature,
+		}
+	}
+	return protoVotes
+}
+
+func fromProtoExtendedVoteInfos(votes []*cmtproto.ExtendedVoteInfo) []cmtabci.ExtendedVoteInfo {
+	if votes == nil {
+		return nil
+	}
+	abciVotes := make([]cmtabci.ExtendedVoteInfo, len(votes))
+	for i, vote := range votes {
+		abciVotes[i] = cmtabci.ExtendedVoteInfo{
+			Validator:          fromProtoValidator(vote.Validator),
+			SignedLastBlock:    vote.SignedLastBlock,
+			VoteExtension:      vote.VoteExtension,
+			ExtensionSignature: vote.ExtensionSignature,
+		}
+	}
+	return abciVotes
+}
+
+func toProtoValidator(val cmtabci.Validator) *cmtproto.Validator {
+	return &cmtproto.Validator{
+		Address: val.Address,
+		Power:   val.Power,
+	}
+}
+
+func fromProtoValidator(val *cmtproto.Validator) cmtabci.Validator {
+	if val == nil {
+		return cmtabci.Validator{}
+	}
+	return cmtabci.Validator{
+		Address: val.Address,
+		Power:   val.Power,
+	}
+}
+
+func toProtoValidatorUpdates(validators []cmtabci.ValidatorUpdate) []*cmtproto.ValidatorUpdate {
+	if validators == nil {
+		return nil
+	}
+	protoValidators := make([]*cmtproto.ValidatorUpdate, len(validators))
+	for i, val := range validators {
+		protoValidators[i] = &cmtproto.ValidatorUpdate{
+			PubKey: toProtoPubKey(val.PubKey),
+			Power:  val.Power,
+		}
+	}
+	return protoValidators
+}
+
+func fromProtoValidatorUpdates(validators []*cmtproto.ValidatorUpdate) []cmtabci.ValidatorUpdate {
+	if validators == nil {
+		return nil
+	}
+	abciValidators := make([]cmtabci.ValidatorUpdate, len(validators))
+	for i, val := range validators {
+		abciValidators[i] = cmtabci.ValidatorUpdate{
+			PubKey: fromProtoPubKey(val.PubKey),
+			Power:  val.Power,
+		}
+	}
+	return abciValidators
+}
+
+func toProtoPubKey(pubKey cmtabci.PubKey) *cmtproto.PubKey {
+	return &cmtproto.PubKey{
+		Sum: &cmtproto.PubKey_Ed25519{
+			Ed25519: pubKey.Data,
+		},
+	}
+}
+
+func fromProtoPubKey(pubKey *cmtproto.PubKey) cmtabci.PubKey {
+	if pubKey == nil {
+		return cmtabci.PubKey{}
+	}
+	if ed25519 := pubKey.GetEd25519(); ed25519 != nil {
+		return cmtabci.PubKey{Data: ed25519}
+	}
+	return cmtabci.PubKey{}
+}
+
+func toProtoConsensusParams(params *cmtabci.ConsensusParams) *cmtproto.ConsensusParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtproto.ConsensusParams{
+		Block:     toProtoBlockParams(params.Block),
+		Evidence:  toProtoEvidenceParams(params.Evidence),
+		Validator: toProtoValidatorParams(params.Validator),
+		Version:   toProtoVersionParams(params.Version),
+	}
+}
+
+func fromProtoConsensusParams(params *cmtproto.ConsensusParams) *cmtabci.ConsensusParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtabci.ConsensusParams{
+		Block:     fromProtoBlockParams(params.Block),
+		Evidence:  fromProtoEvidenceParams(params.Evidence),
+		Validator: fromProtoValidatorParams(params.Validator),
+		Version:   fromProtoVersionParams(params.Version),
+	}
+}
+
+func toProtoBlockParams(params *cmtabci.BlockParams) *cmtproto.BlockParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtproto.BlockParams{
+		MaxBytes: params.MaxBytes,
+		MaxGas:   params.MaxGas,
+	}
+}
+
+func fromProtoBlockParams(params *cmtproto.BlockParams) *cmtabci.BlockParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtabci.BlockParams{
+		MaxBytes: params.MaxBytes,
+		MaxGas:   params.MaxGas,
+	}
+}
+
+func toProtoEvidenceParams(params *cmtabci.EvidenceParams) *cmtproto.EvidenceParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtproto.EvidenceParams{
+		MaxAgeNumBlocks: params.MaxAgeNumBlocks,
+		MaxAgeDuration:  params.MaxAgeDuration,
+		MaxBytes:        params.MaxBytes,
+	}
+}
+
+func fromProtoEvidenceParams(params *cmtproto.EvidenceParams) *cmtabci.EvidenceParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtabci.EvidenceParams{
+		MaxAgeNumBlocks: params.MaxAgeNumBlocks,
+		MaxAgeDuration:  params.MaxAgeDuration,
+		MaxBytes:        params.MaxBytes,
+	}
+}
+
+func toProtoValidatorParams(params *cmtabci.ValidatorParams) *cmtproto.ValidatorParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtproto.ValidatorParams{
+		PubKeyTypes: params.PubKeyTypes,
+	}
+}
+
+func fromProtoValidatorParams(params *cmtproto.ValidatorParams) *cmtabci.ValidatorParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtabci.ValidatorParams{
+		PubKeyTypes: params.PubKeyTypes,
+	}
+}
+
+func toProtoVersionParams(params *cmtabci.VersionParams) *cmtproto.VersionParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtproto.VersionParams{
+		App: params.App,
+	}
+}
+
+func fromProtoVersionParams(params *cmtproto.VersionParams) *cmtabci.VersionParams {
+	if params == nil {
+		return nil
+	}
+	return &cmtabci.VersionParams{
+		App: params.App,
+	}
+}
+
+func toProtoMisbehavior(misbehavior []cmtabci.Misbehavior) []*cmtproto.Misbehavior {
+	if misbehavior == nil {
+		return nil
+	}
+	protoMisbehavior := make([]*cmtproto.Misbehavior, len(misbehavior))
+	for i, mis := range misbehavior {
+		protoMisbehavior[i] = &cmtproto.Misbehavior{
+			Type:             cmtproto.MisbehaviorType(mis.Type),
+			Validator:        toProtoValidator(mis.Validator),
+			Height:           mis.Height,
+			Time:             mis.Time,
+			TotalVotingPower: mis.TotalVotingPower,
+		}
+	}
+	return protoMisbehavior
+}
+
+func fromProtoMisbehavior(misbehavior []*cmtproto.Misbehavior) []cmtabci.Misbehavior {
+	if misbehavior == nil {
+		return nil
+	}
+	abciMisbehavior := make([]cmtabci.Misbehavior, len(misbehavior))
+	for i, mis := range misbehavior {
+		abciMisbehavior[i] = cmtabci.Misbehavior{
+			Type:             cmtabci.MisbehaviorType(mis.Type),
+			Validator:        fromProtoValidator(mis.Validator),
+			Height:           mis.Height,
+			Time:             mis.Time,
+			TotalVotingPower: mis.TotalVotingPower,
+		}
+	}
+	return abciMisbehavior
+}
+
+func toProtoEvents(events []cmtabci.Event) []*cmtproto.Event {
+	if events == nil {
+		return nil
+	}
+	protoEvents := make([]*cmtproto.Event, len(events))
+	for i, event := range events {
+		protoEvents[i] = &cmtproto.Event{
+			Type:       event.Type,
+			Attributes: toProtoEventAttributes(event.Attributes),
+		}
+	}
+	return protoEvents
+}
+
+func fromProtoEvents(events []*cmtproto.Event) []cmtabci.Event {
+	if events == nil {
+		return nil
+	}
+	abciEvents := make([]cmtabci.Event, len(events))
+	for i, event := range events {
+		abciEvents[i] = cmtabci.Event{
+			Type:       event.Type,
+			Attributes: fromProtoEventAttributes(event.Attributes),
+		}
+	}
+	return abciEvents
+}
+
+func toProtoEventAttributes(attrs []cmtabci.EventAttribute) []*cmtproto.EventAttribute {
+	if attrs == nil {
+		return nil
+	}
+	protoAttrs := make([]*cmtproto.EventAttribute, len(attrs))
+	for i, attr := range attrs {
+		protoAttrs[i] = &cmtproto.EventAttribute{
+			Key:   attr.Key,
+			Value: attr.Value,
+			Index: attr.Index,
+		}
+	}
+	return protoAttrs
+}
+
+func fromProtoEventAttributes(attrs []*cmtproto.EventAttribute) []cmtabci.EventAttribute {
+	if attrs == nil {
+		return nil
+	}
+	abciAttrs := make([]cmtabci.EventAttribute, len(attrs))
+	for i, attr := range attrs {
+		abciAttrs[i] = cmtabci.EventAttribute{
+			Key:   attr.Key,
+			Value: attr.Value,
+			Index: attr.Index,
+		}
+	}
+	return abciAttrs
+}
+
+func toProtoExecTxResults(results []*cmtabci.ExecTxResult) []*cmtproto.ExecTxResult {
+	if results == nil {
+		return nil
+	}
+	protoResults := make([]*cmtproto.ExecTxResult, len(results))
+	for i, result := range results {
+		protoResults[i] = &cmtproto.ExecTxResult{
+			Code:      result.Code,
+			Data:      result.Data,
+			Log:       result.Log,
+			Info:      result.Info,
+			GasWanted: result.GasWanted,
+			GasUsed:   result.GasUsed,
+			Events:    toProtoEvents(result.Events),
+			Codespace: result.Codespace,
+		}
+	}
+	return protoResults
+}
+
+func fromProtoExecTxResults(results []*cmtproto.ExecTxResult) []*cmtabci.ExecTxResult {
+	if results == nil {
+		return nil
+	}
+	abciResults := make([]*cmtabci.ExecTxResult, len(results))
+	for i, result := range results {
+		abciResults[i] = &cmtabci.ExecTxResult{
+			Code:      result.Code,
+			Data:      result.Data,
+			Log:       result.Log,
+			Info:      result.Info,
+			GasWanted: result.GasWanted,
+			GasUsed:   result.GasUsed,
+			Events:    fromProtoEvents(result.Events),
+			Codespace: result.Codespace,
+		}
+	}
+	return abciResults
+}
+
+func toProtoProofOps(proofOps *cmtabci.ProofOps) *cmtproto.ProofOps {
+	if proofOps == nil {
+		return nil
+	}
+	return &cmtproto.ProofOps{
+		Ops: toProtoProofOps(proofOps.Ops),
+	}
+}
+
+func fromProtoProofOps(proofOps *cmtproto.ProofOps) *cmtabci.ProofOps {
+	if proofOps == nil {
+		return nil
+	}
+	return &cmtabci.ProofOps{
+		Ops: fromProtoProofOps(proofOps.Ops),
+	}
+}
+
+func toProtoProofOps(ops []cmtabci.ProofOp) []*cmtproto.ProofOp {
+	if ops == nil {
+		return nil
+	}
+	protoOps := make([]*cmtproto.ProofOp, len(ops))
+	for i, op := range ops {
+		protoOps[i] = &cmtproto.ProofOp{
+			Type: op.Type,
+			Key:  op.Key,
+			Data: op.Data,
+		}
+	}
+	return protoOps
+}
+
+func fromProtoProofOps(ops []*cmtproto.ProofOp) []cmtabci.ProofOp {
+	if ops == nil {
+		return nil
+	}
+	abciOps := make([]cmtabci.ProofOp, len(ops))
+	for i, op := range ops {
+		abciOps[i] = cmtabci.ProofOp{
+			Type: op.Type,
+			Key:  op.Key,
+			Data: op.Data,
+		}
+	}
+	return abciOps
+}
+
+func toProtoSnapshot(snapshot *cmtabci.Snapshot) *cmtproto.Snapshot {
+	if snapshot == nil {
+		return nil
+	}
+	return &cmtproto.Snapshot{
+		Height:   snapshot.Height,
+		Format:   snapshot.Format,
+		Chunks:   snapshot.Chunks,
+		Hash:     snapshot.Hash,
+		Metadata: snapshot.Metadata,
+	}
+}
+
+func fromProtoSnapshots(snapshots []*cmtproto.Snapshot) []*cmtabci.Snapshot {
+	if snapshots == nil {
+		return nil
+	}
+	abciSnapshots := make([]*cmtabci.Snapshot, len(snapshots))
+	for i, snapshot := range snapshots {
+		abciSnapshots[i] = &cmtabci.Snapshot{
+			Height:   snapshot.Height,
+			Format:   snapshot.Format,
+			Chunks:   snapshot.Chunks,
+			Hash:     snapshot.Hash,
+			Metadata: snapshot.Metadata,
+		}
+	}
+	return abciSnapshots
 } 
