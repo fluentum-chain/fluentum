@@ -7,7 +7,7 @@ import (
 	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/abci"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -15,7 +15,7 @@ import (
 var _ Client = (*grpcClient)(nil)
 
 type grpcClient struct {
-	client cmtproto.ABCIServiceClient
+	client cmtproto.ABCIApplicationClient
 	conn   *grpc.ClientConn
 	mtx    sync.Mutex
 	logger Logger
@@ -31,7 +31,7 @@ func NewGRPCClient(addr string, mustConnect bool) Client {
 		return &grpcClient{conn: nil}
 	}
 
-	client := cmtproto.NewABCIServiceClient(conn)
+	client := cmtproto.NewABCIApplicationClient(conn)
 	return &grpcClient{
 		client: client,
 		conn:   conn,
@@ -64,26 +64,50 @@ func (c *grpcClient) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx) (
 		return nil, fmt.Errorf("CheckTx validation failed: %w", err)
 	}
 
-	res, err := c.client.CheckTx(ctx, &cmtproto.RequestCheckTx{
+	pbReq := &cmtproto.RequestCheckTx{
 		Tx:   req.Tx,
 		Type: cmtproto.CheckTxType(req.Type),
-	})
+	}
+	pbRes, err := c.client.CheckTx(ctx, pbReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("CheckTx failed", "err", err)
 		}
 		return nil, fmt.Errorf("CheckTx failed: %w", err)
 	}
-
 	return &cmtabci.ResponseCheckTx{
-		Code:      res.Code,
-		Data:      res.Data,
-		Log:       res.Log,
-		Info:      res.Info,
-		GasWanted: res.GasWanted,
-		GasUsed:   res.GasUsed,
-		Events:    res.Events,
+		Code:      pbRes.Code,
+		Data:      pbRes.Data,
+		Log:       pbRes.Log,
+		Info:      pbRes.Info,
+		GasWanted: pbRes.GasWanted,
+		GasUsed:   pbRes.GasUsed,
+		Events:    fromProtoEvents(pbRes.Events),
+		Codespace: pbRes.Codespace,
 	}, nil
+}
+
+// Helper to convert proto events to abci events
+func fromProtoEvents(events []*cmtproto.Event) []cmtabci.Event {
+	if events == nil {
+		return nil
+	}
+	result := make([]cmtabci.Event, len(events))
+	for i, ev := range events {
+		attrs := make([]cmtabci.EventAttribute, len(ev.Attributes))
+		for j, attr := range ev.Attributes {
+			attrs[j] = cmtabci.EventAttribute{
+				Key:   attr.Key,
+				Value: attr.Value,
+				Index: attr.Index,
+			}
+		}
+		result[i] = cmtabci.Event{
+			Type:       ev.Type,
+			Attributes: attrs,
+		}
+	}
+	return result
 }
 
 func (c *grpcClient) CheckTxAsync(ctx context.Context, req *cmtabci.RequestCheckTx) *ReqRes {
