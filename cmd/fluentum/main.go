@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 
-	authcmd "cosmossdk.io/x/auth/client/cli"
-	authtypes "cosmossdk.io/x/auth/types"
-	banktypes "cosmossdk.io/x/bank/types"
+	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/client"

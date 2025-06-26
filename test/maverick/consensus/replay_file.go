@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	dbm "github.com/tendermint/tendermint-db"
+	dbm "github.com/cometbft/cometbft-db"
 
 	cfg "github.com/fluentum-chain/fluentum/config"
 	tmcon "github.com/fluentum-chain/fluentum/consensus"

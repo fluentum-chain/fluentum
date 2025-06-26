@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"cosmossdk.io/x/auth/tx"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
 )

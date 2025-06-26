@@ -1,4 +1,4 @@
-package main
+package quantum_signing
 
 import (
 	"C"

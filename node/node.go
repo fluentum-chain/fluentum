@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	dbm "github.com/tendermint/tendermint-db"
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 	bcv0 "github.com/fluentum-chain/fluentum/blockchain/v0"
 	bcv1 "github.com/fluentum-chain/fluentum/blockchain/v1"
 	bcv2 "github.com/fluentum-chain/fluentum/blockchain/v2"

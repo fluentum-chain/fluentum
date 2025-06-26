@@ -13,7 +13,7 @@ import (
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/proxy"
 	"github.com/fluentum-chain/fluentum/types"
-	tmabci "github.com/tendermint/tendermint/abci/types"
+	tmabci "github.com/cometbft/cometbft/abci/types"
 )
 
 //-----------------------------------------------------------------------------
