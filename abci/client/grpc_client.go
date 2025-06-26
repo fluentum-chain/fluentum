@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	cometbftabci "github.com/tendermint/tendermint/abci/types"
-	cometbftproto "github.com/tendermint/tendermint/proto/tendermint/abci"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/abci"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
