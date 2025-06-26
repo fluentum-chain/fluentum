@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.24.4
 
 require (
-    cloud.google.com/go/kms v1.15.7
+	cloud.google.com/go/kms v1.15.7
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
 	github.com/Workiva/go-datastructures v1.1.5
@@ -63,7 +63,7 @@ require (
 )
 
 require (
-    github.com/DataDog/zstd v1.5.6 // indirect
+	github.com/DataDog/zstd v1.5.6 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
@@ -98,11 +98,23 @@ require (
 )
 
 replace github.com/gtank/merlin => github.com/gtank/merlin v0.1.1
+
 replace github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
+
 replace github.com/fluentum-chain/dilithium => ./stubs/dilithium
+
 replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
+
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
+
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
+
 replace github.com/fluentum-chain/fluentum => .
+
 replace github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.38.6
+
 replace github.com/tendermint/tendermint-db => github.com/cometbft/cometbft-db v1.0.4
+
+replace github.com/cosmos/cosmos-sdk => cosmossdk.io/sdk v0.50.6
+
+replace github.com/cosmos/cosmos-sdk/x/auth => cosmossdk.io/x/auth v0.50.6
