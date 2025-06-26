@@ -4,39 +4,45 @@ import (
 	"context"
 	"fmt"
 
-	cmtabci "github.com/cometbft/cometbft/abci/types"
+	cometbftabciv1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 )
 
 // Client matches CometBFT's ABCI 2.0 specification
 type Client interface {
+	// Echo method for testing
+	Echo(context.Context, string) (*cometbftabciv1.EchoResponse, error)
+	
 	// Mempool methods
-	CheckTx(context.Context, *cmtabci.RequestCheckTx) (*cmtabci.ResponseCheckTx, error)
-	CheckTxAsync(context.Context, *cmtabci.RequestCheckTx) *ReqRes
+	CheckTx(context.Context, *cometbftabciv1.CheckTxRequest) (*cometbftabciv1.CheckTxResponse, error)
+	CheckTxAsync(context.Context, *cometbftabciv1.CheckTxRequest) *ReqRes
 	Flush(context.Context) error
 
 	// Consensus methods
-	FinalizeBlock(context.Context, *cmtabci.RequestFinalizeBlock) (*cmtabci.ResponseFinalizeBlock, error)
-	PrepareProposal(context.Context, *cmtabci.RequestPrepareProposal) (*cmtabci.ResponsePrepareProposal, error)
-	ProcessProposal(context.Context, *cmtabci.RequestProcessProposal) (*cmtabci.ResponseProcessProposal, error)
-	ExtendVote(context.Context, *cmtabci.RequestExtendVote) (*cmtabci.ResponseExtendVote, error)
-	VerifyVoteExtension(context.Context, *cmtabci.RequestVerifyVoteExtension) (*cmtabci.ResponseVerifyVoteExtension, error)
-	Commit(context.Context, *cmtabci.RequestCommit) (*cmtabci.ResponseCommit, error)
-	InitChain(context.Context, *cmtabci.RequestInitChain) (*cmtabci.ResponseInitChain, error)
+	FinalizeBlock(context.Context, *cometbftabciv1.FinalizeBlockRequest) (*cometbftabciv1.FinalizeBlockResponse, error)
+	FinalizeBlockAsync(context.Context, *cometbftabciv1.FinalizeBlockRequest) *ReqRes
+	PrepareProposal(context.Context, *cometbftabciv1.PrepareProposalRequest) (*cometbftabciv1.PrepareProposalResponse, error)
+	ProcessProposal(context.Context, *cometbftabciv1.ProcessProposalRequest) (*cometbftabciv1.ProcessProposalResponse, error)
+	ExtendVote(context.Context, *cometbftabciv1.ExtendVoteRequest) (*cometbftabciv1.ExtendVoteResponse, error)
+	VerifyVoteExtension(context.Context, *cometbftabciv1.VerifyVoteExtensionRequest) (*cometbftabciv1.VerifyVoteExtensionResponse, error)
+	Commit(context.Context) (*cometbftabciv1.CommitResponse, error)
+	CommitAsync(context.Context) *ReqRes
+	InitChain(context.Context, *cometbftabciv1.InitChainRequest) (*cometbftabciv1.InitChainResponse, error)
 
 	// Query methods
-	Info(context.Context, *cmtabci.RequestInfo) (*cmtabci.ResponseInfo, error)
-	Query(context.Context, *cmtabci.RequestQuery) (*cmtabci.ResponseQuery, error)
+	Info(context.Context, *cometbftabciv1.InfoRequest) (*cometbftabciv1.InfoResponse, error)
+	Query(context.Context, *cometbftabciv1.QueryRequest) (*cometbftabciv1.QueryResponse, error)
 
 	// Snapshot methods
-	ListSnapshots(context.Context, *cmtabci.RequestListSnapshots) (*cmtabci.ResponseListSnapshots, error)
-	OfferSnapshot(context.Context, *cmtabci.RequestOfferSnapshot) (*cmtabci.ResponseOfferSnapshot, error)
-	LoadSnapshotChunk(context.Context, *cmtabci.RequestLoadSnapshotChunk) (*cmtabci.ResponseLoadSnapshotChunk, error)
-	ApplySnapshotChunk(context.Context, *cmtabci.RequestApplySnapshotChunk) (*cmtabci.ResponseApplySnapshotChunk, error)
+	ListSnapshots(context.Context, *cometbftabciv1.ListSnapshotsRequest) (*cometbftabciv1.ListSnapshotsResponse, error)
+	OfferSnapshot(context.Context, *cometbftabciv1.OfferSnapshotRequest) (*cometbftabciv1.OfferSnapshotResponse, error)
+	LoadSnapshotChunk(context.Context, *cometbftabciv1.LoadSnapshotChunkRequest) (*cometbftabciv1.LoadSnapshotChunkResponse, error)
+	ApplySnapshotChunk(context.Context, *cometbftabciv1.ApplySnapshotChunkRequest) (*cometbftabciv1.ApplySnapshotChunkResponse, error)
 
 	// Common
 	Error() error
 	SetResponseCallback(Callback)
 	SetLogger(Logger)
+	Close() error
 }
 
 //----------------------------------------
@@ -48,7 +54,7 @@ func NewClient(addr, transport string, mustConnect bool) (client Client, err err
 	case "socket":
 		client = NewSocketClient(addr, mustConnect)
 	case "grpc":
-		client = NewGRPCClient(addr, mustConnect)
+		client, err = NewGRPCClient(addr, nil)
 	default:
 		err = fmt.Errorf("unknown abci transport %s", transport)
 	}
