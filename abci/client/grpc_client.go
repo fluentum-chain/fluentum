@@ -7,7 +7,7 @@ import (
 	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/abci"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -15,7 +15,7 @@ import (
 var _ Client = (*grpcClient)(nil)
 
 type grpcClient struct {
-	client cmtproto.ABCIApplicationClient
+	client cmtproto.ABCIServiceClient
 	conn   *grpc.ClientConn
 	mtx    sync.Mutex
 	logger Logger
@@ -29,7 +29,7 @@ func NewGRPCClient(addr string, logger Logger) (Client, error) {
 	}
 
 	return &grpcClient{
-		client: cmtproto.NewABCIApplicationClient(conn),
+		client: cmtproto.NewABCIServiceClient(conn),
 		conn:   conn,
 		logger: logger,
 	}, nil
@@ -61,7 +61,7 @@ func (c *grpcClient) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx) (
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestCheckTx{
+	protoReq := &cmtproto.CheckTxRequest{
 		Tx:   req.Tx,
 		Type: cmtproto.CheckTxType(req.Type),
 	}
@@ -118,7 +118,7 @@ func (c *grpcClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFina
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestFinalizeBlock{
+	protoReq := &cmtproto.FinalizeBlockRequest{
 		Txs:                req.Txs,
 		DecidedLastCommit:  toProtoCommitInfo(req.DecidedLastCommit),
 		Misbehavior:        toProtoMisbehavior(req.Misbehavior),
@@ -170,7 +170,7 @@ func (c *grpcClient) PrepareProposal(ctx context.Context, req *cmtabci.RequestPr
 		return nil, fmt.Errorf("invalid max tx bytes: %d", req.MaxTxBytes)
 	}
 
-	protoReq := &cmtproto.RequestPrepareProposal{
+	protoReq := &cmtproto.PrepareProposalRequest{
 		MaxTxBytes:         req.MaxTxBytes,
 		Txs:                req.Txs,
 		LocalLastCommit:    toProtoExtendedCommitInfo(req.LocalLastCommit),
@@ -203,7 +203,7 @@ func (c *grpcClient) ProcessProposal(ctx context.Context, req *cmtabci.RequestPr
 		return nil, fmt.Errorf("ProcessProposal validation failed: %w", err)
 	}
 
-	protoReq := &cmtproto.RequestProcessProposal{
+	protoReq := &cmtproto.ProcessProposalRequest{
 		Txs:                req.Txs,
 		ProposedLastCommit: toProtoCommitInfo(req.ProposedLastCommit),
 		Misbehavior:        toProtoMisbehavior(req.Misbehavior),
@@ -235,7 +235,7 @@ func (c *grpcClient) ExtendVote(ctx context.Context, req *cmtabci.RequestExtendV
 		return nil, fmt.Errorf("ExtendVote validation failed: %w", err)
 	}
 
-	protoReq := &cmtproto.RequestExtendVote{
+	protoReq := &cmtproto.ExtendVoteRequest{
 		Hash:   req.Hash,
 		Height: req.Height,
 	}
@@ -261,7 +261,7 @@ func (c *grpcClient) VerifyVoteExtension(ctx context.Context, req *cmtabci.Reque
 		return nil, fmt.Errorf("VerifyVoteExtension validation failed: %w", err)
 	}
 
-	protoReq := &cmtproto.RequestVerifyVoteExtension{
+	protoReq := &cmtproto.VerifyVoteExtensionRequest{
 		Hash:             req.Hash,
 		ValidatorAddress: req.ValidatorAddress,
 		Height:           req.Height,
@@ -289,7 +289,7 @@ func (c *grpcClient) Commit(ctx context.Context, req *cmtabci.RequestCommit) (*c
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestCommit{}
+	protoReq := &cmtproto.CommitRequest{}
 
 	resp, err := c.client.Commit(ctx, protoReq)
 	if err != nil {
@@ -328,7 +328,7 @@ func (c *grpcClient) InitChain(ctx context.Context, req *cmtabci.RequestInitChai
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestInitChain{
+	protoReq := &cmtproto.InitChainRequest{
 		Time:            req.Time,
 		ChainId:         req.ChainId,
 		ConsensusParams: toProtoConsensusParams(req.ConsensusParams),
@@ -361,7 +361,7 @@ func (c *grpcClient) Info(ctx context.Context, req *cmtabci.RequestInfo) (*cmtab
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestInfo{
+	protoReq := &cmtproto.InfoRequest{
 		Version:      req.Version,
 		BlockVersion: req.BlockVersion,
 		P2PVersion:   req.P2PVersion,
@@ -393,7 +393,7 @@ func (c *grpcClient) Query(ctx context.Context, req *cmtabci.RequestQuery) (*cmt
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestQuery{
+	protoReq := &cmtproto.QueryRequest{
 		Data:   req.Data,
 		Path:   req.Path,
 		Height: req.Height,
@@ -430,7 +430,7 @@ func (c *grpcClient) ListSnapshots(ctx context.Context, req *cmtabci.RequestList
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestListSnapshots{}
+	protoReq := &cmtproto.ListSnapshotsRequest{}
 
 	resp, err := c.client.ListSnapshots(ctx, protoReq)
 	if err != nil {
@@ -453,7 +453,7 @@ func (c *grpcClient) OfferSnapshot(ctx context.Context, req *cmtabci.RequestOffe
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestOfferSnapshot{
+	protoReq := &cmtproto.OfferSnapshotRequest{
 		Snapshot: toProtoSnapshot(req.Snapshot),
 		AppHash:  req.AppHash,
 	}
@@ -479,7 +479,7 @@ func (c *grpcClient) LoadSnapshotChunk(ctx context.Context, req *cmtabci.Request
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestLoadSnapshotChunk{
+	protoReq := &cmtproto.LoadSnapshotChunkRequest{
 		Height: req.Height,
 		Format: req.Format,
 		Chunk:  req.Chunk,
@@ -506,7 +506,7 @@ func (c *grpcClient) ApplySnapshotChunk(ctx context.Context, req *cmtabci.Reques
 		return nil, fmt.Errorf("request cannot be nil")
 	}
 
-	protoReq := &cmtproto.RequestApplySnapshotChunk{
+	protoReq := &cmtproto.ApplySnapshotChunkRequest{
 		Index:  req.Index,
 		Chunk:  req.Chunk,
 		Sender: req.Sender,
