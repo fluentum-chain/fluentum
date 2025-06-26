@@ -7,6 +7,7 @@ import (
 	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/abci"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -14,7 +15,7 @@ import (
 var _ Client = (*grpcClient)(nil)
 
 type grpcClient struct {
-	client cmtabci.ABCIServiceClient
+	client cmtproto.ABCIServiceClient
 	conn   *grpc.ClientConn
 	mtx    sync.Mutex
 	logger Logger
@@ -30,7 +31,7 @@ func NewGRPCClient(addr string, mustConnect bool) Client {
 		return &grpcClient{conn: nil}
 	}
 
-	client := cmtabci.NewABCIServiceClient(conn)
+	client := cmtproto.NewABCIServiceClient(conn)
 	return &grpcClient{
 		client: client,
 		conn:   conn,
@@ -63,7 +64,10 @@ func (c *grpcClient) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx) (
 		return nil, fmt.Errorf("CheckTx validation failed: %w", err)
 	}
 
-	res, err := c.client.CheckTx(ctx, req)
+	res, err := c.client.CheckTx(ctx, &cmtproto.RequestCheckTx{
+		Tx:   req.Tx,
+		Type: cmtproto.CheckTxType(req.Type),
+	})
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("CheckTx failed", "err", err)
@@ -71,7 +75,15 @@ func (c *grpcClient) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx) (
 		return nil, fmt.Errorf("CheckTx failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseCheckTx{
+		Code:      res.Code,
+		Data:      res.Data,
+		Log:       res.Log,
+		Info:      res.Info,
+		GasWanted: res.GasWanted,
+		GasUsed:   res.GasUsed,
+		Events:    res.Events,
+	}, nil
 }
 
 func (c *grpcClient) CheckTxAsync(ctx context.Context, req *cmtabci.RequestCheckTx) *ReqRes {
@@ -102,7 +114,14 @@ func (c *grpcClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFina
 		return nil, fmt.Errorf("FinalizeBlock validation failed: %w", err)
 	}
 
-	res, err := c.client.FinalizeBlock(ctx, req)
+	protoReq := &cmtproto.RequestFinalizeBlock{
+		Height: req.Height,
+		Txs:    req.Txs,
+		Hash:   req.Hash,
+		Header: req.Header,
+	}
+
+	res, err := c.client.FinalizeBlock(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("FinalizeBlock failed", "err", err)
@@ -110,7 +129,13 @@ func (c *grpcClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFina
 		return nil, fmt.Errorf("FinalizeBlock failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseFinalizeBlock{
+		TxResults:             res.TxResults,
+		ValidatorUpdates:      res.ValidatorUpdates,
+		ConsensusParamUpdates: res.ConsensusParamUpdates,
+		AppHash:               res.AppHash,
+		Events:                res.Events,
+	}, nil
 }
 
 func (c *grpcClient) PrepareProposal(ctx context.Context, req *cmtabci.RequestPrepareProposal) (*cmtabci.ResponsePrepareProposal, error) {
@@ -121,7 +146,12 @@ func (c *grpcClient) PrepareProposal(ctx context.Context, req *cmtabci.RequestPr
 		return nil, fmt.Errorf("invalid max tx bytes: %d", req.MaxTxBytes)
 	}
 
-	res, err := c.client.PrepareProposal(ctx, req)
+	protoReq := &cmtproto.RequestPrepareProposal{
+		MaxTxBytes: req.MaxTxBytes,
+		Txs:        req.Txs,
+	}
+
+	res, err := c.client.PrepareProposal(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("PrepareProposal failed", "err", err)
@@ -129,12 +159,9 @@ func (c *grpcClient) PrepareProposal(ctx context.Context, req *cmtabci.RequestPr
 		return nil, fmt.Errorf("PrepareProposal failed: %w", err)
 	}
 
-	// Validate response
-	if len(res.Txs) > int(req.MaxTxBytes) {
-		return nil, fmt.Errorf("proposal exceeds max tx bytes")
-	}
-
-	return res, nil
+	return &cmtabci.ResponsePrepareProposal{
+		Txs: res.Txs,
+	}, nil
 }
 
 func (c *grpcClient) ProcessProposal(ctx context.Context, req *cmtabci.RequestProcessProposal) (*cmtabci.ResponseProcessProposal, error) {
@@ -145,7 +172,14 @@ func (c *grpcClient) ProcessProposal(ctx context.Context, req *cmtabci.RequestPr
 		return nil, fmt.Errorf("ProcessProposal validation failed: %w", err)
 	}
 
-	res, err := c.client.ProcessProposal(ctx, req)
+	protoReq := &cmtproto.RequestProcessProposal{
+		Height: req.Height,
+		Txs:    req.Txs,
+		Hash:   req.Hash,
+		Header: req.Header,
+	}
+
+	res, err := c.client.ProcessProposal(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("ProcessProposal failed", "err", err)
@@ -153,7 +187,9 @@ func (c *grpcClient) ProcessProposal(ctx context.Context, req *cmtabci.RequestPr
 		return nil, fmt.Errorf("ProcessProposal failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseProcessProposal{
+		Status: cmtabci.ResponseProcessProposal_Status(res.Status),
+	}, nil
 }
 
 func (c *grpcClient) ExtendVote(ctx context.Context, req *cmtabci.RequestExtendVote) (*cmtabci.ResponseExtendVote, error) {
@@ -164,7 +200,13 @@ func (c *grpcClient) ExtendVote(ctx context.Context, req *cmtabci.RequestExtendV
 		return nil, fmt.Errorf("ExtendVote validation failed: %w", err)
 	}
 
-	res, err := c.client.ExtendVote(ctx, req)
+	protoReq := &cmtproto.RequestExtendVote{
+		Height: req.Height,
+		Round:  req.Round,
+		Hash:   req.Hash,
+	}
+
+	res, err := c.client.ExtendVote(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("ExtendVote failed", "err", err)
@@ -172,7 +214,9 @@ func (c *grpcClient) ExtendVote(ctx context.Context, req *cmtabci.RequestExtendV
 		return nil, fmt.Errorf("ExtendVote failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseExtendVote{
+		VoteExtension: res.VoteExtension,
+	}, nil
 }
 
 func (c *grpcClient) VerifyVoteExtension(ctx context.Context, req *cmtabci.RequestVerifyVoteExtension) (*cmtabci.ResponseVerifyVoteExtension, error) {
@@ -183,7 +227,14 @@ func (c *grpcClient) VerifyVoteExtension(ctx context.Context, req *cmtabci.Reque
 		return nil, fmt.Errorf("VerifyVoteExtension validation failed: %w", err)
 	}
 
-	res, err := c.client.VerifyVoteExtension(ctx, req)
+	protoReq := &cmtproto.RequestVerifyVoteExtension{
+		Height:        req.Height,
+		Round:         req.Round,
+		Hash:          req.Hash,
+		VoteExtension: req.VoteExtension,
+	}
+
+	res, err := c.client.VerifyVoteExtension(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("VerifyVoteExtension failed", "err", err)
@@ -191,14 +242,17 @@ func (c *grpcClient) VerifyVoteExtension(ctx context.Context, req *cmtabci.Reque
 		return nil, fmt.Errorf("VerifyVoteExtension failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseVerifyVoteExtension{
+		Status: cmtabci.ResponseVerifyVoteExtension_Status(res.Status),
+	}, nil
 }
 
 func (c *grpcClient) Commit(ctx context.Context, req *cmtabci.RequestCommit) (*cmtabci.ResponseCommit, error) {
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	res, err := c.client.Commit(ctx, req)
+	protoReq := &cmtproto.RequestCommit{}
+	res, err := c.client.Commit(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("Commit failed", "err", err)
@@ -206,14 +260,42 @@ func (c *grpcClient) Commit(ctx context.Context, req *cmtabci.RequestCommit) (*c
 		return nil, fmt.Errorf("Commit failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseCommit{
+		Data:         res.Data,
+		RetainHeight: res.RetainHeight,
+	}, nil
 }
 
 func (c *grpcClient) InitChain(ctx context.Context, req *cmtabci.RequestInitChain) (*cmtabci.ResponseInitChain, error) {
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	res, err := c.client.InitChain(ctx, req)
+	protoReq := &cmtproto.RequestInitChain{
+		Time:    req.Time,
+		ChainId: req.ChainId,
+		ConsensusParams: &cmtproto.ConsensusParams{
+			Block: &cmtproto.BlockParams{
+				MaxBytes: req.ConsensusParams.Block.MaxBytes,
+				MaxGas:   req.ConsensusParams.Block.MaxGas,
+			},
+			Evidence: &cmtproto.EvidenceParams{
+				MaxAgeNumBlocks: req.ConsensusParams.Evidence.MaxAgeNumBlocks,
+				MaxAgeDuration:  req.ConsensusParams.Evidence.MaxAgeDuration,
+				MaxBytes:        req.ConsensusParams.Evidence.MaxBytes,
+			},
+			Validator: &cmtproto.ValidatorParams{
+				PubKeyTypes: req.ConsensusParams.Validator.PubKeyTypes,
+			},
+			Version: &cmtproto.VersionParams{
+				AppVersion: req.ConsensusParams.Version.AppVersion,
+			},
+		},
+		Validators: req.Validators,
+		AppStateBytes: req.AppStateBytes,
+		InitialHeight: req.InitialHeight,
+	}
+
+	res, err := c.client.InitChain(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("InitChain failed", "err", err)
@@ -221,7 +303,11 @@ func (c *grpcClient) InitChain(ctx context.Context, req *cmtabci.RequestInitChai
 		return nil, fmt.Errorf("InitChain failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseInitChain{
+		ConsensusParams: res.ConsensusParams,
+		Validators:      res.Validators,
+		AppHash:         res.AppHash,
+	}, nil
 }
 
 // Query methods
@@ -229,7 +315,14 @@ func (c *grpcClient) Info(ctx context.Context, req *cmtabci.RequestInfo) (*cmtab
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	res, err := c.client.Info(ctx, req)
+	protoReq := &cmtproto.RequestInfo{
+		Version: req.Version,
+		BlockVersion: req.BlockVersion,
+		P2PVersion: req.P2PVersion,
+		AbciVersion: req.AbciVersion,
+	}
+
+	res, err := c.client.Info(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("Info failed", "err", err)
@@ -237,14 +330,28 @@ func (c *grpcClient) Info(ctx context.Context, req *cmtabci.RequestInfo) (*cmtab
 		return nil, fmt.Errorf("Info failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseInfo{
+		Data:             res.Data,
+		Version:          res.Version,
+		AppVersion:       res.AppVersion,
+		BlockVersion:     res.BlockVersion,
+		P2PVersion:       res.P2PVersion,
+		AbciVersion:      res.AbciVersion,
+	}, nil
 }
 
 func (c *grpcClient) Query(ctx context.Context, req *cmtabci.RequestQuery) (*cmtabci.ResponseQuery, error) {
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	res, err := c.client.Query(ctx, req)
+	protoReq := &cmtproto.RequestQuery{
+		Data:   req.Data,
+		Path:   req.Path,
+		Height: req.Height,
+		Prove:  req.Prove,
+	}
+
+	res, err := c.client.Query(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("Query failed", "err", err)
@@ -252,7 +359,17 @@ func (c *grpcClient) Query(ctx context.Context, req *cmtabci.RequestQuery) (*cmt
 		return nil, fmt.Errorf("Query failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseQuery{
+		Code:   res.Code,
+		Log:    res.Log,
+		Info:   res.Info,
+		Index:  res.Index,
+		Key:    res.Key,
+		Value:  res.Value,
+		ProofOps: res.ProofOps,
+		Height: res.Height,
+		Codespace: res.Codespace,
+	}, nil
 }
 
 // Snapshot methods
@@ -260,7 +377,8 @@ func (c *grpcClient) ListSnapshots(ctx context.Context, req *cmtabci.RequestList
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	res, err := c.client.ListSnapshots(ctx, req)
+	protoReq := &cmtproto.RequestListSnapshots{}
+	res, err := c.client.ListSnapshots(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("ListSnapshots failed", "err", err)
@@ -268,14 +386,21 @@ func (c *grpcClient) ListSnapshots(ctx context.Context, req *cmtabci.RequestList
 		return nil, fmt.Errorf("ListSnapshots failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseListSnapshots{
+		Snapshots: res.Snapshots,
+	}, nil
 }
 
 func (c *grpcClient) OfferSnapshot(ctx context.Context, req *cmtabci.RequestOfferSnapshot) (*cmtabci.ResponseOfferSnapshot, error) {
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	res, err := c.client.OfferSnapshot(ctx, req)
+	protoReq := &cmtproto.RequestOfferSnapshot{
+		Snapshot: req.Snapshot,
+		AppHash:  req.AppHash,
+	}
+
+	res, err := c.client.OfferSnapshot(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("OfferSnapshot failed", "err", err)
@@ -283,14 +408,22 @@ func (c *grpcClient) OfferSnapshot(ctx context.Context, req *cmtabci.RequestOffe
 		return nil, fmt.Errorf("OfferSnapshot failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseOfferSnapshot{
+		Result: cmtabci.ResponseOfferSnapshot_Result(res.Result),
+	}, nil
 }
 
 func (c *grpcClient) LoadSnapshotChunk(ctx context.Context, req *cmtabci.RequestLoadSnapshotChunk) (*cmtabci.ResponseLoadSnapshotChunk, error) {
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	res, err := c.client.LoadSnapshotChunk(ctx, req)
+	protoReq := &cmtproto.RequestLoadSnapshotChunk{
+		Height: req.Height,
+		Format: req.Format,
+		Chunk:  req.Chunk,
+	}
+
+	res, err := c.client.LoadSnapshotChunk(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("LoadSnapshotChunk failed", "err", err)
@@ -298,14 +431,22 @@ func (c *grpcClient) LoadSnapshotChunk(ctx context.Context, req *cmtabci.Request
 		return nil, fmt.Errorf("LoadSnapshotChunk failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseLoadSnapshotChunk{
+		Chunk: res.Chunk,
+	}, nil
 }
 
 func (c *grpcClient) ApplySnapshotChunk(ctx context.Context, req *cmtabci.RequestApplySnapshotChunk) (*cmtabci.ResponseApplySnapshotChunk, error) {
 	ctx, cancel := contextWithTimeout(ctx, 0)
 	defer cancel()
 
-	res, err := c.client.ApplySnapshotChunk(ctx, req)
+	protoReq := &cmtproto.RequestApplySnapshotChunk{
+		Index:  req.Index,
+		Chunk:  req.Chunk,
+		Sender: req.Sender,
+	}
+
+	res, err := c.client.ApplySnapshotChunk(ctx, protoReq)
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Error("ApplySnapshotChunk failed", "err", err)
@@ -313,5 +454,9 @@ func (c *grpcClient) ApplySnapshotChunk(ctx context.Context, req *cmtabci.Reques
 		return nil, fmt.Errorf("ApplySnapshotChunk failed: %w", err)
 	}
 
-	return res, nil
+	return &cmtabci.ResponseApplySnapshotChunk{
+		Result:        cmtabci.ResponseApplySnapshotChunk_Result(res.Result),
+		RefetchChunks: res.RefetchChunks,
+		RejectSenders: res.RejectSenders,
+	}, nil
 } 

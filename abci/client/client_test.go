@@ -25,7 +25,7 @@ type mockApplication struct {
 	cmtabci.Application
 }
 
-func (app *mockApplication) CheckTx(req *cmtabci.RequestCheckTx) *cmtabci.ResponseCheckTx {
+func (app *mockApplication) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx) *cmtabci.ResponseCheckTx {
 	return &cmtabci.ResponseCheckTx{
 		Code: 0,
 		Data: []byte("ok"),
@@ -33,7 +33,7 @@ func (app *mockApplication) CheckTx(req *cmtabci.RequestCheckTx) *cmtabci.Respon
 	}
 }
 
-func (app *mockApplication) FinalizeBlock(req *cmtabci.RequestFinalizeBlock) *cmtabci.ResponseFinalizeBlock {
+func (app *mockApplication) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFinalizeBlock) *cmtabci.ResponseFinalizeBlock {
 	return &cmtabci.ResponseFinalizeBlock{
 		TxResults: []*cmtabci.ExecTxResult{
 			{
@@ -46,25 +46,25 @@ func (app *mockApplication) FinalizeBlock(req *cmtabci.RequestFinalizeBlock) *cm
 	}
 }
 
-func (app *mockApplication) Commit() *cmtabci.ResponseCommit {
+func (app *mockApplication) Commit(ctx context.Context, req *cmtabci.RequestCommit) *cmtabci.ResponseCommit {
 	return &cmtabci.ResponseCommit{
 		Data: []byte("commit_data"),
 	}
 }
 
-func (app *mockApplication) InitChain(req *cmtabci.RequestInitChain) *cmtabci.ResponseInitChain {
+func (app *mockApplication) InitChain(ctx context.Context, req *cmtabci.RequestInitChain) *cmtabci.ResponseInitChain {
 	return &cmtabci.ResponseInitChain{
 		AppHash: []byte("init_hash"),
 	}
 }
 
-func (app *mockApplication) Info(req *cmtabci.RequestInfo) *cmtabci.ResponseInfo {
+func (app *mockApplication) Info(ctx context.Context, req *cmtabci.RequestInfo) *cmtabci.ResponseInfo {
 	return &cmtabci.ResponseInfo{
 		Data: "mock_app",
 	}
 }
 
-func (app *mockApplication) Query(req *cmtabci.RequestQuery) *cmtabci.ResponseQuery {
+func (app *mockApplication) Query(ctx context.Context, req *cmtabci.RequestQuery) *cmtabci.ResponseQuery {
 	return &cmtabci.ResponseQuery{
 		Code: 0,
 		Value: []byte("query_result"),

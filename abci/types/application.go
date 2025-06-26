@@ -39,28 +39,62 @@ type EventAttribute = abci.EventAttribute
 type Event = abci.Event
 type ExecTxResult = abci.ResponseDeliverTx
 
-// Application is an interface that enables any finite, deterministic state machine
-// to be driven by a blockchain-based replication engine via the ABCI.
-// All methods take a RequestXxx argument and return a ResponseXxx argument,
-// except CheckTx/DeliverTx, which take `tx []byte`, and `Commit`, which takes nothing.
+// Application defines the interface for ABCI applications
+// This interface must be implemented by all ABCI applications
 type Application interface {
 	// Info/Query Connection
-	Info(context.Context, *RequestInfo) (*ResponseInfo, error)                // Return application info
-	SetOption(context.Context, *RequestSetOption) (*ResponseSetOption, error) // Set application option
-	Query(context.Context, *RequestQuery) (*ResponseQuery, error)             // Query for state
+	Info(context.Context, *RequestInfo) (*ResponseInfo, error)
+	Query(context.Context, *RequestQuery) (*ResponseQuery, error)
 
 	// Mempool Connection
-	CheckTx(context.Context, *RequestCheckTx) (*ResponseCheckTx, error) // Validate a tx for the mempool
+	CheckTx(context.Context, *RequestCheckTx) (*ResponseCheckTx, error)
 
 	// Consensus Connection
-	InitChain(context.Context, *RequestInitChain) (*ResponseInitChain, error) // Initialize blockchain w validators/other info from TendermintCore
-	Commit(context.Context, *RequestCommit) (*ResponseCommit, error)          // Commit the state and return the application Merkle root hash
+	PrepareProposal(context.Context, *RequestPrepareProposal) (*ResponsePrepareProposal, error)
+	ProcessProposal(context.Context, *RequestProcessProposal) (*ResponseProcessProposal, error)
+	FinalizeBlock(context.Context, *RequestFinalizeBlock) (*ResponseFinalizeBlock, error)
+	ExtendVote(context.Context, *RequestExtendVote) (*ResponseExtendVote, error)
+	VerifyVoteExtension(context.Context, *RequestVerifyVoteExtension) (*ResponseVerifyVoteExtension, error)
+	Commit(context.Context, *RequestCommit) (*ResponseCommit, error)
+	InitChain(context.Context, *RequestInitChain) (*ResponseInitChain, error)
 
-	// State Sync Connection
-	ListSnapshots(context.Context, *RequestListSnapshots) (*ResponseListSnapshots, error)                // List available snapshots
-	OfferSnapshot(context.Context, *RequestOfferSnapshot) (*ResponseOfferSnapshot, error)                // Offer a snapshot to the application
-	LoadSnapshotChunk(context.Context, *RequestLoadSnapshotChunk) (*ResponseLoadSnapshotChunk, error)    // Load a snapshot chunk
-	ApplySnapshotChunk(context.Context, *RequestApplySnapshotChunk) (*ResponseApplySnapshotChunk, error) // Apply a shapshot chunk
+	// State Sync Connection (optional - implement Snapshotter interface)
+	ListSnapshots(context.Context, *RequestListSnapshots) (*ResponseListSnapshots, error)
+	OfferSnapshot(context.Context, *RequestOfferSnapshot) (*ResponseOfferSnapshot, error)
+	LoadSnapshotChunk(context.Context, *RequestLoadSnapshotChunk) (*ResponseLoadSnapshotChunk, error)
+	ApplySnapshotChunk(context.Context, *RequestApplySnapshotChunk) (*ResponseApplySnapshotChunk, error)
+}
+
+// Response codes
+const (
+	CodeTypeOK                uint32 = 0
+	CodeTypeInternalError     uint32 = 1
+	CodeTypeEncodingError     uint32 = 2
+	CodeTypeUnauthorized      uint32 = 3
+	CodeTypeInsufficientFunds uint32 = 4
+	CodeTypeUnknownRequest    uint32 = 5
+	CodeTypeInvalidAddress    uint32 = 6
+	CodeTypeInvalidPubKey     uint32 = 7
+	CodeTypeUnknownAddress    uint32 = 8
+	CodeTypeInsufficientCoins uint32 = 9
+	CodeTypeInvalidCoins      uint32 = 10
+	CodeTypeOutOfGas          uint32 = 11
+	CodeTypeMemoTooLarge      uint32 = 12
+	CodeTypeInsufficientFee   uint32 = 13
+	CodeTypeTooManySignatures uint32 = 14
+	CodeTypeNoSignatures      uint32 = 15
+	CodeTypeErr               uint32 = 1
+	CodeTypeOK2               uint32 = 0
+)
+
+// Helper function to check if a response code indicates success
+func IsOK(code uint32) bool {
+	return code == CodeTypeOK
+}
+
+// Helper function to check if a response code indicates an error
+func IsError(code uint32) bool {
+	return code != CodeTypeOK
 }
 
 //-------------------------------------------------------

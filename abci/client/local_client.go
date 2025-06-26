@@ -67,7 +67,7 @@ func (app *localClient) CheckTx(ctx context.Context, req *cmtabci.RequestCheckTx
 		return nil, fmt.Errorf("CheckTx validation failed: %w", err)
 	}
 
-	return app.Application.CheckTx(req)
+	return app.Application.CheckTx(ctx, req)
 }
 
 func (app *localClient) CheckTxAsync(ctx context.Context, req *cmtabci.RequestCheckTx) *ReqRes {
@@ -89,34 +89,15 @@ func (app *localClient) Flush(ctx context.Context) error {
 }
 
 // Consensus methods
-func (app *localClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFinalizeBlock) (*cmtabci.ResponseFinalizeBlock, error) {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
+func (c *localClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFinalizeBlock) (*cmtabci.ResponseFinalizeBlock, error) {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 
-	// Validate request
 	if err := validateBlockHeight(req.Height); err != nil {
 		return nil, fmt.Errorf("FinalizeBlock validation failed: %w", err)
 	}
 
-	// Process transactions
-	txResults := processTxResults(req.Txs, app.Application)
-
-	// Call BeginBlock/EndBlock equivalents
-	beginRes := app.Application.BeginBlock(&cmtabci.RequestBeginBlock{
-		Hash:   req.Hash,
-		Header: req.Header,
-	})
-	endRes := app.Application.EndBlock(&cmtabci.RequestEndBlock{
-		Height: req.Height,
-	})
-
-	return &cmtabci.ResponseFinalizeBlock{
-		TxResults:             txResults,
-		ValidatorUpdates:      endRes.ValidatorUpdates,
-		ConsensusParamUpdates: endRes.ConsensusParamUpdates,
-		AppHash:               endRes.AppHash,
-		Events:                append(beginRes.Events, endRes.Events...),
-	}, nil
+	return c.Application.FinalizeBlock(ctx, req)
 }
 
 func (app *localClient) PrepareProposal(ctx context.Context, req *cmtabci.RequestPrepareProposal) (*cmtabci.ResponsePrepareProposal, error) {
@@ -187,7 +168,7 @@ func (app *localClient) Commit(ctx context.Context, req *cmtabci.RequestCommit) 
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.Commit()
+	res := app.Application.Commit(ctx, req)
 	return &cmtabci.ResponseCommit{
 		Data:         res.Data,
 		RetainHeight: res.RetainHeight,
@@ -198,7 +179,7 @@ func (app *localClient) InitChain(ctx context.Context, req *cmtabci.RequestInitC
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	return app.Application.InitChain(req)
+	return app.Application.InitChain(ctx, req)
 }
 
 // Query methods
@@ -206,14 +187,14 @@ func (app *localClient) Info(ctx context.Context, req *cmtabci.RequestInfo) (*cm
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	return app.Application.Info(req)
+	return app.Application.Info(ctx, req)
 }
 
 func (app *localClient) Query(ctx context.Context, req *cmtabci.RequestQuery) (*cmtabci.ResponseQuery, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	return app.Application.Query(req)
+	return app.Application.Query(ctx, req)
 }
 
 // Snapshot methods
@@ -223,7 +204,7 @@ func (app *localClient) ListSnapshots(ctx context.Context, req *cmtabci.RequestL
 
 	if isSnapshotter(app.Application) {
 		snapshotter := app.Application.(cmtabci.Snapshotter)
-		return snapshotter.ListSnapshots(req)
+		return snapshotter.ListSnapshots(ctx, req)
 	}
 	return &cmtabci.ResponseListSnapshots{}, nil
 }
@@ -234,7 +215,7 @@ func (app *localClient) OfferSnapshot(ctx context.Context, req *cmtabci.RequestO
 
 	if isSnapshotter(app.Application) {
 		snapshotter := app.Application.(cmtabci.Snapshotter)
-		return snapshotter.OfferSnapshot(req)
+		return snapshotter.OfferSnapshot(ctx, req)
 	}
 	return &cmtabci.ResponseOfferSnapshot{
 		Result: cmtabci.ResponseOfferSnapshot_REJECT,
@@ -247,7 +228,7 @@ func (app *localClient) LoadSnapshotChunk(ctx context.Context, req *cmtabci.Requ
 
 	if isSnapshotter(app.Application) {
 		snapshotter := app.Application.(cmtabci.Snapshotter)
-		return snapshotter.LoadSnapshotChunk(req)
+		return snapshotter.LoadSnapshotChunk(ctx, req)
 	}
 	return nil, fmt.Errorf("application does not implement Snapshotter")
 }
@@ -258,7 +239,7 @@ func (app *localClient) ApplySnapshotChunk(ctx context.Context, req *cmtabci.Req
 
 	if isSnapshotter(app.Application) {
 		snapshotter := app.Application.(cmtabci.Snapshotter)
-		return snapshotter.ApplySnapshotChunk(req)
+		return snapshotter.ApplySnapshotChunk(ctx, req)
 	}
 	return &cmtabci.ResponseApplySnapshotChunk{
 		Result: cmtabci.ResponseApplySnapshotChunk_REJECT,
