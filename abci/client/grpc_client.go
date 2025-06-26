@@ -14,7 +14,7 @@ import (
 var _ Client = (*grpcClient)(nil)
 
 type grpcClient struct {
-	client cometbftproto.ABCIServiceClient
+	client cometbftproto.ABCIApplicationClient
 	conn   *grpc.ClientConn
 	mtx    sync.Mutex
 	logger Logger
@@ -28,7 +28,7 @@ func NewGRPCClient(addr string, logger Logger) (Client, error) {
 	}
 
 	return &grpcClient{
-		client: cometbftproto.NewABCIServiceClient(conn),
+		client: cometbftproto.NewABCIApplicationClient(conn),
 		conn:   conn,
 		logger: logger,
 	}, nil
