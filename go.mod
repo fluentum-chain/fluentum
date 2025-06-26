@@ -115,6 +115,4 @@ replace github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.38.6
 
 replace github.com/tendermint/tendermint-db => github.com/cometbft/cometbft-db v1.0.4
 
-replace github.com/cosmos/cosmos-sdk => cosmossdk.io/sdk v0.50.6
-
 replace github.com/cosmos/cosmos-sdk/x/auth => cosmossdk.io/x/auth v0.50.6
