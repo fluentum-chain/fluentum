@@ -9,6 +9,7 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/fluentum-chain/fluentum/abci/compat"
 	localabci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
@@ -176,12 +177,12 @@ func (c *Client) ABCIQueryWithOptions(ctx context.Context, path string, data tmb
 		}
 
 		// 2) verify value
-		err = c.prt.VerifyValue(resp.ProofOps, l.AppHash, kp.String(), resp.Value)
+		err = c.prt.VerifyValue(compat.ProofOpsFromComet(resp.ProofOps), l.AppHash, kp.String(), resp.Value)
 		if err != nil {
 			return nil, fmt.Errorf("verify value proof: %w", err)
 		}
 	} else { // OR validate the absence proof against the trusted header.
-		err = c.prt.VerifyAbsence(resp.ProofOps, l.AppHash, string(resp.Key))
+		err = c.prt.VerifyAbsence(compat.ProofOpsFromComet(resp.ProofOps), l.AppHash, string(resp.Key))
 		if err != nil {
 			return nil, fmt.Errorf("verify absence proof: %w", err)
 		}
@@ -668,12 +669,9 @@ func ToCmExecTxResult(txr *localabci.ExecTxResult) *abci.ExecTxResult {
 	}
 }
 
-func toCmEvents(evts []*localabci.Event) []abci.Event {
+func toCmEvents(evts []localabci.Event) []abci.Event {
 	res := make([]abci.Event, len(evts))
 	for i, e := range evts {
-		if e == nil {
-			continue
-		}
 		res[i] = abci.Event{
 			Type:       e.Type,
 			Attributes: toCmEventAttributes(e.Attributes),
@@ -682,7 +680,7 @@ func toCmEvents(evts []*localabci.Event) []abci.Event {
 	return res
 }
 
-func toCmEventAttributes(attrs []*localabci.EventAttribute) []abci.EventAttribute {
+func toCmEventAttributes(attrs []localabci.EventAttribute) []abci.EventAttribute {
 	res := make([]abci.EventAttribute, len(attrs))
 	for i, a := range attrs {
 		res[i] = abci.EventAttribute{

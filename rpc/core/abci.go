@@ -1,9 +1,10 @@
 package core
 
 import (
-	abci "github.com/cometbft/cometbft/abci/types"
+	"context"
+
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/bytes"
-	"github.com/fluentum-chain/fluentum/proxy"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
 	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
 )
@@ -17,7 +18,7 @@ func ABCIQuery(
 	height int64,
 	prove bool,
 ) (*ctypes.ResultABCIQuery, error) {
-	resQuery, err := env.ProxyAppQuery.QuerySync(abci.RequestQuery{
+	resQuery, err := env.ProxyAppQuery.Query(context.Background(), &abci.QueryRequest{
 		Path:   path,
 		Data:   data,
 		Height: height,
@@ -33,7 +34,7 @@ func ABCIQuery(
 // ABCIInfo gets some info about the application.
 // More: https://docs.tendermint.com/v0.34/rpc/#/ABCI/abci_info
 func ABCIInfo(ctx *rpctypes.Context) (*ctypes.ResultABCIInfo, error) {
-	resInfo, err := env.ProxyAppQuery.InfoSync(proxy.RequestInfo)
+	resInfo, err := env.ProxyAppQuery.Info(context.Background(), &abci.InfoRequest{})
 	if err != nil {
 		return nil, err
 	}

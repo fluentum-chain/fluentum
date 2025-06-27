@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/fluentum-chain/fluentum/abci/compat"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
 	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"
@@ -105,7 +106,7 @@ func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadc
 		checkTxRes := checkTxResMsg.GetCheckTx()
 		if checkTxRes.Code != abci.CodeTypeOK {
 			return &ctypes.ResultBroadcastTxCommit{
-				CheckTx: *checkTxRes,
+				CheckTx: *compat.CheckTxResponseFromComet(checkTxRes),
 				ExecTx:  abci.ExecTxResult{},
 				Hash:    tx.Hash(),
 			}, nil
@@ -117,8 +118,8 @@ func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadc
 			eventTx := msg.Data().(types.EventDataTx)
 			// In ABCI 2.0, eventTx.Result should be of type ExecTxResult
 			return &ctypes.ResultBroadcastTxCommit{
-				CheckTx: *checkTxRes,
-				ExecTx:  eventTx.Result, // Should be ExecTxResult
+				CheckTx: *compat.CheckTxResponseFromComet(checkTxRes),
+				ExecTx:  *compat.ExecTxResultFromComet(&eventTx.Result),
 				Hash:    tx.Hash(),
 				Height:  eventTx.Height,
 			}, nil
@@ -132,7 +133,7 @@ func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadc
 			err = fmt.Errorf("deliverTxSub was cancelled (reason: %s)", reason)
 			env.Logger.Error("Error on broadcastTxCommit", "err", err)
 			return &ctypes.ResultBroadcastTxCommit{
-				CheckTx: *checkTxRes,
+				CheckTx: *compat.CheckTxResponseFromComet(checkTxRes),
 				ExecTx:  abci.ExecTxResult{},
 				Hash:    tx.Hash(),
 			}, err
@@ -140,7 +141,7 @@ func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadc
 			err = errors.New("timed out waiting for tx to be included in a block")
 			env.Logger.Error("Error on broadcastTxCommit", "err", err)
 			return &ctypes.ResultBroadcastTxCommit{
-				CheckTx: *checkTxRes,
+				CheckTx: *compat.CheckTxResponseFromComet(checkTxRes),
 				ExecTx:  abci.ExecTxResult{},
 				Hash:    tx.Hash(),
 			}, err
@@ -176,11 +177,11 @@ func NumUnconfirmedTxs(ctx *rpctypes.Context) (*ctypes.ResultUnconfirmedTxs, err
 // be added to the mempool either.
 // More: https://docs.tendermint.com/v0.34/rpc/#/Tx/check_tx
 func CheckTx(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultCheckTx, error) {
-	res, err := env.ProxyAppMempool.CheckTxSync(abci.RequestCheckTx{Tx: tx})
+	res, err := env.ProxyAppMempool.CheckTx(context.Background(), &abci.CheckTxRequest{Tx: tx})
 	if err != nil {
 		return nil, err
 	}
-	return &ctypes.ResultCheckTx{ResponseCheckTx: *res}, nil
+	return &ctypes.ResultCheckTx{CheckTxResponse: *res}, nil
 }
 
 // TODO: Update broadcast and result logic for FinalizeBlock block-level responses

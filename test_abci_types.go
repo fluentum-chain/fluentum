@@ -55,13 +55,13 @@ func main() {
 		Info:      "info",
 		GasWanted: 1000,
 		GasUsed:   500,
-		Events:    []*abci.Event{},
+		Events:    []abci.Event{},
 		Codespace: "test",
 	}
 	fmt.Printf("✓ Created CheckTxResponse: %+v\n", checkTxResp)
 
 	finalizeBlockResp := &abci.FinalizeBlockResponse{
-		Events:                []cmtabci.Event{},
+		Events:                []abci.Event{},
 		TxResults:             []*cmtabci.ExecTxResult{},
 		ValidatorUpdates:      []cmtabci.ValidatorUpdate{},
 		ConsensusParamUpdates: &cmtproto.ConsensusParams{},

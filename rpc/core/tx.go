@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/fluentum-chain/fluentum/abci/compat"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
 	tmquery "github.com/fluentum-chain/fluentum/libs/pubsub/query"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
@@ -42,12 +43,12 @@ func Tx(ctx *rpctypes.Context, hash []byte, prove bool) (*ctypes.ResultTx, error
 	}
 
 	return &ctypes.ResultTx{
-		Hash:     hash,
-		Height:   height,
-		Index:    index,
-		TxResult: r.Result,
-		Tx:       r.Tx,
-		Proof:    proof,
+		Hash:   hash,
+		Height: height,
+		Index:  index,
+		ExecTx: *compat.ExecTxResultFromComet(&r.Result),
+		Tx:     r.Tx,
+		Proof:  proof,
 	}, nil
 }
 
@@ -122,12 +123,12 @@ func TxSearch(
 		}
 
 		apiResults = append(apiResults, &ctypes.ResultTx{
-			Hash:     types.Tx(r.Tx).Hash(),
-			Height:   r.Height,
-			Index:    r.Index,
-			TxResult: r.Result,
-			Tx:       r.Tx,
-			Proof:    proof,
+			Hash:   types.Tx(r.Tx).Hash(),
+			Height: r.Height,
+			Index:  r.Index,
+			ExecTx: *compat.ExecTxResultFromComet(&r.Result),
+			Tx:     r.Tx,
+			Proof:  proof,
 		})
 	}
 

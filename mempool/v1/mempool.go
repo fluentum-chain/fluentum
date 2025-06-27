@@ -750,26 +750,22 @@ func ConvertCheckTxResponse(local *abci.CheckTxResponse) *cmtabci.ResponseCheckT
 	if local.Events != nil {
 		events = make([]cmtabci.Event, len(local.Events))
 		for i, event := range local.Events {
-			if event != nil {
-				// Convert EventAttributes
-				var attributes []cmtabci.EventAttribute
-				if event.Attributes != nil {
-					attributes = make([]cmtabci.EventAttribute, len(event.Attributes))
-					for j, attr := range event.Attributes {
-						if attr != nil {
-							attributes[j] = cmtabci.EventAttribute{
-								Key:   string(attr.Key),
-								Value: string(attr.Value),
-								Index: attr.Index,
-							}
-						}
+			// Convert EventAttributes
+			var attributes []cmtabci.EventAttribute
+			if event.Attributes != nil {
+				attributes = make([]cmtabci.EventAttribute, len(event.Attributes))
+				for j, attr := range event.Attributes {
+					attributes[j] = cmtabci.EventAttribute{
+						Key:   string(attr.Key),
+						Value: string(attr.Value),
+						Index: attr.Index,
 					}
 				}
+			}
 
-				events[i] = cmtabci.Event{
-					Type:       event.Type,
-					Attributes: attributes,
-				}
+			events[i] = cmtabci.Event{
+				Type:       event.Type,
+				Attributes: attributes,
 			}
 		}
 	}

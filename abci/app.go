@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	cometbftabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/abci/types"
 )
 
@@ -70,12 +69,12 @@ func (app *MyApp) CheckTx(ctx context.Context, req *types.CheckTxRequest) (*type
 	}
 	gasWanted := int64(len(req.Tx))
 	return &types.CheckTxResponse{
-		Code:      0, // OK
-		Data:      []byte("valid"),
+		Code:      types.CodeTypeOK,
+		Data:      nil,
 		Log:       "transaction valid",
 		GasWanted: gasWanted,
 		GasUsed:   0,
-		Events:    []*types.Event{},
+		Events:    []types.Event{},
 		Codespace: "",
 	}, nil
 }
@@ -86,7 +85,7 @@ func (app *MyApp) FinalizeBlock(ctx context.Context, req *types.FinalizeBlockReq
 	defer app.mtx.Unlock()
 	app.height = req.Height
 	app.events = []types.Event{}
-	txResults := make([]*cometbftabci.ExecTxResult, len(req.Txs))
+	txResults := make([]*types.ExecTxResult, len(req.Txs))
 	for i, tx := range req.Txs {
 		result, err := app.processTransaction(ctx, tx)
 		if err != nil {
@@ -96,42 +95,23 @@ func (app *MyApp) FinalizeBlock(ctx context.Context, req *types.FinalizeBlockReq
 				GasUsed: 0,
 			}
 		}
-		// Convert local ExecTxResult to CometBFT ExecTxResult
-		txResults[i] = &cometbftabci.ExecTxResult{
-			Code:      result.Code,
-			Data:      result.Data,
-			Log:       result.Log,
-			Info:      result.Info,
-			GasWanted: result.GasWanted,
-			GasUsed:   result.GasUsed,
-			Events:    []cometbftabci.Event{}, // Convert events if needed
-			Codespace: result.Codespace,
-		}
+		txResults[i] = result
 	}
 	blockEvent := types.Event{
 		Type: "block",
-		Attributes: []*types.EventAttribute{
-			{Key: []byte("height"), Value: []byte(fmt.Sprintf("%d", app.height)), Index: true},
-			{Key: []byte("num_txs"), Value: []byte(fmt.Sprintf("%d", len(req.Txs))), Index: false},
+		Attributes: []types.EventAttribute{
+			{Key: "height", Value: fmt.Sprintf("%d", app.height), Index: true},
+			{Key: "num_txs", Value: fmt.Sprintf("%d", len(req.Txs)), Index: false},
 		},
 	}
 	app.events = append(app.events, blockEvent)
-
-	// Convert local events to CometBFT events
-	cometbftEvents := make([]cometbftabci.Event, len(app.events))
-	for i, event := range app.events {
-		cometbftEvents[i] = cometbftabci.Event{
-			Type:       event.Type,
-			Attributes: []cometbftabci.EventAttribute{}, // Convert attributes if needed
-		}
-	}
 
 	return &types.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      []types.ValidatorUpdate{},
 		ConsensusParamUpdates: nil,
 		AppHash:               app.getAppHash(),
-		Events:                cometbftEvents,
+		Events:                app.events,
 	}, nil
 }
 
@@ -239,9 +219,9 @@ func (app *MyApp) processTransaction(ctx context.Context, tx []byte) (*types.Exe
 	}
 	txEvent := types.Event{
 		Type: "transaction",
-		Attributes: []*types.EventAttribute{
-			{Key: []byte("command"), Value: []byte(string(tx[:3])), Index: true},
-			{Key: []byte("gas_used"), Value: []byte(fmt.Sprintf("%d", gasUsed)), Index: false},
+		Attributes: []types.EventAttribute{
+			{Key: "command", Value: string(tx[:3]), Index: true},
+			{Key: "gas_used", Value: fmt.Sprintf("%d", gasUsed), Index: false},
 		},
 	}
 	app.events = append(app.events, txEvent)

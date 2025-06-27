@@ -16,7 +16,8 @@ func main() {
 	flag.Parse()
 
 	app := counter.NewApplication(*serial)
-	srv, err := server.NewServer(*addr, "socket", app)
+	adapter := counter.NewCometBFTAdapter(app)
+	srv, err := server.NewServer(*addr, "socket", adapter)
 	if err != nil {
 		stdlog.Fatalf("failed to create ABCI server: %v", err)
 	}

@@ -32,7 +32,7 @@ func (a *mempoolConn) CheckTx(ctx context.Context, req *abci.CheckTxRequest) (*a
 		Info:      res.Info,
 		GasWanted: res.GasWanted,
 		GasUsed:   res.GasUsed,
-		Events:    []*abci.Event{},
+		Events:    []abci.Event{},
 		Codespace: res.Codespace,
 	}, nil
 }

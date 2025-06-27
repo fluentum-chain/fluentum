@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/fluentum-chain/fluentum/abci/compat"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
 	tmquery "github.com/fluentum-chain/fluentum/libs/pubsub/query"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
@@ -152,11 +153,9 @@ func BlockResults(ctx *rpctypes.Context, heightPtr *int64) (*ctypes.ResultBlockR
 
 	return &ctypes.ResultBlockResults{
 		Height:                height,
-		TxsResults:            results.DeliverTxs,
-		BeginBlockEvents:      results.BeginBlock.Events,
-		EndBlockEvents:        results.EndBlock.Events,
-		ValidatorUpdates:      results.EndBlock.ValidatorUpdates,
-		ConsensusParamUpdates: results.EndBlock.ConsensusParamUpdates,
+		TxsResults:            compat.ExecTxResultsFromComet(results.FinalizeBlock.TxResults),
+		ValidatorUpdates:      results.FinalizeBlock.ValidatorUpdates,
+		ConsensusParamUpdates: compat.ConsensusParamsFromComet(results.FinalizeBlock.ConsensusParamUpdates),
 	}, nil
 }
 

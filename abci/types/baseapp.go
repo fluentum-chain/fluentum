@@ -38,11 +38,12 @@ func (BaseApplication) Query(ctx context.Context, req *QueryRequest) (*QueryResp
 func (BaseApplication) CheckTx(ctx context.Context, req *CheckTxRequest) (*CheckTxResponse, error) {
 	return &CheckTxResponse{
 		Code:      CodeTypeOK,
-		Data:      []byte{},
-		Log:       "check tx successful",
+		Data:      nil,
+		Log:       "",
+		Info:      "",
 		GasWanted: 0,
 		GasUsed:   0,
-		Events:    []*Event{},
+		Events:    []Event{},
 		Codespace: "",
 	}, nil
 }

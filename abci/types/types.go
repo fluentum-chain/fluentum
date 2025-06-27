@@ -6,7 +6,6 @@ import (
 	cometbftabci "github.com/cometbft/cometbft/abci/types"
 	cometbftcrypto "github.com/cometbft/cometbft/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
-	abciproto "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	cryptoproto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
@@ -37,10 +36,9 @@ type Request_CheckTx = cometbftabci.Request_CheckTx
 // Response types
 type Response = cometbftabci.Response
 type EchoResponse = cometbftabci.ResponseEcho
-type CheckTxResponse = abciproto.ResponseCheckTx
+type CheckTxResponse = cometbftabci.ResponseCheckTx
 type FinalizeBlockResponse = cometbftabci.ResponseFinalizeBlock
 type CommitResponse = cometbftabci.ResponseCommit
-type InfoResponse = cometbftabci.ResponseInfo
 type QueryResponse = cometbftabci.ResponseQuery
 type InitChainResponse = cometbftabci.ResponseInitChain
 type PrepareProposalResponse = cometbftabci.ResponsePrepareProposal
@@ -48,12 +46,19 @@ type ProcessProposalResponse = cometbftabci.ResponseProcessProposal
 type ExtendVoteResponse = cometbftabci.ResponseExtendVote
 type VerifyVoteExtensionResponse = cometbftabci.ResponseVerifyVoteExtension
 type ListSnapshotsResponse = cometbftabci.ResponseListSnapshots
-type OfferSnapshotResponse = cometbftabci.ResponseOfferSnapshot
 type LoadSnapshotChunkResponse = cometbftabci.ResponseLoadSnapshotChunk
+type OfferSnapshotResponse = cometbftabci.ResponseOfferSnapshot
 type ApplySnapshotChunkResponse = cometbftabci.ResponseApplySnapshotChunk
+
+// Legacy response types (for backward compatibility)
+// Note: ResponseDeliverTx, ResponseBeginBlock, and ResponseEndBlock were removed in newer CometBFT versions
 
 // Response nested types
 type Response_CheckTx = cometbftabci.Response_CheckTx
+
+// Missing response types
+type InfoResponse = cometbftabci.ResponseInfo
+type ExecTxResult = cometbftabci.ExecTxResult
 
 // Consensus and block types
 type ConsensusParams = tmproto.ConsensusParams
@@ -71,9 +76,8 @@ type ValidatorUpdate = cometbftabci.ValidatorUpdate
 type PubKey = cometbftcrypto.PubKey
 
 // Transaction and execution types
-type ExecTxResult = abciproto.ResponseDeliverTx
-type Event = abciproto.Event
-type EventAttribute = abciproto.EventAttribute
+type Event = cometbftabci.Event
+type EventAttribute = cometbftabci.EventAttribute
 type TxResult = cometbftabci.TxResult
 
 // Snapshot types
@@ -151,9 +155,9 @@ func NewEvent(eventType string) Event {
 
 // AddAttribute adds an attribute to an event
 func AddAttribute(event *Event, key, value string, index bool) {
-	event.Attributes = append(event.Attributes, &EventAttribute{
-		Key:   []byte(key),
-		Value: []byte(value),
+	event.Attributes = append(event.Attributes, EventAttribute{
+		Key:   key,
+		Value: value,
 		Index: index,
 	})
 }

@@ -250,7 +250,7 @@ func (a *ABCIAdapter) VerifyVoteExtension(ctx context.Context, req *cmtabci.Requ
 }
 
 // Helper functions for type conversion
-func convertEvents(events []*types.Event) []cmtabci.Event {
+func convertEvents(events []types.Event) []cmtabci.Event {
 	if events == nil {
 		return nil
 	}
@@ -264,7 +264,7 @@ func convertEvents(events []*types.Event) []cmtabci.Event {
 	return result
 }
 
-func convertEventAttributes(attrs []*types.EventAttribute) []cmtabci.EventAttribute {
+func convertEventAttributes(attrs []types.EventAttribute) []cmtabci.EventAttribute {
 	if attrs == nil {
 		return nil
 	}
