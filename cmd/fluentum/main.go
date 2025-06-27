@@ -1,15 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"time"
 
-	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -21,21 +20,34 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
+	cometabci "github.com/cometbft/cometbft/abci/types"
+	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
+	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	tmos "github.com/fluentum-chain/fluentum/libs/os"
 	"github.com/fluentum-chain/fluentum/node"
+	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/proxy"
 )
+
+// AppOptions wrapper for map[string]interface{}
+type appOptions map[string]interface{}
+
+func (a appOptions) Get(key string) interface{} { return a[key] }
 
 // NewRootCmd creates a new root command for the Fluentum application.
 func NewRootCmd() (*cobra.Command, app.EncodingConfig) {
@@ -384,18 +396,219 @@ The node will connect to the network and begin participating in consensus.
 	return cmd
 }
 
+// Adapter to wrap Cosmos SDK app and implement Fluentum abci/types.Application
+// Only a few methods are shown as examples; the rest should be implemented similarly.
+type CosmosAppAdapter struct {
+	App *app.App
+}
+
+func (a *CosmosAppAdapter) Info(ctx context.Context, req *abcitypes.InfoRequest) (*abcitypes.InfoResponse, error) {
+	cometReq := cometabci.RequestInfo{
+		Version:      req.Version,
+		BlockVersion: req.BlockVersion,
+		P2PVersion:   req.P2PVersion,
+	}
+	resp, err := a.App.BaseApp.Info(&cometReq)
+	if err != nil {
+		return nil, err
+	}
+	return &abcitypes.InfoResponse{
+		Data:             resp.Data,
+		Version:          resp.Version,
+		AppVersion:       resp.AppVersion,
+		LastBlockHeight:  resp.LastBlockHeight,
+		LastBlockAppHash: resp.LastBlockAppHash,
+	}, nil
+}
+
+func (a *CosmosAppAdapter) Query(ctx context.Context, req *abcitypes.QueryRequest) (*abcitypes.QueryResponse, error) {
+	cometReq := cometabci.RequestQuery{
+		Data:   req.Data,
+		Path:   req.Path,
+		Height: req.Height,
+		Prove:  req.Prove,
+	}
+	resp, err := a.App.BaseApp.Query(ctx, &cometReq)
+	if err != nil {
+		return nil, err
+	}
+	return &abcitypes.QueryResponse{
+		Code:      resp.Code,
+		Log:       resp.Log,
+		Info:      resp.Info,
+		Index:     resp.Index,
+		Key:       resp.Key,
+		Value:     resp.Value,
+		ProofOps:  resp.ProofOps,
+		Height:    resp.Height,
+		Codespace: resp.Codespace,
+	}, nil
+}
+
+func (a *CosmosAppAdapter) CheckTx(ctx context.Context, req *abcitypes.CheckTxRequest) (*abcitypes.CheckTxResponse, error) {
+	cometReq := cometabci.RequestCheckTx{
+		Tx:   req.Tx,
+		Type: cometabci.CheckTxType(req.Type),
+	}
+	resp, err := a.App.BaseApp.CheckTx(&cometReq)
+	if err != nil {
+		return nil, err
+	}
+	return &abcitypes.CheckTxResponse{
+		Code:      resp.Code,
+		Data:      resp.Data,
+		Log:       resp.Log,
+		Info:      resp.Info,
+		GasWanted: resp.GasWanted,
+		GasUsed:   resp.GasUsed,
+		Events:    resp.Events,
+		Codespace: resp.Codespace,
+	}, nil
+}
+
+func (a *CosmosAppAdapter) FinalizeBlock(ctx context.Context, req *abcitypes.FinalizeBlockRequest) (*abcitypes.FinalizeBlockResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		FinalizeBlock(context.Context, *abcitypes.FinalizeBlockRequest) (*abcitypes.FinalizeBlockResponse, error)
+	}); ok {
+		return fluentumApp.FinalizeBlock(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.FinalizeBlock(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for FinalizeBlock")
+}
+
+func (a *CosmosAppAdapter) Commit(ctx context.Context, req *abcitypes.CommitRequest) (*abcitypes.CommitResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		Commit(context.Context, *abcitypes.CommitRequest) (*abcitypes.CommitResponse, error)
+	}); ok {
+		return fluentumApp.Commit(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.Commit()
+	}
+	return nil, errors.New("unsupported BaseApp type for Commit")
+}
+
+func (a *CosmosAppAdapter) InitChain(ctx context.Context, req *abcitypes.InitChainRequest) (*abcitypes.InitChainResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		InitChain(context.Context, *abcitypes.InitChainRequest) (*abcitypes.InitChainResponse, error)
+	}); ok {
+		return fluentumApp.InitChain(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.InitChain(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for InitChain")
+}
+
+func (a *CosmosAppAdapter) PrepareProposal(ctx context.Context, req *abcitypes.PrepareProposalRequest) (*abcitypes.PrepareProposalResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		PrepareProposal(context.Context, *abcitypes.PrepareProposalRequest) (*abcitypes.PrepareProposalResponse, error)
+	}); ok {
+		return fluentumApp.PrepareProposal(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.PrepareProposal(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for PrepareProposal")
+}
+
+func (a *CosmosAppAdapter) ProcessProposal(ctx context.Context, req *abcitypes.ProcessProposalRequest) (*abcitypes.ProcessProposalResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		ProcessProposal(context.Context, *abcitypes.ProcessProposalRequest) (*abcitypes.ProcessProposalResponse, error)
+	}); ok {
+		return fluentumApp.ProcessProposal(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.ProcessProposal(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for ProcessProposal")
+}
+
+func (a *CosmosAppAdapter) ExtendVote(ctx context.Context, req *abcitypes.ExtendVoteRequest) (*abcitypes.ExtendVoteResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		ExtendVote(context.Context, *abcitypes.ExtendVoteRequest) (*abcitypes.ExtendVoteResponse, error)
+	}); ok {
+		return fluentumApp.ExtendVote(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.ExtendVote(ctx, req)
+	}
+	return nil, errors.New("unsupported BaseApp type for ExtendVote")
+}
+
+func (a *CosmosAppAdapter) VerifyVoteExtension(ctx context.Context, req *abcitypes.VerifyVoteExtensionRequest) (*abcitypes.VerifyVoteExtensionResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		VerifyVoteExtension(context.Context, *abcitypes.VerifyVoteExtensionRequest) (*abcitypes.VerifyVoteExtensionResponse, error)
+	}); ok {
+		return fluentumApp.VerifyVoteExtension(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.VerifyVoteExtension(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for VerifyVoteExtension")
+}
+
+func (a *CosmosAppAdapter) ListSnapshots(ctx context.Context, req *abcitypes.ListSnapshotsRequest) (*abcitypes.ListSnapshotsResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		ListSnapshots(context.Context, *abcitypes.ListSnapshotsRequest) (*abcitypes.ListSnapshotsResponse, error)
+	}); ok {
+		return fluentumApp.ListSnapshots(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.ListSnapshots(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for ListSnapshots")
+}
+
+func (a *CosmosAppAdapter) OfferSnapshot(ctx context.Context, req *abcitypes.OfferSnapshotRequest) (*abcitypes.OfferSnapshotResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		OfferSnapshot(context.Context, *abcitypes.OfferSnapshotRequest) (*abcitypes.OfferSnapshotResponse, error)
+	}); ok {
+		return fluentumApp.OfferSnapshot(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.OfferSnapshot(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for OfferSnapshot")
+}
+
+func (a *CosmosAppAdapter) LoadSnapshotChunk(ctx context.Context, req *abcitypes.LoadSnapshotChunkRequest) (*abcitypes.LoadSnapshotChunkResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		LoadSnapshotChunk(context.Context, *abcitypes.LoadSnapshotChunkRequest) (*abcitypes.LoadSnapshotChunkResponse, error)
+	}); ok {
+		return fluentumApp.LoadSnapshotChunk(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.LoadSnapshotChunk(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for LoadSnapshotChunk")
+}
+
+func (a *CosmosAppAdapter) ApplySnapshotChunk(ctx context.Context, req *abcitypes.ApplySnapshotChunkRequest) (*abcitypes.ApplySnapshotChunkResponse, error) {
+	if fluentumApp, ok := any(a.App.BaseApp).(interface {
+		ApplySnapshotChunk(context.Context, *abcitypes.ApplySnapshotChunkRequest) (*abcitypes.ApplySnapshotChunkResponse, error)
+	}); ok {
+		return fluentumApp.ApplySnapshotChunk(ctx, req)
+	}
+	if cosmosApp, ok := any(a.App.BaseApp).(*cosmosbaseapp.BaseApp); ok {
+		return cosmosApp.ApplySnapshotChunk(req)
+	}
+	return nil, errors.New("unsupported BaseApp type for ApplySnapshotChunk")
+}
+
+func (a *CosmosAppAdapter) Echo(ctx context.Context, req *abcitypes.EchoRequest) (*abcitypes.EchoResponse, error) {
+	// TODO: Implement conversion and call
+	return nil, nil
+}
+
 // startNode starts the Fluentum node
 func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	// Get configuration from flags
 	homeDir, _ := cmd.Flags().GetString(flags.FlagHome)
 	chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
 	logLevel, _ := cmd.Flags().GetString("log_level")
-	apiEnabled, _ := cmd.Flags().GetBool("api")
-	apiAddress, _ := cmd.Flags().GetString("api.address")
-	grpcEnabled, _ := cmd.Flags().GetBool("grpc")
-	grpcAddress, _ := cmd.Flags().GetString("grpc.address")
-	grpcWebEnabled, _ := cmd.Flags().GetBool("grpc-web")
-	grpcWebAddress, _ := cmd.Flags().GetString("grpc-web.address")
 	rpcAddress, _ := cmd.Flags().GetString("rpc.address")
 	p2pAddress, _ := cmd.Flags().GetString("p2p.address")
 	seeds, _ := cmd.Flags().GetString("seeds")
@@ -412,12 +625,12 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		}
 	}
 
-	// Create logger
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-	logger = logger.With("module", "main")
+	// Create logger (use Fluentum logger for node, CometBFT logger for app)
+	fluentumLogger := fluentumlog.NewTMLogger(fluentumlog.NewSyncWriter(os.Stdout)).With("module", "main")
+	cometLogger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).With("module", "main")
 
 	// Log startup information
-	logger.Info("Starting Fluentum node",
+	fluentumLogger.Info("Starting Fluentum node",
 		"chain_id", chainID,
 		"home", homeDir,
 		"moniker", moniker,
@@ -445,11 +658,11 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		tmConfig.Consensus.TimeoutPropose = time.Second
 		tmConfig.Consensus.CreateEmptyBlocks = true
 		tmConfig.Consensus.CreateEmptyBlocksInterval = 10 * time.Second
-		logger.Info("Configured for testnet mode with faster block times")
+		fluentumLogger.Info("Configured for testnet mode with faster block times")
 	}
 
-	// Load or generate node key
-	nodeKey, err := node.LoadOrGenNodeKey(tmConfig.NodeKeyFile())
+	// Load or generate node key (use p2p)
+	nodeKey, err := p2p.LoadOrGenNodeKey(tmConfig.NodeKeyFile())
 	if err != nil {
 		return fmt.Errorf("failed to load or generate node key: %w", err)
 	}
@@ -457,48 +670,48 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	// Load or generate private validator
 	privValidator := privval.LoadOrGenFilePV(tmConfig.PrivValidatorKeyFile(), tmConfig.PrivValidatorStateFile())
 
-	// Create a temporary app instance for the client creator
-	// We'll use a simple app options map for now
-	appOpts := map[string]interface{}{
+	// Wrap appOpts in AppOptions
+	appOpts := appOptions{
 		"home": homeDir,
 	}
 
-	// Create the application instance
-	app := appCreator.CreateApp(logger, nil, nil, appOpts)
+	// Create the application instance with CometBFT logger
+	cosmosApp := appCreator.CreateApp(cometLogger, nil, nil, appOpts)
+	adapter := &CosmosAppAdapter{App: cosmosApp.(*app.App)}
 
 	// Create the Tendermint node
 	n, err := node.NewNode(tmConfig,
 		privValidator,
 		nodeKey,
-		proxy.NewLocalClientCreator(app),
+		proxy.NewLocalClientCreator(adapter),
 		node.DefaultGenesisDocProviderFunc(tmConfig),
 		node.DefaultDBProvider,
 		node.DefaultMetricsProvider(tmConfig.Instrumentation),
-		logger,
+		fluentumLogger,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create node: %w", err)
 	}
 
 	// Start the node
-	logger.Info("Starting Tendermint node...")
+	fluentumLogger.Info("Starting Tendermint node...")
 	if err := n.Start(); err != nil {
 		return fmt.Errorf("failed to start node: %w", err)
 	}
 
-	logger.Info("Started node", "nodeInfo", n.Switch().NodeInfo())
+	fluentumLogger.Info("Started node", "nodeInfo", n.Switch().NodeInfo())
 
 	// Stop upon receiving SIGTERM or CTRL-C.
-	tmos.TrapSignal(logger, func() {
+	tmos.TrapSignal(fluentumLogger, func() {
 		if n.IsRunning() {
 			if err := n.Stop(); err != nil {
-				logger.Error("unable to stop the node", "error", err)
+				fluentumLogger.Error("unable to stop the node", "error", err)
 			}
 		}
 	})
 
 	// Wait for interrupt signal
-	logger.Info("Fluentum node is running. Press Ctrl+C to exit.")
+	fluentumLogger.Info("Fluentum node is running. Press Ctrl+C to exit.")
 	select {}
 }
 
