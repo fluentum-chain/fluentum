@@ -11,6 +11,8 @@ import (
 	"github.com/fluentum-chain/fluentum/types"
 )
 
+// AI Validator temporarily disabled.
+
 // TxAdapter adapts types.Tx to plugin.Transaction interface
 type TxAdapter struct {
 	tx types.Tx

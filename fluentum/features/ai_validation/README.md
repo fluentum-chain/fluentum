@@ -1,3 +1,5 @@
+# AI Validator feature is currently disabled in this build.
+
 # AI-Validation Core with QMoE Consensus
 
 This directory contains the implementation of Fluentum's AI-Validation Core using Quantized Mixture-of-Experts (QMoE) consensus to achieve predictive transaction batching and 40% gas fee reduction.

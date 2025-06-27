@@ -1,4 +1,6 @@
-package main
+// AI Validation temporarily disabled.
+
+package ai_validation
 
 import (
 	"math"

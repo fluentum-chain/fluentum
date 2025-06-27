@@ -1,3 +1,5 @@
+# AI Validator build script temporarily disabled.
+
 #!/bin/bash
 
 # Build script for Fluentum AI-Validation Core with QMoE Consensus

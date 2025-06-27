@@ -1,3 +1,5 @@
+// AI Validator demo temporarily disabled.
+
 package main
 
 import (

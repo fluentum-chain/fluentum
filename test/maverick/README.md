@@ -1,4 +1,6 @@
-# Maverick
+# (Removed)
+
+This test suite has been removed from the codebase and is no longer supported.
 
 ![](https://assets.rollingstone.com/assets/2015/article/tom-cruise-to-fight-drones-in-top-gun-sequel-20150629/201166/large_rect/1435581755/1401x788-Top-Gun-3.jpg)
 
