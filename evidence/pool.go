@@ -263,13 +263,18 @@ func (evpool *Pool) Close() error {
 // IsExpired checks whether evidence or a polc is expired by checking whether a height and time is older
 // than set by the evidence consensus parameters
 func (evpool *Pool) isExpired(height int64, time time.Time) bool {
-	var (
-		params       = evpool.State().ConsensusParams.Evidence
-		ageDuration  = evpool.State().LastBlockTime.Sub(time)
-		ageNumBlocks = evpool.State().LastBlockHeight - height
-	)
+	params := evpool.State().ConsensusParams.Evidence
+	ageNumBlocks := evpool.State().LastBlockHeight - height
+	ageDuration := evpool.State().LastBlockTime.Sub(time)
+
+	// Convert protobuf duration to time.Duration
+	var maxAgeDuration time.Duration
+	if params.MaxAgeDuration != nil {
+		maxAgeDuration = params.MaxAgeDuration.AsDuration()
+	}
+
 	return ageNumBlocks > params.MaxAgeNumBlocks &&
-		ageDuration > params.MaxAgeDuration
+		ageDuration > maxAgeDuration
 }
 
 // IsCommitted returns true if we have already seen this exact evidence and it is already marked as committed.
@@ -298,7 +303,7 @@ func (evpool *Pool) addPendingEvidence(ev types.Evidence) error {
 		return fmt.Errorf("unable to convert to proto, err: %w", err)
 	}
 
-	evBytes, err := evpb.Marshal()
+	evBytes, err := proto.Marshal(evpb)
 	if err != nil {
 		return fmt.Errorf("unable to marshal evidence: %w", err)
 	}
@@ -372,12 +377,12 @@ func (evpool *Pool) listEvidence(prefixKey byte, maxBytes int64) ([]types.Eviden
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var evpb tmproto.Evidence
-		err := evpb.Unmarshal(iter.Value())
+		err := proto.Unmarshal(iter.Value(), &evpb)
 		if err != nil {
 			return evidence, totalSize, err
 		}
-		evList.Evidence = append(evList.Evidence, evpb)
-		evSize = int64(evList.Size())
+		evList.Evidence = append(evList.Evidence, &evpb)
+		evSize = int64(proto.Size(&evList))
 		if maxBytes != -1 && evSize > maxBytes {
 			if err := iter.Error(); err != nil {
 				return evidence, totalSize, err
@@ -420,8 +425,13 @@ func (evpool *Pool) removeExpiredPendingEvidence() (int64, time.Time) {
 			}
 
 			// return the height and time with which this evidence will have expired so we know when to prune next
-			return ev.Height() + evpool.State().ConsensusParams.Evidence.MaxAgeNumBlocks + 1,
-				ev.Time().Add(evpool.State().ConsensusParams.Evidence.MaxAgeDuration).Add(time.Second)
+			params := evpool.State().ConsensusParams.Evidence
+			var maxAgeDuration time.Duration
+			if params.MaxAgeDuration != nil {
+				maxAgeDuration = params.MaxAgeDuration.AsDuration()
+			}
+			return ev.Height() + params.MaxAgeNumBlocks + 1,
+				ev.Time().Add(maxAgeDuration).Add(time.Second)
 		}
 		evpool.removePendingEvidence(ev)
 		blockEvidenceMap[evMapKey(ev)] = struct{}{}
@@ -535,7 +545,7 @@ type duplicateVoteSet struct {
 
 func bytesToEv(evBytes []byte) (types.Evidence, error) {
 	var evpb tmproto.Evidence
-	err := evpb.Unmarshal(evBytes)
+	err := proto.Unmarshal(evBytes, &evpb)
 	if err != nil {
 		return &types.DuplicateVoteEvidence{}, err
 	}

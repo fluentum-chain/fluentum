@@ -11,7 +11,7 @@ import (
 
 	"github.com/creachadair/taskgroup"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	"github.com/fluentum-chain/fluentum/libs/log"
@@ -175,7 +175,7 @@ func (txmp *TxMempool) TxsAvailable() <-chan struct{} { return txmp.txsAvailable
 // is (strictly) lower than the priority of tx and whose size together exceeds
 // the size of tx, and adds tx instead. If no such transactions exist, tx is
 // discarded.
-func (txmp *TxMempool) CheckTx(tx types.Tx, cb func(*abci.Response), txInfo mempool.TxInfo) error {
+func (txmp *TxMempool) CheckTx(tx types.Tx, cb func(*cmtabci.Response), txInfo mempool.TxInfo) error {
 
 	// During the initial phase of CheckTx, we do not need to modify any state.
 	// A transaction will not actually be added to the mempool until it survives
@@ -219,7 +219,7 @@ func (txmp *TxMempool) CheckTx(tx types.Tx, cb func(*abci.Response), txInfo memp
 	}
 
 	// Invoke an ABCI CheckTx for this transaction.
-	rsp, err := txmp.proxyAppConn.CheckTxSync(abci.RequestCheckTx{Tx: tx})
+	rsp, err := txmp.proxyAppConn.CheckTx(context.Background(), &cmtabci.RequestCheckTx{Tx: tx})
 	if err != nil {
 		txmp.cache.Remove(tx)
 		return err
@@ -233,7 +233,7 @@ func (txmp *TxMempool) CheckTx(tx types.Tx, cb func(*abci.Response), txInfo memp
 	wtx.SetPeer(txInfo.SenderID)
 	txmp.addNewTransaction(wtx, rsp)
 	if cb != nil {
-		cb(&abci.Response{Value: &abci.Response_CheckTx{CheckTx: rsp}})
+		cb(&cmtabci.Response{Value: &cmtabci.Response_CheckTx{CheckTx: rsp}})
 	}
 	return nil
 }
@@ -381,7 +381,7 @@ func (txmp *TxMempool) ReapMaxTxs(max int) types.Txs {
 func (txmp *TxMempool) Update(
 	blockHeight int64,
 	blockTxs types.Txs,
-	deliverTxResponses []*abci.ExecTxResult,
+	deliverTxResponses []*cmtabci.ExecTxResult,
 	newPreFn mempool.PreCheckFunc,
 	newPostFn mempool.PostCheckFunc,
 ) error {
@@ -405,7 +405,7 @@ func (txmp *TxMempool) Update(
 		// Add successful committed transactions to the cache (if they are not
 		// already present).  Transactions that failed to commit are removed from
 		// the cache unless the operator has explicitly requested we keep them.
-		if deliverTxResponses[i].Code == abci.CodeTypeOK {
+		if deliverTxResponses[i].Code == cmtabci.CodeTypeOK {
 			_ = txmp.cache.Push(tx)
 		} else if !txmp.config.KeepInvalidTxsInCache {
 			txmp.cache.Remove(tx)
@@ -445,7 +445,7 @@ func (txmp *TxMempool) Update(
 // transactions are evicted.
 //
 // Finally, the new transaction is added and size stats updated.
-func (txmp *TxMempool) addNewTransaction(wtx *WrappedTx, checkTxRes *abci.ResponseCheckTx) {
+func (txmp *TxMempool) addNewTransaction(wtx *WrappedTx, checkTxRes *cmtabci.ResponseCheckTx) {
 	txmp.mtx.Lock()
 	defer txmp.mtx.Unlock()
 
@@ -454,7 +454,7 @@ func (txmp *TxMempool) addNewTransaction(wtx *WrappedTx, checkTxRes *abci.Respon
 		err = txmp.postCheck(wtx.tx, checkTxRes)
 	}
 
-	if err != nil || checkTxRes.Code != abci.CodeTypeOK {
+	if err != nil || checkTxRes.Code != cmtabci.CodeTypeOK {
 		txmp.logger.Info(
 			"rejected bad transaction",
 			"priority", wtx.Priority(),
@@ -480,29 +480,6 @@ func (txmp *TxMempool) addNewTransaction(wtx *WrappedTx, checkTxRes *abci.Respon
 		return
 	}
 
-	priority := checkTxRes.Priority
-	sender := checkTxRes.Sender
-
-	// Disallow multiple concurrent transactions from the same sender assigned
-	// by the ABCI application. As a special case, an empty sender is not
-	// restricted.
-	if sender != "" {
-		elt, ok := txmp.txBySender[sender]
-		if ok {
-			w := elt.Value.(*WrappedTx)
-			txmp.logger.Debug(
-				"rejected valid incoming transaction; tx already exists for sender",
-				"tx", fmt.Sprintf("%X", w.tx.Hash()),
-				"sender", sender,
-			)
-			checkTxRes.MempoolError =
-				fmt.Sprintf("rejected valid incoming transaction; tx already exists for sender %q (%X)",
-					sender, w.tx.Hash())
-			txmp.metrics.RejectedTxs.Add(1)
-			return
-		}
-	}
-
 	// At this point the application has ruled the transaction valid, but the
 	// mempool might be full. If so, find the lowest-priority items with lower
 	// priority than the application assigned to this new one, and evict as many
@@ -514,7 +491,7 @@ func (txmp *TxMempool) addNewTransaction(wtx *WrappedTx, checkTxRes *abci.Respon
 		var victimBytes int64         // total size of victims
 		for cur := txmp.txs.Front(); cur != nil; cur = cur.Next() {
 			cw := cur.Value.(*WrappedTx)
-			if cw.priority < priority {
+			if cw.priority < wtx.priority {
 				victims = append(victims, cur)
 				victimBytes += cw.Size()
 			}
@@ -530,16 +507,12 @@ func (txmp *TxMempool) addNewTransaction(wtx *WrappedTx, checkTxRes *abci.Respon
 				"tx", fmt.Sprintf("%X", wtx.tx.Hash()),
 				"err", err.Error(),
 			)
-			checkTxRes.MempoolError =
-				fmt.Sprintf("rejected valid incoming transaction; mempool is full (%X)",
-					wtx.tx.Hash())
-			txmp.metrics.RejectedTxs.Add(1)
 			return
 		}
 
 		txmp.logger.Debug("evicting lower-priority transactions",
 			"new_tx", fmt.Sprintf("%X", wtx.tx.Hash()),
-			"new_priority", priority,
+			"new_priority", wtx.priority,
 		)
 
 		// Sort lowest priority items first so they will be evicted first.  Break
@@ -577,8 +550,8 @@ func (txmp *TxMempool) addNewTransaction(wtx *WrappedTx, checkTxRes *abci.Respon
 	}
 
 	wtx.SetGasWanted(checkTxRes.GasWanted)
-	wtx.SetPriority(priority)
-	wtx.SetSender(sender)
+	wtx.SetPriority(wtx.priority)
+	wtx.SetSender(wtx.sender)
 	txmp.insertTx(wtx)
 
 	txmp.metrics.TxSizeBytes.Observe(float64(wtx.Size()))
@@ -609,7 +582,7 @@ func (txmp *TxMempool) insertTx(wtx *WrappedTx) {
 //
 // This method is NOT executed for the initial CheckTx on a new transaction;
 // that case is handled by addNewTransaction instead.
-func (txmp *TxMempool) handleRecheckResult(tx types.Tx, checkTxRes *abci.ResponseCheckTx) {
+func (txmp *TxMempool) handleRecheckResult(tx types.Tx, checkTxRes *cmtabci.ResponseCheckTx) {
 	txmp.metrics.RecheckTimes.Add(1)
 	txmp.mtx.Lock()
 	defer txmp.mtx.Unlock()
@@ -629,8 +602,7 @@ func (txmp *TxMempool) handleRecheckResult(tx types.Tx, checkTxRes *abci.Respons
 		err = txmp.postCheck(tx, checkTxRes)
 	}
 
-	if checkTxRes.Code == abci.CodeTypeOK && err == nil {
-		wtx.SetPriority(checkTxRes.Priority)
+	if checkTxRes.Code == cmtabci.CodeTypeOK && err == nil {
 		return // N.B. Size of mempool did not change
 	}
 
@@ -680,10 +652,7 @@ func (txmp *TxMempool) recheckTransactions() {
 			wtx := wtx
 			start(func() error {
 				// The response for this CheckTx is handled by the default recheckTxCallback.
-				rsp, err := txmp.proxyAppConn.CheckTxSync(abci.RequestCheckTx{
-					Tx:   wtx.tx,
-					Type: abci.CheckTxType_Recheck,
-				})
+				rsp, err := txmp.proxyAppConn.CheckTx(context.Background(), &cmtabci.RequestCheckTx{Tx: wtx.tx})
 				if err != nil {
 					txmp.logger.Error("failed to execute CheckTx during recheck",
 						"err", err, "hash", fmt.Sprintf("%x", wtx.tx.Hash()))

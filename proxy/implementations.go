@@ -32,7 +32,7 @@ func (a *mempoolConn) CheckTx(ctx context.Context, req *abci.CheckTxRequest) (*a
 		Info:      res.Info,
 		GasWanted: res.GasWanted,
 		GasUsed:   res.GasUsed,
-		Events:    res.Events,
+		Events:    []*abci.Event{},
 		Codespace: res.Codespace,
 	}, nil
 }
@@ -82,7 +82,7 @@ func (a *consensusConn) FinalizeBlock(ctx context.Context, req *abci.FinalizeBlo
 		return nil, err
 	}
 	return &abci.FinalizeBlockResponse{
-		Events:                res.Events,
+		Events:                []cmtabci.Event{},
 		TxResults:             res.TxResults,
 		ValidatorUpdates:      res.ValidatorUpdates,
 		ConsensusParamUpdates: res.ConsensusParamUpdates,

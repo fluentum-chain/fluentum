@@ -2,60 +2,53 @@ package plugin
 
 import (
 	"context"
-	"crypto"
-	"crypto/rand"
-	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"sync"
 	"time"
-
-	"github.com/fluentum-chain/fluentum/types"
 )
 
 // SignerPlugin is the interface that all signing plugins must implement
 type SignerPlugin interface {
 	// GenerateKeyPair generates a new public/private key pair
 	GenerateKeyPair() (publicKey []byte, privateKey []byte, err error)
-	
+
 	// Sign creates a digital signature
 	Sign(privateKey []byte, message []byte) (signature []byte, err error)
-	
+
 	// SignAsync creates a digital signature asynchronously
 	SignAsync(ctx context.Context, privateKey []byte, message []byte) (signature []byte, err error)
-	
+
 	// Verify checks a digital signature
 	Verify(publicKey []byte, message []byte, signature []byte) (bool, error)
-	
+
 	// VerifyAsync checks a digital signature asynchronously
 	VerifyAsync(ctx context.Context, publicKey []byte, message []byte, signature []byte) (bool, error)
-	
+
 	// BatchVerify verifies multiple signatures efficiently
 	BatchVerify(publicKeys [][]byte, messages [][]byte, signatures [][]byte) ([]bool, error)
-	
+
 	// SignatureSize returns the expected size of signatures
 	SignatureSize() int
-	
+
 	// PublicKeySize returns the expected size of public keys
 	PublicKeySize() int
-	
+
 	// PrivateKeySize returns the expected size of private keys
 	PrivateKeySize() int
-	
+
 	// AlgorithmName returns the name of the algorithm
 	AlgorithmName() string
-	
+
 	// SecurityLevel returns the security level (e.g., "128-bit", "256-bit")
 	SecurityLevel() string
-	
+
 	// PerformanceMetrics returns performance statistics
 	PerformanceMetrics() map[string]float64
-	
+
 	// ResetMetrics resets performance metrics
 	ResetMetrics()
-	
+
 	// IsQuantumResistant returns true if the algorithm is quantum-resistant
 	IsQuantumResistant() bool
 }
@@ -71,13 +64,13 @@ type PluginConfig struct {
 
 // PerformanceStats tracks performance metrics
 type PerformanceStats struct {
-	SignCount      int64         `json:"sign_count"`
-	VerifyCount    int64         `json:"verify_count"`
-	BatchCount     int64         `json:"batch_count"`
-	TotalSignTime  time.Duration `json:"total_sign_time"`
+	SignCount       int64         `json:"sign_count"`
+	VerifyCount     int64         `json:"verify_count"`
+	BatchCount      int64         `json:"batch_count"`
+	TotalSignTime   time.Duration `json:"total_sign_time"`
 	TotalVerifyTime time.Duration `json:"total_verify_time"`
-	TotalBatchTime time.Duration `json:"total_batch_time"`
-	LastReset      time.Time     `json:"last_reset"`
+	TotalBatchTime  time.Duration `json:"total_batch_time"`
+	LastReset       time.Time     `json:"last_reset"`
 }
 
 // DefaultPluginConfig returns default configuration
@@ -93,12 +86,12 @@ func DefaultPluginConfig() PluginConfig {
 
 // PluginInfo contains information about a loaded plugin
 type PluginInfo struct {
-	Name        string    `json:"name"`
-	Version     string    `json:"version"`
-	Algorithm   string    `json:"algorithm"`
-	SecurityLevel string  `json:"security_level"`
-	LoadedAt    time.Time `json:"loaded_at"`
-	Path        string    `json:"path"`
+	Name          string    `json:"name"`
+	Version       string    `json:"version"`
+	Algorithm     string    `json:"algorithm"`
+	SecurityLevel string    `json:"security_level"`
+	LoadedAt      time.Time `json:"loaded_at"`
+	Path          string    `json:"path"`
 }
 
 // PluginError represents plugin-specific errors
@@ -126,54 +119,54 @@ const (
 type SignerPlugin interface {
 	// Initialize the signer with configuration
 	Initialize(config map[string]interface{}) error
-	
+
 	// Generate a new key pair
 	GenerateKeyPair() (*KeyPair, error)
-	
+
 	// Sign data with the private key
 	Sign(data []byte) ([]byte, error)
-	
+
 	// Sign data with specific algorithm
 	SignWithAlgorithm(data []byte, algorithm string) ([]byte, error)
-	
+
 	// Verify signature with public key
 	Verify(data, signature []byte, publicKey []byte) (bool, error)
-	
+
 	// Get public key
 	GetPublicKey() ([]byte, error)
-	
+
 	// Get private key (encrypted)
 	GetPrivateKey() ([]byte, error)
-	
+
 	// Import key pair
 	ImportKeyPair(privateKey, publicKey []byte) error
-	
+
 	// Export key pair
 	ExportKeyPair() (*KeyPair, error)
-	
+
 	// Get supported algorithms
 	GetSupportedAlgorithms() []string
-	
+
 	// Get signer info
 	GetSignerInfo() map[string]string
-	
+
 	// Get performance metrics
 	GetMetrics() map[string]float64
-	
+
 	// Reset metrics
 	ResetMetrics()
-	
+
 	// Update configuration
 	UpdateConfig(config map[string]interface{}) error
 }
 
 // KeyPair represents a cryptographic key pair
 type KeyPair struct {
-	PrivateKey []byte `json:"private_key"`
-	PublicKey  []byte `json:"public_key"`
-	Algorithm  string `json:"algorithm"`
+	PrivateKey []byte    `json:"private_key"`
+	PublicKey  []byte    `json:"public_key"`
+	Algorithm  string    `json:"algorithm"`
 	Created    time.Time `json:"created"`
-	ID         string   `json:"id"`
+	ID         string    `json:"id"`
 }
 
 // SignerConfig contains configuration for the signer
@@ -516,12 +509,12 @@ func (qs *QuantumSigner) GetSignerInfo() map[string]string {
 	defer qs.mutex.RUnlock()
 
 	info := map[string]string{
-		"algorithm":           qs.config.Algorithm,
-		"key_size":            fmt.Sprintf("%d", qs.config.KeySize),
-		"hash_algorithm":      qs.config.HashAlgorithm,
-		"quantum_resistant":   fmt.Sprintf("%t", qs.config.EnableQuantumResist),
-		"hybrid_enabled":      fmt.Sprintf("%t", qs.config.EnableHybrid),
-		"encryption_enabled":  fmt.Sprintf("%t", qs.config.EncryptionEnabled),
+		"algorithm":            qs.config.Algorithm,
+		"key_size":             fmt.Sprintf("%d", qs.config.KeySize),
+		"hash_algorithm":       qs.config.HashAlgorithm,
+		"quantum_resistant":    fmt.Sprintf("%t", qs.config.EnableQuantumResist),
+		"hybrid_enabled":       fmt.Sprintf("%t", qs.config.EnableHybrid),
+		"encryption_enabled":   fmt.Sprintf("%t", qs.config.EncryptionEnabled),
 		"supported_algorithms": fmt.Sprintf("%v", qs.GetSupportedAlgorithms()),
 	}
 
@@ -539,12 +532,12 @@ func (qs *QuantumSigner) GetMetrics() map[string]float64 {
 	defer qs.mutex.RUnlock()
 
 	return map[string]float64{
-		"sign_count":        float64(qs.metrics.SignCount),
-		"verify_count":      float64(qs.metrics.VerifyCount),
-		"avg_sign_time_ms":  qs.metrics.AvgSignTime.Seconds() * 1000,
-		"avg_verify_time_ms": qs.metrics.AvgVerifyTime.Seconds() * 1000,
-		"error_count":       float64(qs.metrics.ErrorCount),
-		"total_sign_time_ms": qs.metrics.TotalSignTime.Seconds() * 1000,
+		"sign_count":           float64(qs.metrics.SignCount),
+		"verify_count":         float64(qs.metrics.VerifyCount),
+		"avg_sign_time_ms":     qs.metrics.AvgSignTime.Seconds() * 1000,
+		"avg_verify_time_ms":   qs.metrics.AvgVerifyTime.Seconds() * 1000,
+		"error_count":          float64(qs.metrics.ErrorCount),
+		"total_sign_time_ms":   qs.metrics.TotalSignTime.Seconds() * 1000,
 		"total_verify_time_ms": qs.metrics.TotalVerifyTime.Seconds() * 1000,
 	}
 }
@@ -621,4 +614,4 @@ func (qs *QuantumSigner) decryptPrivateKey(encryptedKey []byte) ([]byte, error) 
 	}
 
 	return decrypted, nil
-} 
+}

@@ -101,8 +101,8 @@ func (app *PersistentKVStoreApplication) ApplySnapshotChunk(ctx context.Context,
 	return &abci.ApplySnapshotChunkResponse{Result: abci.ResponseApplySnapshotChunk_ABORT}, nil
 }
 
-func (app *PersistentKVStoreApplication) Echo(ctx context.Context, msg string) (string, error) {
-	return msg, nil
+func (app *PersistentKVStoreApplication) Echo(ctx context.Context, req *abci.EchoRequest) (*abci.EchoResponse, error) {
+	return &abci.EchoResponse{Message: req.Message}, nil
 }
 
 // Additional required methods for the Application interface

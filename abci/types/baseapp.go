@@ -2,6 +2,8 @@ package types
 
 import (
 	"context"
+
+	cometbftabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // BaseApplication provides default implementations for all ABCI methods
@@ -40,7 +42,7 @@ func (BaseApplication) CheckTx(ctx context.Context, req *CheckTxRequest) (*Check
 		Log:       "check tx successful",
 		GasWanted: 0,
 		GasUsed:   0,
-		Events:    []Event{},
+		Events:    []*Event{},
 		Codespace: "",
 	}, nil
 }
@@ -62,14 +64,14 @@ func (BaseApplication) ProcessProposal(ctx context.Context, req *ProcessProposal
 
 func (BaseApplication) FinalizeBlock(ctx context.Context, req *FinalizeBlockRequest) (*FinalizeBlockResponse, error) {
 	// Default implementation: create empty results for all transactions
-	txResults := make([]*ExecTxResult, len(req.Txs))
+	txResults := make([]*cometbftabci.ExecTxResult, len(req.Txs))
 	for i := range req.Txs {
-		txResults[i] = &ExecTxResult{
+		txResults[i] = &cometbftabci.ExecTxResult{
 			Code:      CodeTypeOK,
 			Data:      []byte{},
 			Log:       "transaction processed",
 			Info:      "",
-			Events:    []Event{},
+			Events:    []cometbftabci.Event{},
 			GasUsed:   0,
 			GasWanted: 0,
 		}
@@ -80,7 +82,7 @@ func (BaseApplication) FinalizeBlock(ctx context.Context, req *FinalizeBlockRequ
 		ValidatorUpdates:      []ValidatorUpdate{},
 		ConsensusParamUpdates: nil,
 		AppHash:               []byte{},
-		Events:                []Event{},
+		Events:                []cometbftabci.Event{},
 	}, nil
 }
 
@@ -139,6 +141,6 @@ func (BaseApplication) ApplySnapshotChunk(ctx context.Context, req *ApplySnapsho
 	}, nil
 }
 
-func (BaseApplication) Echo(ctx context.Context, msg string) (string, error) {
-	return msg, nil
+func (BaseApplication) Echo(ctx context.Context, req *EchoRequest) (*EchoResponse, error) {
+	return &EchoResponse{Message: req.Message}, nil
 }

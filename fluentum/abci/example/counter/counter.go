@@ -137,6 +137,6 @@ func (app *Application) ApplySnapshotChunk(ctx context.Context, req *abci.ApplyS
 	return &abci.ApplySnapshotChunkResponse{Result: abci.ResponseApplySnapshotChunk_ABORT}, nil
 }
 
-func (app *Application) Echo(ctx context.Context, msg string) (string, error) {
-	return msg, nil
+func (app *Application) Echo(ctx context.Context, req *abci.EchoRequest) (*abci.EchoResponse, error) {
+	return &abci.EchoResponse{Message: req.Message}, nil
 }

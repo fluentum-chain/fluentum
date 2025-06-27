@@ -10,11 +10,11 @@ package server
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/abci/types"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/service"
 )
 
-func NewServer(protoAddr, transport string, app types.Application) (service.Service, error) {
+func NewServer(protoAddr, transport string, app cmtabci.Application) (service.Service, error) {
 	var s service.Service
 	var err error
 	switch transport {

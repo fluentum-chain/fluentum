@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 
 	cfg "github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/clist"
@@ -135,7 +135,7 @@ func (memR *Reactor) GetChannels() []*p2p.ChannelDescriptor {
 		{
 			ID:                  mempool.MempoolChannel,
 			Priority:            5,
-			RecvMessageCapacity: batchMsg.Size(),
+			RecvMessageCapacity: proto.Size(&batchMsg),
 			MessageType:         &protomem.Message{},
 		},
 	}

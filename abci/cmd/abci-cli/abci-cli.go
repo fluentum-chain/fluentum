@@ -665,11 +665,11 @@ func cmdKVStore(cmd *cobra.Command, args []string) error {
 	// Create the application - in memory or persisted to disk
 	var app cmtabci.Application
 	if flagPersist == "" {
-		app = kvstore.NewApplication()
+		app = server.NewABCIAdapter(kvstore.NewApplication())
 	} else {
 		persistentApp := kvstore.NewPersistentKVStoreApplication(flagPersist)
 		persistentApp.SetLogger(logger.With("module", "kvstore"))
-		app = persistentApp
+		app = server.NewABCIAdapter(persistentApp)
 	}
 
 	// Start the listener

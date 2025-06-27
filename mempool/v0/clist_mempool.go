@@ -253,7 +253,13 @@ func (mem *CListMempool) CheckTx(
 	}
 
 	reqRes := mem.proxyAppConn.CheckTxAsync(&abci.RequestCheckTx{Tx: tx})
-	reqRes.SetCallback(mem.reqResCb(tx, txInfo.SenderID, txInfo.SenderP2PID, cb))
+	reqRes.ResponseCb = func(res *abci.Response, err error) {
+		if err != nil {
+			mem.logger.Error("CheckTx error", "err", err)
+			return
+		}
+		mem.reqResCb(tx, txInfo.SenderID, txInfo.SenderP2PID, cb)(res)
+	}
 
 	return nil
 }

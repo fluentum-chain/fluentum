@@ -3,6 +3,7 @@ package consensus
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	cstypes "github.com/fluentum-chain/fluentum/consensus/types"
 	"github.com/fluentum-chain/fluentum/libs/bits"
@@ -12,6 +13,7 @@ import (
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
 	"github.com/gogo/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // MsgToProto takes a consensus message type and returns the proto defined consensus message.
@@ -39,7 +41,7 @@ func MsgToProto(msg Message) (*tmcons.Message, error) {
 			Height:             msg.Height,
 			Round:              msg.Round,
 			BlockPartSetHeader: &pbPartSetHeader,
-			BlockParts:         &pbBits,
+			BlockParts:         pbBits,
 			IsCommit:           msg.IsCommit,
 		}
 		return m.Wrap().(*tmcons.Message), nil
@@ -47,7 +49,7 @@ func MsgToProto(msg Message) (*tmcons.Message, error) {
 	case *ProposalMessage:
 		pbP := msg.Proposal.ToProto()
 		m := &tmcons.Proposal{
-			Proposal: &pbP,
+			Proposal: pbP,
 		}
 		return m.Wrap().(*tmcons.Message), nil
 
@@ -56,7 +58,7 @@ func MsgToProto(msg Message) (*tmcons.Message, error) {
 		m := &tmcons.ProposalPOL{
 			Height:           msg.Height,
 			ProposalPolRound: msg.ProposalPOLRound,
-			ProposalPol:      &pbBits,
+			ProposalPol:      pbBits,
 		}
 		return m.Wrap().(*tmcons.Message), nil
 
@@ -68,7 +70,7 @@ func MsgToProto(msg Message) (*tmcons.Message, error) {
 		m := &tmcons.BlockPart{
 			Height: msg.Height,
 			Round:  msg.Round,
-			Part:   &parts,
+			Part:   parts,
 		}
 		return m.Wrap().(*tmcons.Message), nil
 
@@ -280,16 +282,18 @@ func WALToProto(msg WALMessage) (*tmcons.WALMessage, error) {
 		pb = tmcons.WALMessage{
 			Sum: &tmcons.WALMessage_MsgInfo{
 				MsgInfo: &tmcons.MsgInfo{
-					Msg:    *consMsg,
-					PeerID: string(msg.PeerID),
+					Msg:    consMsg,
+					PeerId: string(msg.PeerID),
 				},
 			},
 		}
 	case timeoutInfo:
+		// Convert time.Duration to protobuf duration
+		duration := durationpb.New(msg.Duration)
 		pb = tmcons.WALMessage{
 			Sum: &tmcons.WALMessage_TimeoutInfo{
 				TimeoutInfo: &tmcons.TimeoutInfo{
-					Duration: msg.Duration,
+					Duration: duration,
 					Height:   msg.Height,
 					Round:    msg.Round,
 					Step:     uint32(msg.Step),
@@ -326,13 +330,13 @@ func WALFromProto(msg *tmcons.WALMessage) (WALMessage, error) {
 			Step:   msg.EventDataRoundState.Step,
 		}
 	case *tmcons.WALMessage_MsgInfo:
-		walMsg, err := MsgFromProto(&msg.MsgInfo.Msg)
+		walMsg, err := MsgFromProto(msg.MsgInfo.Msg)
 		if err != nil {
 			return nil, fmt.Errorf("msgInfo from proto error: %w", err)
 		}
 		pb = msgInfo{
 			Msg:    walMsg,
-			PeerID: p2p.ID(msg.MsgInfo.PeerID),
+			PeerID: p2p.ID(msg.MsgInfo.PeerId),
 		}
 
 	case *tmcons.WALMessage_TimeoutInfo:
@@ -341,8 +345,13 @@ func WALFromProto(msg *tmcons.WALMessage) (WALMessage, error) {
 		if err != nil {
 			return nil, fmt.Errorf("denying message due to possible overflow: %w", err)
 		}
+		// Convert protobuf duration to time.Duration
+		var duration time.Duration
+		if msg.TimeoutInfo.Duration != nil {
+			duration = msg.TimeoutInfo.Duration.AsDuration()
+		}
 		pb = timeoutInfo{
-			Duration: msg.TimeoutInfo.Duration,
+			Duration: duration,
 			Height:   msg.TimeoutInfo.Height,
 			Round:    msg.TimeoutInfo.Round,
 			Step:     cstypes.RoundStepType(tis),

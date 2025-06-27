@@ -37,13 +37,19 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 	ageDuration := state.LastBlockTime.Sub(evTime)
 
 	// check that the evidence hasn't expired
-	if ageDuration > evidenceParams.MaxAgeDuration && ageNumBlocks > evidenceParams.MaxAgeNumBlocks {
+	// Convert protobuf duration to time.Duration
+	var maxAgeDuration time.Duration
+	if evidenceParams.MaxAgeDuration != nil {
+		maxAgeDuration = evidenceParams.MaxAgeDuration.AsDuration()
+	}
+
+	if ageDuration > maxAgeDuration && ageNumBlocks > evidenceParams.MaxAgeNumBlocks {
 		return fmt.Errorf(
 			"evidence from height %d (created at: %v) is too old; min height is %d and evidence can not be older than %v",
 			evidence.Height(),
 			evTime,
 			height-evidenceParams.MaxAgeNumBlocks,
-			state.LastBlockTime.Add(evidenceParams.MaxAgeDuration),
+			state.LastBlockTime.Add(maxAgeDuration),
 		)
 	}
 
