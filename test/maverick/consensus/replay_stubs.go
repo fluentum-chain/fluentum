@@ -3,7 +3,8 @@ package consensus
 import (
 	"context"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	cmabci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
 	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
@@ -30,7 +31,7 @@ func (emptyMempool) ReapMaxTxs(n int) types.Txs              { return types.Txs{
 func (emptyMempool) Update(
 	_ int64,
 	_ types.Txs,
-	_ []*abci.ResponseDeliverTx,
+	_ []*cmabci.ExecTxResult,
 	_ mempl.PreCheckFunc,
 	_ mempl.PostCheckFunc,
 ) error {
@@ -75,6 +76,6 @@ type mockProxyApp struct {
 	abciResponses *tmstate.ABCIResponses
 }
 
-func (mock *mockProxyApp) FinalizeBlock(ctx context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error) {
+func (mock *mockProxyApp) FinalizeBlock(ctx context.Context, req *abci.FinalizeBlockRequest) (*abci.FinalizeBlockResponse, error) {
 	return mock.abciResponses.FinalizeBlock, nil
 }

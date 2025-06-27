@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
 
 	cfg "github.com/fluentum-chain/fluentum/config"
@@ -16,6 +16,7 @@ import (
 	nm "github.com/fluentum-chain/fluentum/node"
 	"github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
+	proto_grpc "github.com/fluentum-chain/fluentum/proto/tendermint/rpc/grpc"
 	"github.com/fluentum-chain/fluentum/proxy"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
 	core_grpc "github.com/fluentum-chain/fluentum/rpc/grpc"
@@ -56,7 +57,7 @@ func waitForRPC() {
 func waitForGRPC() {
 	client := GetGRPCClient()
 	for {
-		_, err := client.Ping(context.Background(), &core_grpc.RequestPing{})
+		_, err := client.Ping(context.Background(), &proto_grpc.RequestPing{})
 		if err == nil {
 			return
 		}
@@ -110,7 +111,7 @@ func GetConfig(forceCreate ...bool) *cfg.Config {
 	return globalConfig
 }
 
-func GetGRPCClient() core_grpc.BroadcastAPIClient {
+func GetGRPCClient() proto_grpc.BroadcastAPIClient {
 	grpcAddr := globalConfig.RPC.GRPCListenAddress
 	return core_grpc.StartGRPCClient(grpcAddr)
 }

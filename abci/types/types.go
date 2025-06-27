@@ -218,3 +218,14 @@ type Application interface {
 	LoadSnapshotChunk(context.Context, *LoadSnapshotChunkRequest) (*LoadSnapshotChunkResponse, error)
 	ApplySnapshotChunk(context.Context, *ApplySnapshotChunkRequest) (*ApplySnapshotChunkResponse, error)
 }
+
+// SignedMsgType and vote type constants
+// These map to the proto enum values for SignedMsgType
+// and allow use of tmproto.PrevoteType, etc.
+type SignedMsgType = tmproto.SignedMsgType
+
+const (
+	PrevoteType   SignedMsgType = 1  // SignedMsgType_SIGNED_MSG_TYPE_PREVOTE
+	PrecommitType SignedMsgType = 2  // SignedMsgType_SIGNED_MSG_TYPE_PRECOMMIT
+	ProposalType  SignedMsgType = 32 // SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL
+)

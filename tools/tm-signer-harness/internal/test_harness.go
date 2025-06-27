@@ -14,10 +14,10 @@ import (
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/state"
 
+	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmnet "github.com/fluentum-chain/fluentum/libs/net"
 	tmos "github.com/fluentum-chain/fluentum/libs/os"
-	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
 )
 
@@ -36,7 +36,7 @@ const (
 	ErrTestSignVoteFailed                 // 10
 )
 
-var voteTypes = []tmproto.SignedMsgType{tmproto.PrevoteType, tmproto.PrecommitType}
+var voteTypes = []abcitypes.SignedMsgType{abcitypes.PrevoteType, abcitypes.PrecommitType}
 
 // TestHarnessError allows us to keep track of which exit code should be used
 // when exiting the main program.
@@ -216,7 +216,7 @@ func (th *TestHarness) TestSignProposal() error {
 	// sha256 hash of "hash"
 	hash := tmhash.Sum([]byte("hash"))
 	prop := &types.Proposal{
-		Type:     tmproto.ProposalType,
+		Type:     abcitypes.ProposalType,
 		Height:   100,
 		Round:    0,
 		POLRound: -1,
@@ -267,7 +267,7 @@ func (th *TestHarness) TestSignVote() error {
 			Type:   voteType,
 			Height: 101,
 			Round:  0,
-			BlockID: types.BlockID{
+			BlockId: types.BlockID{
 				Hash: hash,
 				PartSetHeader: types.PartSetHeader{
 					Hash:  hash,

@@ -21,7 +21,8 @@ func init() {
 
 	cfg := config.DefaultMempoolConfig()
 	cfg.Broadcast = false
-	mempool = mempoolv0.NewCListMempool(cfg, appConnMem, 0)
+	appConnMempool := proxy.NewAppConnMempool(appConnMem)
+	mempool = mempoolv0.NewCListMempool(cfg, appConnMempool, 0)
 }
 
 func Fuzz(data []byte) int {

@@ -8,6 +8,7 @@ import (
 	"context"
 
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
+	proto_grpc "github.com/fluentum-chain/fluentum/proto/tendermint/rpc/grpc"
 	coregrpc "github.com/fluentum-chain/fluentum/rpc/grpc"
 )
 
@@ -27,7 +28,7 @@ func main() {
 	}
 
 	clientGRPC := coregrpc.StartGRPCClient(grpcAddr)
-	res, err := clientGRPC.BroadcastTx(context.Background(), &coregrpc.RequestBroadcastTx{Tx: txBytes})
+	res, err := clientGRPC.BroadcastTx(context.Background(), &proto_grpc.RequestBroadcastTx{Tx: txBytes})
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

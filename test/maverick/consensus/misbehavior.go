@@ -3,12 +3,12 @@ package consensus
 import (
 	"fmt"
 
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	tmcon "github.com/fluentum-chain/fluentum/consensus"
 	cstypes "github.com/fluentum-chain/fluentum/consensus/types"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/p2p"
 	tmcons "github.com/fluentum-chain/fluentum/proto/tendermint/consensus"
-	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
 )
 
@@ -57,14 +57,14 @@ func DoublePrevoteMisbehavior() Misbehavior {
 		// If a block is locked, prevote that.
 		if cs.LockedBlock != nil {
 			cs.Logger.Debug("enterPrevote: already locked on a block, prevoting locked block")
-			cs.signAddVote(tmproto.PrevoteType, cs.LockedBlock.Hash(), cs.LockedBlockParts.Header())
+			cs.signAddVote(abci.PrevoteType, cs.LockedBlock.Hash(), cs.LockedBlockParts.Header())
 			return
 		}
 
 		// If ProposalBlock is nil, prevote nil.
 		if cs.ProposalBlock == nil {
 			cs.Logger.Debug("enterPrevote: ProposalBlock is nil")
-			cs.signAddVote(tmproto.PrevoteType, nil, types.PartSetHeader{})
+			cs.signAddVote(abci.PrevoteType, nil, types.PartSetHeader{})
 			return
 		}
 
@@ -73,7 +73,7 @@ func DoublePrevoteMisbehavior() Misbehavior {
 		if err != nil {
 			// ProposalBlock is invalid, prevote nil.
 			cs.Logger.Error("enterPrevote: ProposalBlock is invalid", "err", err)
-			cs.signAddVote(tmproto.PrevoteType, nil, types.PartSetHeader{})
+			cs.signAddVote(abci.PrevoteType, nil, types.PartSetHeader{})
 			return
 		}
 
@@ -82,12 +82,12 @@ func DoublePrevoteMisbehavior() Misbehavior {
 			return
 		}
 
-		prevote, err := cs.signVote(tmproto.PrevoteType, cs.ProposalBlock.Hash(), cs.ProposalBlockParts.Header())
+		prevote, err := cs.signVote(abci.PrevoteType, cs.ProposalBlock.Hash(), cs.ProposalBlockParts.Header())
 		if err != nil {
 			cs.Logger.Error("enterPrevote: Unable to sign block", "err", err)
 		}
 
-		nilPrevote, err := cs.signVote(tmproto.PrevoteType, nil, types.PartSetHeader{})
+		nilPrevote, err := cs.signVote(abci.PrevoteType, nil, types.PartSetHeader{})
 		if err != nil {
 			cs.Logger.Error("enterPrevote: Unable to sign block", "err", err)
 		}
@@ -166,14 +166,14 @@ func defaultEnterPrevote(cs *State, height int64, round int32) {
 	// If a block is locked, prevote that.
 	if cs.LockedBlock != nil {
 		logger.Debug("enterPrevote: already locked on a block, prevoting locked block")
-		cs.signAddVote(tmproto.PrevoteType, cs.LockedBlock.Hash(), cs.LockedBlockParts.Header())
+		cs.signAddVote(abci.PrevoteType, cs.LockedBlock.Hash(), cs.LockedBlockParts.Header())
 		return
 	}
 
 	// If ProposalBlock is nil, prevote nil.
 	if cs.ProposalBlock == nil {
 		logger.Debug("enterPrevote: ProposalBlock is nil")
-		cs.signAddVote(tmproto.PrevoteType, nil, types.PartSetHeader{})
+		cs.signAddVote(abci.PrevoteType, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -182,7 +182,7 @@ func defaultEnterPrevote(cs *State, height int64, round int32) {
 	if err != nil {
 		// ProposalBlock is invalid, prevote nil.
 		logger.Error("enterPrevote: ProposalBlock is invalid", "err", err)
-		cs.signAddVote(tmproto.PrevoteType, nil, types.PartSetHeader{})
+		cs.signAddVote(abci.PrevoteType, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -190,7 +190,7 @@ func defaultEnterPrevote(cs *State, height int64, round int32) {
 	// NOTE: the proposal signature is validated when it is received,
 	// and the proposal block parts are validated as they are received (against the merkle hash in the proposal)
 	logger.Debug("enterPrevote: ProposalBlock is valid")
-	cs.signAddVote(tmproto.PrevoteType, cs.ProposalBlock.Hash(), cs.ProposalBlockParts.Header())
+	cs.signAddVote(abci.PrevoteType, cs.ProposalBlock.Hash(), cs.ProposalBlockParts.Header())
 }
 
 func defaultEnterPrecommit(cs *State, height int64, round int32) {
@@ -206,7 +206,7 @@ func defaultEnterPrecommit(cs *State, height int64, round int32) {
 		} else {
 			logger.Debug("enterPrecommit: no +2/3 prevotes during enterPrecommit; precommitting nil.")
 		}
-		cs.signAddVote(tmproto.PrecommitType, nil, types.PartSetHeader{})
+		cs.signAddVote(abci.PrecommitType, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -230,7 +230,7 @@ func defaultEnterPrecommit(cs *State, height int64, round int32) {
 			cs.LockedBlockParts = nil
 			_ = cs.eventBus.PublishEventUnlock(cs.RoundStateEvent())
 		}
-		cs.signAddVote(tmproto.PrecommitType, nil, types.PartSetHeader{})
+		cs.signAddVote(abci.PrecommitType, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -241,7 +241,7 @@ func defaultEnterPrecommit(cs *State, height int64, round int32) {
 		logger.Debug("enterPrecommit: +2/3 prevoted locked block; relocking")
 		cs.LockedRound = round
 		_ = cs.eventBus.PublishEventRelock(cs.RoundStateEvent())
-		cs.signAddVote(tmproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
+		cs.signAddVote(abci.PrecommitType, blockID.Hash, blockID.PartSetHeader)
 		return
 	}
 
@@ -256,7 +256,7 @@ func defaultEnterPrecommit(cs *State, height int64, round int32) {
 		cs.LockedBlock = cs.ProposalBlock
 		cs.LockedBlockParts = cs.ProposalBlockParts
 		_ = cs.eventBus.PublishEventLock(cs.RoundStateEvent())
-		cs.signAddVote(tmproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
+		cs.signAddVote(abci.PrecommitType, blockID.Hash, blockID.PartSetHeader)
 		return
 	}
 
@@ -272,7 +272,7 @@ func defaultEnterPrecommit(cs *State, height int64, round int32) {
 		cs.ProposalBlockParts = types.NewPartSetFromHeader(blockID.PartSetHeader)
 	}
 	_ = cs.eventBus.PublishEventUnlock(cs.RoundStateEvent())
-	cs.signAddVote(tmproto.PrecommitType, nil, types.PartSetHeader{})
+	cs.signAddVote(abci.PrecommitType, nil, types.PartSetHeader{})
 }
 
 func defaultReceivePrevote(cs *State, vote *types.Vote) {
