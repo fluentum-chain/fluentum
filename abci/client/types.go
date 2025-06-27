@@ -1,12 +1,12 @@
 package client
 
 import (
-	"context"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 type (
 	ReqRes struct {
+		ID         uint64
 		Request    *cmtabci.Request
 		Response   *cmtabci.Response
 		Error      error
@@ -49,4 +49,4 @@ func (reqRes *ReqRes) InvokeCallback() {
 // Wait waits for the request to complete
 func (reqRes *ReqRes) Wait() {
 	<-reqRes.DoneCh
-} 
+}

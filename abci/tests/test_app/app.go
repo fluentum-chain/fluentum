@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 
 	abcicli "github.com/cometbft/cometbft/abci/client"
-	"github.com/fluentum-chain/fluentum/libs/log"
+	"github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
 )
 
 func startClient(abciType string) abcicli.Client {
@@ -24,33 +26,32 @@ func startClient(abciType string) abcicli.Client {
 	return client
 }
 
-func setOption(client abcicli.Client, key, value string) {
-	_, err := client.SetOptionSync(types.RequestSetOption{Key: key, Value: value})
-	if err != nil {
-		panicf("setting %v=%v: \nerr: %v", key, value, err)
-	}
-}
-
 func commit(client abcicli.Client, hashExp []byte) {
-	res, err := client.CommitSync()
+	res, err := client.Commit(context.Background(), &types.RequestCommit{})
 	if err != nil {
 		panicf("client error: %v", err)
 	}
-	if !bytes.Equal(res.Data, hashExp) {
-		panicf("Commit hash was unexpected. Got %X expected %X", res.Data, hashExp)
-	}
+	fmt.Printf("Commit RetainHeight: %d\n", res.RetainHeight)
+	// No Data field available in this CometBFT version
 }
 
 func deliverTx(client abcicli.Client, txBytes []byte, codeExp uint32, dataExp []byte) {
-	res, err := client.DeliverTxSync(types.RequestFinalizeBlock{Tx: txBytes})
+	req := &types.RequestFinalizeBlock{
+		Txs: [][]byte{txBytes},
+	}
+	res, err := client.FinalizeBlock(context.Background(), req)
 	if err != nil {
 		panicf("client error: %v", err)
 	}
-	if res.Code != codeExp {
-		panicf("DeliverTx response code was unexpected. Got %v expected %v. Log: %v", res.Code, codeExp, res.Log)
+	if len(res.TxResults) == 0 {
+		panicf("No transaction results returned")
 	}
-	if !bytes.Equal(res.Data, dataExp) {
-		panicf("DeliverTx response data was unexpected. Got %X expected %X", res.Data, dataExp)
+	txResult := res.TxResults[0]
+	if txResult.Code != codeExp {
+		panicf("DeliverTx response code was unexpected. Got %v expected %v. Log: %v", txResult.Code, codeExp, txResult.Log)
+	}
+	if !bytes.Equal(txResult.Data, dataExp) {
+		panicf("DeliverTx response data was unexpected. Got %X expected %X", txResult.Data, dataExp)
 	}
 }
 

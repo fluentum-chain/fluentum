@@ -15,7 +15,6 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
-	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	sm "github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/types"
@@ -153,7 +152,7 @@ func TestPruneStates(t *testing.T) {
 				err := stateStore.Save(state)
 				require.NoError(t, err)
 
-				err = stateStore.SaveABCIResponses(h, &tmstate.ABCIResponses{
+				err = stateStore.SaveABCIResponses(h, &ABCIResponses{
 					DeliverTxs: []*abci.ExecTxResult{
 						{Data: []byte{1}},
 						{Data: []byte{2}},
@@ -207,7 +206,7 @@ func TestPruneStates(t *testing.T) {
 }
 
 func TestABCIResponsesResultsHash(t *testing.T) {
-	responses := &tmstate.ABCIResponses{
+	responses := &ABCIResponses{
 		DeliverTxs: []*abci.ExecTxResult{
 			{Code: 32, Data: []byte("Hello"), Log: "Huh?"},
 		},
@@ -245,7 +244,7 @@ func TestLastABCIResponses(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, responses)
 		// stub the abciresponses.
-		response1 := &tmstate.ABCIResponses{
+		response1 := &ABCIResponses{
 			BeginBlock: &abci.ResponseBeginBlock{},
 			DeliverTxs: []*abci.ExecTxResult{
 				{Code: 32, Data: []byte("Hello"), Log: "Huh?"},
@@ -277,7 +276,7 @@ func TestLastABCIResponses(t *testing.T) {
 		stateDB := dbm.NewMemDB()
 		height := int64(10)
 		// stub the second abciresponse.
-		response2 := &tmstate.ABCIResponses{
+		response2 := &ABCIResponses{
 			BeginBlock: &abci.ResponseBeginBlock{},
 			DeliverTxs: []*abci.ExecTxResult{
 				{Code: 44, Data: []byte("Hello again"), Log: "????"},

@@ -34,7 +34,7 @@ func (emptyMempool) ReapMaxTxs(n int) types.Txs              { return types.Txs{
 func (emptyMempool) Update(
 	_ int64,
 	_ types.Txs,
-	_ []*abci.ResponseDeliverTx,
+	_ []*abci.ExecTxResult,
 	_ mempl.PreCheckFunc,
 	_ mempl.PostCheckFunc,
 ) error {

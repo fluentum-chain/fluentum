@@ -503,7 +503,7 @@ func (r *BlockchainReactor) ReceiveEnvelope(e p2p.Envelope) {
 				peerID: e.Src.ID(),
 				block:  bi,
 				time:   time.Now(),
-				size:   msg.Size(),
+				size:   proto.Size(msg),
 			}
 		}
 		r.mtx.RUnlock()

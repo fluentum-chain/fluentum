@@ -8,7 +8,11 @@ import (
 	"os"
 	"runtime"
 
+	"context"
+
+	"github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/abci/types"
+	tmlog "github.com/fluentum-chain/fluentum/libs/log"
 	tmnet "github.com/fluentum-chain/fluentum/libs/net"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
@@ -192,51 +196,37 @@ func (s *SocketServer) handleRequests(closeConn chan error, conn io.Reader, resp
 
 func (s *SocketServer) handleRequest(req *abci.Request, responses chan<- *abci.Response) {
 	switch r := req.Value.(type) {
-	case *abci.Request_Echo:
-		responses <- types.ToResponseEcho(r.Echo.Message)
 	case *abci.Request_Flush:
-		responses <- types.ToResponseFlush()
+		responses <- &abci.Response{Value: &abci.Response_Flush{Flush: &abci.ResponseFlush{}}}
 	case *abci.Request_Info:
-		res := s.app.Info(*r.Info)
-		responses <- types.ToResponseInfo(res)
-	case *abci.Request_SetOption:
-		res := s.app.SetOption(*r.SetOption)
-		responses <- types.ToResponseSetOption(res)
-	case *abci.Request_DeliverTx:
-		res := s.app.DeliverTx(*r.DeliverTx)
-		responses <- types.ToResponseDeliverTx(res)
+		res, _ := s.app.Info(context.Background(), r.Info)
+		responses <- &abci.Response{Value: &abci.Response_Info{Info: res}}
 	case *abci.Request_CheckTx:
-		res := s.app.CheckTx(*r.CheckTx)
-		responses <- types.ToResponseCheckTx(res)
+		res, _ := s.app.CheckTx(context.Background(), r.CheckTx)
+		responses <- &abci.Response{Value: &abci.Response_CheckTx{CheckTx: res}}
 	case *abci.Request_Commit:
-		res := s.app.Commit()
-		responses <- types.ToResponseCommit(res)
+		res, _ := s.app.Commit(context.Background(), r.Commit)
+		responses <- &abci.Response{Value: &abci.Response_Commit{Commit: res}}
 	case *abci.Request_Query:
-		res := s.app.Query(*r.Query)
-		responses <- types.ToResponseQuery(res)
+		res, _ := s.app.Query(context.Background(), r.Query)
+		responses <- &abci.Response{Value: &abci.Response_Query{Query: res}}
 	case *abci.Request_InitChain:
-		res := s.app.InitChain(*r.InitChain)
-		responses <- types.ToResponseInitChain(res)
-	case *abci.Request_BeginBlock:
-		res := s.app.BeginBlock(*r.BeginBlock)
-		responses <- types.ToResponseBeginBlock(res)
-	case *abci.Request_EndBlock:
-		res := s.app.EndBlock(*r.EndBlock)
-		responses <- types.ToResponseEndBlock(res)
+		res, _ := s.app.InitChain(context.Background(), r.InitChain)
+		responses <- &abci.Response{Value: &abci.Response_InitChain{InitChain: res}}
 	case *abci.Request_ListSnapshots:
-		res := s.app.ListSnapshots(*r.ListSnapshots)
-		responses <- types.ToResponseListSnapshots(res)
+		res, _ := s.app.ListSnapshots(context.Background(), r.ListSnapshots)
+		responses <- &abci.Response{Value: &abci.Response_ListSnapshots{ListSnapshots: res}}
 	case *abci.Request_OfferSnapshot:
-		res := s.app.OfferSnapshot(*r.OfferSnapshot)
-		responses <- types.ToResponseOfferSnapshot(res)
+		res, _ := s.app.OfferSnapshot(context.Background(), r.OfferSnapshot)
+		responses <- &abci.Response{Value: &abci.Response_OfferSnapshot{OfferSnapshot: res}}
 	case *abci.Request_LoadSnapshotChunk:
-		res := s.app.LoadSnapshotChunk(*r.LoadSnapshotChunk)
-		responses <- types.ToResponseLoadSnapshotChunk(res)
+		res, _ := s.app.LoadSnapshotChunk(context.Background(), r.LoadSnapshotChunk)
+		responses <- &abci.Response{Value: &abci.Response_LoadSnapshotChunk{LoadSnapshotChunk: res}}
 	case *abci.Request_ApplySnapshotChunk:
-		res := s.app.ApplySnapshotChunk(*r.ApplySnapshotChunk)
-		responses <- types.ToResponseApplySnapshotChunk(res)
+		res, _ := s.app.ApplySnapshotChunk(context.Background(), r.ApplySnapshotChunk)
+		responses <- &abci.Response{Value: &abci.Response_ApplySnapshotChunk{ApplySnapshotChunk: res}}
 	default:
-		responses <- types.ToResponseException("Unknown request")
+		responses <- &abci.Response{Value: &abci.Response_Exception{Exception: &abci.ResponseException{Error: "Unknown request"}}}
 	}
 }
 

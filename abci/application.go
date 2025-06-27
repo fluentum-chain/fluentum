@@ -12,18 +12,18 @@ import (
 type Application struct {
 	cmtabci.BaseApplication
 	mtx sync.RWMutex
-	
+
 	// Application state
-	state map[string][]byte
-	height int64
+	state   map[string][]byte
+	height  int64
 	appHash []byte
 }
 
 // NewApplication creates a new ABCI application instance
 func NewApplication() *Application {
 	return &Application{
-		state: make(map[string][]byte),
-		height: 0,
+		state:   make(map[string][]byte),
+		height:  0,
 		appHash: []byte("initial_hash"),
 	}
 }
@@ -112,20 +112,6 @@ func (app *Application) FinalizeBlock(ctx context.Context, req *cmtabci.RequestF
 	return &cmtabci.ResponseFinalizeBlock{
 		TxResults: txResults,
 		AppHash:   app.appHash,
-		ConsensusParamUpdates: &cmtabci.ConsensusParams{
-			Block: &cmtabci.BlockParams{
-				MaxBytes: 22020096, // 21MB
-				MaxGas:   15000000, // 15M gas
-			},
-			Evidence: &cmtabci.EvidenceParams{
-				MaxAgeNumBlocks: 100000,
-				MaxAgeDuration:  172800000000000, // 48 hours in nanoseconds
-				MaxBytes:        1048576,         // 1MB
-			},
-			Validator: &cmtabci.ValidatorParams{
-				PubKeyTypes: []string{"ed25519", "secp256k1"},
-			},
-		},
 	}, nil
 }
 
@@ -136,7 +122,7 @@ func (app *Application) Commit(ctx context.Context, req *cmtabci.RequestCommit) 
 
 	// Return the current app hash
 	return &cmtabci.ResponseCommit{
-		Data: app.appHash,
+		RetainHeight: 0,
 	}, nil
 }
 
@@ -205,29 +191,15 @@ func (app *Application) InitChain(ctx context.Context, req *cmtabci.RequestInitC
 	}
 
 	// Set initial validators
-	validators := make([]*cmtabci.ValidatorUpdate, len(req.Validators))
+	validators := make([]cmtabci.ValidatorUpdate, len(req.Validators))
 	for i, val := range req.Validators {
-		validators[i] = &cmtabci.ValidatorUpdate{
+		validators[i] = cmtabci.ValidatorUpdate{
 			PubKey: val.PubKey,
 			Power:  val.Power,
 		}
 	}
 
 	return &cmtabci.ResponseInitChain{
-		ConsensusParams: &cmtabci.ConsensusParams{
-			Block: &cmtabci.BlockParams{
-				MaxBytes: 22020096, // 21MB
-				MaxGas:   15000000, // 15M gas
-			},
-			Evidence: &cmtabci.EvidenceParams{
-				MaxAgeNumBlocks: 100000,
-				MaxAgeDuration:  172800000000000, // 48 hours in nanoseconds
-				MaxBytes:        1048576,         // 1MB
-			},
-			Validator: &cmtabci.ValidatorParams{
-				PubKeyTypes: []string{"ed25519", "secp256k1"},
-			},
-		},
 		Validators: validators,
 		AppHash:    app.appHash,
 	}, nil
@@ -357,12 +329,12 @@ func (app *Application) LoadSnapshotChunk(ctx context.Context, req *cmtabci.Requ
 
 // ApplySnapshotChunk applies a snapshot chunk
 func (app *Application) ApplySnapshotChunk(ctx context.Context, req *cmtabci.RequestApplySnapshotChunk) (*cmtabci.ResponseApplySnapshotChunk, error) {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
+	app.mtx.RLock()
+	defer app.mtx.RUnlock()
 
-	// For demo purposes, reject all chunks
+	// For demo purposes, always reject snapshots
 	return &cmtabci.ResponseApplySnapshotChunk{
-		Result: cmtabci.ResponseApplySnapshotChunk_REJECT,
+		Result: cmtabci.ResponseApplySnapshotChunk_ABORT,
 	}, nil
 }
 
@@ -371,7 +343,7 @@ func (app *Application) ApplySnapshotChunk(ctx context.Context, req *cmtabci.Req
 func (app *Application) executeTransaction(tx []byte) (*cmtabci.ExecTxResult, error) {
 	// Simple key-value transaction format: "key=value"
 	txStr := string(tx)
-	
+
 	// Parse transaction
 	var key, value string
 	if len(txStr) > 0 {
@@ -417,7 +389,7 @@ func (app *Application) calculateAppHash() []byte {
 func (app *Application) GetState() map[string][]byte {
 	app.mtx.RLock()
 	defer app.mtx.RUnlock()
-	
+
 	stateCopy := make(map[string][]byte)
 	for k, v := range app.state {
 		stateCopy[k] = v
@@ -437,4 +409,4 @@ func (app *Application) GetAppHash() []byte {
 	app.mtx.RLock()
 	defer app.mtx.RUnlock()
 	return app.appHash
-} 
+}

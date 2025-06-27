@@ -3,9 +3,9 @@ package kvstore
 import (
 	"context"
 
+	cmtpc "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
-	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
-	pc "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 // RandVal creates one random validator, with a key derived
@@ -14,8 +14,8 @@ func RandVal(i int) abci.ValidatorUpdate {
 	pubkey := tmrand.Bytes(32)
 	power := tmrand.Uint16() + 1
 	v := abci.ValidatorUpdate{
-		PubKey: &pc.PublicKey{
-			Sum: &pc.PublicKey_Ed25519{
+		PubKey: cmtpc.PublicKey{
+			Sum: &cmtpc.PublicKey_Ed25519{
 				Ed25519: pubkey,
 			},
 		},
@@ -28,11 +28,11 @@ func RandVal(i int) abci.ValidatorUpdate {
 // the application. Note that the keys are deterministically
 // derived from the index in the array, while the power is
 // random (Change this if not desired)
-func RandVals(cnt int) []*abci.ValidatorUpdate {
-	res := make([]*abci.ValidatorUpdate, cnt)
+func RandVals(cnt int) []abci.ValidatorUpdate {
+	res := make([]abci.ValidatorUpdate, cnt)
 	for i := 0; i < cnt; i++ {
 		v := RandVal(i)
-		res[i] = &v
+		res[i] = v
 	}
 	return res
 }
@@ -41,7 +41,7 @@ func RandVals(cnt int) []*abci.ValidatorUpdate {
 // which allows tests to pass and is fine as long as you
 // don't make any tx that modify the validator state
 func InitKVStore(app *PersistentKVStoreApplication) {
-	app.InitChain(context.Background(), &abci.RequestInitChain{
+	app.InitChain(context.Background(), &abci.InitChainRequest{
 		Validators: RandVals(1),
 	})
 }

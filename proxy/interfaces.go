@@ -3,36 +3,40 @@ package proxy
 import (
 	"context"
 
-	abcicli "github.com/cometbft/cometbft/abci/client"
-	"github.com/cometbft/cometbft/abci/types"
+	abcicli "github.com/fluentum-chain/fluentum/abci/client"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 )
 
 // Core ABCI connections
 
 type AppConnMempool interface {
-	CheckTx(context.Context, *types.RequestCheckTx) (*types.ResponseCheckTx, error)
-	CheckTxAsync(*types.RequestCheckTx) *abcicli.ReqRes
+	CheckTx(context.Context, *abci.CheckTxRequest) (*abci.CheckTxResponse, error)
+	CheckTxAsync(*abci.CheckTxRequest) *abcicli.ReqRes
 	Flush(context.Context) error
+	SetResponseCallback(func(*abci.Request, *abci.Response))
+	Error() error
+	FlushAsync() *abcicli.ReqRes
 }
 
 type AppConnConsensus interface {
-	FinalizeBlock(context.Context, *types.RequestFinalizeBlock) (*types.ResponseFinalizeBlock, error)
-	PrepareProposal(context.Context, *types.RequestPrepareProposal) (*types.ResponsePrepareProposal, error)
-	ProcessProposal(context.Context, *types.RequestProcessProposal) (*types.ResponseProcessProposal, error)
-	ExtendVote(context.Context, *types.RequestExtendVote) (*types.ResponseExtendVote, error)
-	VerifyVoteExtension(context.Context, *types.RequestVerifyVoteExtension) (*types.ResponseVerifyVoteExtension, error)
-	Commit(context.Context) (*types.ResponseCommit, error)
+	FinalizeBlock(context.Context, *abci.FinalizeBlockRequest) (*abci.FinalizeBlockResponse, error)
+	PrepareProposal(context.Context, *abci.PrepareProposalRequest) (*abci.PrepareProposalResponse, error)
+	ProcessProposal(context.Context, *abci.ProcessProposalRequest) (*abci.ProcessProposalResponse, error)
+	ExtendVote(context.Context, *abci.ExtendVoteRequest) (*abci.ExtendVoteResponse, error)
+	VerifyVoteExtension(context.Context, *abci.VerifyVoteExtensionRequest) (*abci.VerifyVoteExtensionResponse, error)
+	Commit(context.Context, *abci.CommitRequest) (*abci.CommitResponse, error)
+	CommitSync(context.Context, *abci.CommitRequest) (*abci.CommitResponse, error)
 }
 
 type AppConnQuery interface {
-	Info(context.Context, *types.RequestInfo) (*types.ResponseInfo, error)
-	Query(context.Context, *types.RequestQuery) (*types.ResponseQuery, error)
-	ABCIInfo(context.Context) (*types.ResponseInfo, error)
+	Info(context.Context, *abci.InfoRequest) (*abci.InfoResponse, error)
+	Query(context.Context, *abci.QueryRequest) (*abci.QueryResponse, error)
+	ABCIInfo(context.Context) (*abci.InfoResponse, error)
 }
 
 type AppConnSnapshot interface {
-	ListSnapshots(context.Context, *types.RequestListSnapshots) (*types.ResponseListSnapshots, error)
-	OfferSnapshot(context.Context, *types.RequestOfferSnapshot) (*types.ResponseOfferSnapshot, error)
-	LoadSnapshotChunk(context.Context, *types.RequestLoadSnapshotChunk) (*types.ResponseLoadSnapshotChunk, error)
-	ApplySnapshotChunk(context.Context, *types.RequestApplySnapshotChunk) (*types.ResponseApplySnapshotChunk, error)
+	ListSnapshots(context.Context, *abci.ListSnapshotsRequest) (*abci.ListSnapshotsResponse, error)
+	OfferSnapshot(context.Context, *abci.OfferSnapshotRequest) (*abci.OfferSnapshotResponse, error)
+	LoadSnapshotChunk(context.Context, *abci.LoadSnapshotChunkRequest) (*abci.LoadSnapshotChunkResponse, error)
+	ApplySnapshotChunk(context.Context, *abci.ApplySnapshotChunkRequest) (*abci.ApplySnapshotChunkResponse, error)
 }

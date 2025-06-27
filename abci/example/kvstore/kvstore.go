@@ -10,7 +10,6 @@ import (
 
 	"github.com/fluentum-chain/fluentum/abci/example/code"
 	abci "github.com/fluentum-chain/fluentum/abci/types"
-	abciProto "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	"github.com/fluentum-chain/fluentum/version"
 )
 
@@ -74,8 +73,8 @@ func NewApplication() *Application {
 	return &Application{state: state}
 }
 
-func (app *Application) Info(ctx context.Context, req *abci.RequestInfo) (*abci.ResponseInfo, error) {
-	return &abci.ResponseInfo{
+func (app *Application) Info(ctx context.Context, req *abci.InfoRequest) (*abci.InfoResponse, error) {
+	return &abci.InfoResponse{
 		Data:             fmt.Sprintf("{\"size\":%v}", app.state.Size),
 		Version:          version.ABCIVersion,
 		AppVersion:       ProtocolVersion,
@@ -84,11 +83,11 @@ func (app *Application) Info(ctx context.Context, req *abci.RequestInfo) (*abci.
 	}, nil
 }
 
-func (app *Application) CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
-	return &abci.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}, nil
+func (app *Application) CheckTx(ctx context.Context, req *abci.CheckTxRequest) (*abci.CheckTxResponse, error) {
+	return &abci.CheckTxResponse{Code: code.CodeTypeOK, GasWanted: 1}, nil
 }
 
-func (app *Application) Commit(ctx context.Context, req *abci.RequestCommit) (*abci.ResponseCommit, error) {
+func (app *Application) Commit(ctx context.Context, req *abci.CommitRequest) (*abci.CommitResponse, error) {
 	// Using a memdb - just return the big endian size of the db
 	appHash := make([]byte, 8)
 	binary.PutVarint(appHash, app.state.Size)
@@ -96,7 +95,7 @@ func (app *Application) Commit(ctx context.Context, req *abci.RequestCommit) (*a
 	app.state.Height++
 	saveState(app.state)
 
-	resp := &abci.ResponseCommit{}
+	resp := &abci.CommitResponse{}
 	if app.RetainBlocks > 0 && app.state.Height >= app.RetainBlocks {
 		resp.RetainHeight = app.state.Height - app.RetainBlocks + 1
 	}
@@ -104,16 +103,16 @@ func (app *Application) Commit(ctx context.Context, req *abci.RequestCommit) (*a
 }
 
 // Returns an associated value or nil if missing.
-func (app *Application) Query(ctx context.Context, reqQuery *abci.RequestQuery) (*abci.ResponseQuery, error) {
+func (app *Application) Query(ctx context.Context, reqQuery *abci.QueryRequest) (*abci.QueryResponse, error) {
 	if reqQuery.Prove {
 		value, err := app.state.db.Get(prefixKey(reqQuery.Data))
 		if err != nil {
 			panic(err)
 		}
 		if value == nil {
-			return &abci.ResponseQuery{Log: "does not exist"}, nil
+			return &abci.QueryResponse{Log: "does not exist"}, nil
 		} else {
-			return &abci.ResponseQuery{Log: "exists", Index: -1, Key: reqQuery.Data, Value: value, Height: app.state.Height}, nil
+			return &abci.QueryResponse{Log: "exists", Index: -1, Key: reqQuery.Data, Value: value, Height: app.state.Height}, nil
 		}
 	}
 
@@ -122,40 +121,53 @@ func (app *Application) Query(ctx context.Context, reqQuery *abci.RequestQuery) 
 		panic(err)
 	}
 	if value == nil {
-		return &abci.ResponseQuery{Log: "does not exist", Key: reqQuery.Data, Height: app.state.Height}, nil
+		return &abci.QueryResponse{Log: "does not exist", Key: reqQuery.Data, Height: app.state.Height}, nil
 	} else {
-		return &abci.ResponseQuery{Log: "exists", Value: value, Height: app.state.Height}, nil
+		return &abci.QueryResponse{Log: "exists", Value: value, Height: app.state.Height}, nil
 	}
 }
 
-func (app *Application) InitChain(ctx context.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
-	return &abci.ResponseInitChain{}, nil
+func (app *Application) InitChain(ctx context.Context, req *abci.InitChainRequest) (*abci.InitChainResponse, error) {
+	return &abci.InitChainResponse{}, nil
 }
 
-func (app *Application) ListSnapshots(ctx context.Context, req *abci.RequestListSnapshots) (*abci.ResponseListSnapshots, error) {
-	return &abci.ResponseListSnapshots{}, nil
+func (app *Application) ListSnapshots(ctx context.Context, req *abci.ListSnapshotsRequest) (*abci.ListSnapshotsResponse, error) {
+	return &abci.ListSnapshotsResponse{}, nil
 }
 
-func (app *Application) LoadSnapshotChunk(ctx context.Context, req *abci.RequestLoadSnapshotChunk) (*abci.ResponseLoadSnapshotChunk, error) {
-	return &abci.ResponseLoadSnapshotChunk{}, nil
+func (app *Application) LoadSnapshotChunk(ctx context.Context, req *abci.LoadSnapshotChunkRequest) (*abci.LoadSnapshotChunkResponse, error) {
+	return &abci.LoadSnapshotChunkResponse{}, nil
 }
 
-func (app *Application) OfferSnapshot(ctx context.Context, req *abci.RequestOfferSnapshot) (*abci.ResponseOfferSnapshot, error) {
-	return &abci.ResponseOfferSnapshot{Result: abciProto.ResponseOfferSnapshot_ABORT}, nil
+func (app *Application) OfferSnapshot(ctx context.Context, req *abci.OfferSnapshotRequest) (*abci.OfferSnapshotResponse, error) {
+	return &abci.OfferSnapshotResponse{Result: abci.ResponseOfferSnapshot_REJECT}, nil
 }
 
-func (app *Application) ApplySnapshotChunk(ctx context.Context, req *abci.RequestApplySnapshotChunk) (*abci.ResponseApplySnapshotChunk, error) {
-	return &abci.ResponseApplySnapshotChunk{Result: abciProto.ResponseApplySnapshotChunk_ABORT}, nil
+func (app *Application) ApplySnapshotChunk(ctx context.Context, req *abci.ApplySnapshotChunkRequest) (*abci.ApplySnapshotChunkResponse, error) {
+	return &abci.ApplySnapshotChunkResponse{Result: abci.ResponseApplySnapshotChunk_ABORT}, nil
 }
 
-func (app *Application) SetOption(ctx context.Context, req *abci.RequestSetOption) (*abci.ResponseSetOption, error) {
-	return &abci.ResponseSetOption{}, nil
+func (app *Application) Echo(ctx context.Context, msg string) (string, error) {
+	return msg, nil
 }
 
-func (app *Application) Echo(ctx context.Context, req *abci.RequestEcho) (*abci.ResponseEcho, error) {
-	return &abci.ResponseEcho{Message: req.Message}, nil
+// Additional methods required by the Application interface
+func (app *Application) PrepareProposal(ctx context.Context, req *abci.PrepareProposalRequest) (*abci.PrepareProposalResponse, error) {
+	return &abci.PrepareProposalResponse{}, nil
 }
 
-func (app *Application) Flush(ctx context.Context, req *abci.RequestFlush) (*abci.ResponseFlush, error) {
-	return &abci.ResponseFlush{}, nil
+func (app *Application) ProcessProposal(ctx context.Context, req *abci.ProcessProposalRequest) (*abci.ProcessProposalResponse, error) {
+	return &abci.ProcessProposalResponse{}, nil
+}
+
+func (app *Application) FinalizeBlock(ctx context.Context, req *abci.FinalizeBlockRequest) (*abci.FinalizeBlockResponse, error) {
+	return &abci.FinalizeBlockResponse{}, nil
+}
+
+func (app *Application) ExtendVote(ctx context.Context, req *abci.ExtendVoteRequest) (*abci.ExtendVoteResponse, error) {
+	return &abci.ExtendVoteResponse{}, nil
+}
+
+func (app *Application) VerifyVoteExtension(ctx context.Context, req *abci.VerifyVoteExtensionRequest) (*abci.VerifyVoteExtensionResponse, error) {
+	return &abci.VerifyVoteExtensionResponse{}, nil
 }

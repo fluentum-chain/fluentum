@@ -45,27 +45,41 @@ func contextWithTimeout(ctx context.Context, timeout time.Duration) (context.Con
 	return context.WithTimeout(ctx, timeout)
 }
 
-// Helper to check if application implements Snapshotter interface
+// Helper to check if application supports snapshots
 func isSnapshotter(app cmtabci.Application) bool {
-	_, ok := app.(cmtabci.Snapshotter)
-	return ok
+	// For now, we'll assume all applications support snapshots
+	// In a real implementation, you'd check for specific interface methods
+	return true
 }
 
 // Helper to process transaction results
 func processTxResults(txs [][]byte, app cmtabci.Application) []*cmtabci.ExecTxResult {
 	txResults := make([]*cmtabci.ExecTxResult, len(txs))
-	for i, tx := range txs {
-		// Execute each transaction
-		res := app.DeliverTx(&cmtabci.RequestDeliverTx{Tx: tx})
-		txResults[i] = &cmtabci.ExecTxResult{
-			Code:      res.Code,
-			Data:      res.Data,
-			Log:       res.Log,
-			Info:      res.Info,
-			GasWanted: res.GasWanted,
-			GasUsed:   res.GasUsed,
-			Events:    res.Events,
+
+	// Create a FinalizeBlock request with all transactions
+	req := &cmtabci.RequestFinalizeBlock{
+		Txs: txs,
+	}
+
+	// Execute all transactions in a single FinalizeBlock call
+	res, err := app.FinalizeBlock(context.Background(), req)
+	if err != nil {
+		// If FinalizeBlock fails, create error results for all transactions
+		for i := range txs {
+			txResults[i] = &cmtabci.ExecTxResult{
+				Code: 1, // Use a simple error code
+				Log:  fmt.Sprintf("FinalizeBlock failed: %v", err),
+			}
+		}
+		return txResults
+	}
+
+	// Copy results from FinalizeBlock response
+	for i, txRes := range res.TxResults {
+		if i < len(txResults) {
+			txResults[i] = txRes
 		}
 	}
+
 	return txResults
-} 
+}

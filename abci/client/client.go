@@ -3,19 +3,22 @@ package client
 import (
 	"context"
 	"fmt"
+	"net"
 
 	cometbftabci "github.com/cometbft/cometbft/abci/types"
+	tmlog "github.com/fluentum-chain/fluentum/libs/log"
 )
 
 // Client matches CometBFT's ABCI 2.0 specification
 type Client interface {
 	// Echo method for testing
 	Echo(context.Context, string) (*cometbftabci.ResponseEcho, error)
-	
+
 	// Mempool methods
 	CheckTx(context.Context, *cometbftabci.RequestCheckTx) (*cometbftabci.ResponseCheckTx, error)
 	CheckTxAsync(context.Context, *cometbftabci.RequestCheckTx) *ReqRes
 	Flush(context.Context) error
+	FlushAsync(context.Context) *ReqRes
 
 	// Consensus methods
 	FinalizeBlock(context.Context, *cometbftabci.RequestFinalizeBlock) (*cometbftabci.ResponseFinalizeBlock, error)
@@ -41,7 +44,10 @@ type Client interface {
 	// Common
 	Error() error
 	SetResponseCallback(Callback)
-	SetLogger(Logger)
+	SetLogger(tmlog.Logger)
+	Start() error
+	Stop() error
+	Quit() <-chan struct{}
 	Close() error
 }
 
@@ -52,9 +58,16 @@ type Client interface {
 func NewClient(addr, transport string, mustConnect bool) (client Client, err error) {
 	switch transport {
 	case "socket":
-		client = NewSocketClient(addr, mustConnect)
+		// For socket transport, we need to establish a connection first
+		// This is a simplified implementation - in practice you'd want proper connection handling
+		conn, err := net.Dial("tcp", addr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect to %s: %w", addr, err)
+		}
+		client = NewSocketClient(conn, nil) // Using nil logger for now
 	case "grpc":
-		client, err = NewGRPCClient(addr, nil)
+		// Note: gRPC client is not implemented in this version
+		err = fmt.Errorf("gRPC transport not supported in this version")
 	default:
 		err = fmt.Errorf("unknown abci transport %s", transport)
 	}

@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	tmlog "github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 )
@@ -22,7 +22,6 @@ type localClient struct {
 	mtx *tmsync.Mutex
 	cmtabci.Application
 	Callback
-	Logger
 }
 
 // NewLocalClient creates a local client, which will be directly calling the
@@ -47,10 +46,10 @@ func (app *localClient) SetResponseCallback(cb Callback) {
 	app.mtx.Unlock()
 }
 
-func (app *localClient) SetLogger(logger Logger) {
+func (app *localClient) SetLogger(logger tmlog.Logger) {
 	app.mtx.Lock()
-	app.Logger = logger
-	app.mtx.Unlock()
+	defer app.mtx.Unlock()
+	app.BaseService.SetLogger(logger)
 }
 
 // TODO: change abci.Application to include Error()?
@@ -85,19 +84,48 @@ func (app *localClient) CheckTxAsync(ctx context.Context, req *cmtabci.RequestCh
 }
 
 func (app *localClient) Flush(ctx context.Context) error {
+	// No-op for local client
 	return nil
 }
 
+func (app *localClient) FlushAsync(ctx context.Context) *ReqRes {
+	reqRes := NewReqRes(&cmtabci.Request{Value: &cmtabci.Request_Flush{Flush: &cmtabci.RequestFlush{}}})
+	go func() {
+		err := app.Flush(ctx)
+		if err != nil {
+			reqRes.ErrorCh <- err
+		} else {
+			reqRes.ResponseCh <- &cmtabci.ResponseFlush{}
+		}
+		reqRes.Done()
+	}()
+	return reqRes
+}
+
 // Consensus methods
-func (c *localClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFinalizeBlock) (*cmtabci.ResponseFinalizeBlock, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+func (app *localClient) FinalizeBlock(ctx context.Context, req *cmtabci.RequestFinalizeBlock) (*cmtabci.ResponseFinalizeBlock, error) {
+	app.mtx.Lock()
+	defer app.mtx.Unlock()
 
 	if err := validateBlockHeight(req.Height); err != nil {
 		return nil, fmt.Errorf("FinalizeBlock validation failed: %w", err)
 	}
 
-	return c.Application.FinalizeBlock(ctx, req)
+	return app.Application.FinalizeBlock(ctx, req)
+}
+
+func (app *localClient) FinalizeBlockAsync(ctx context.Context, req *cmtabci.RequestFinalizeBlock) *ReqRes {
+	reqRes := NewReqRes(&cmtabci.Request{Value: &cmtabci.Request_FinalizeBlock{FinalizeBlock: req}})
+	go func() {
+		res, err := app.FinalizeBlock(ctx, req)
+		if err != nil {
+			reqRes.ErrorCh <- err
+		} else {
+			reqRes.ResponseCh <- res
+		}
+		reqRes.Done()
+	}()
+	return reqRes
 }
 
 func (app *localClient) PrepareProposal(ctx context.Context, req *cmtabci.RequestPrepareProposal) (*cmtabci.ResponsePrepareProposal, error) {
@@ -164,15 +192,27 @@ func (app *localClient) VerifyVoteExtension(ctx context.Context, req *cmtabci.Re
 	}, nil
 }
 
-func (app *localClient) Commit(ctx context.Context, req *cmtabci.RequestCommit) (*cmtabci.ResponseCommit, error) {
+func (app *localClient) Commit(ctx context.Context) (*cmtabci.ResponseCommit, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.Commit(ctx, req)
-	return &cmtabci.ResponseCommit{
-		Data:         res.Data,
-		RetainHeight: res.RetainHeight,
-	}, nil
+	// Construct a default RequestCommit
+	return app.Application.Commit(ctx, &cmtabci.RequestCommit{})
+}
+
+func (app *localClient) CommitAsync(ctx context.Context) *ReqRes {
+	req := &cmtabci.RequestCommit{}
+	reqRes := NewReqRes(&cmtabci.Request{Value: &cmtabci.Request_Commit{Commit: req}})
+	go func() {
+		res, err := app.Commit(ctx)
+		if err != nil {
+			reqRes.ErrorCh <- err
+		} else {
+			reqRes.ResponseCh <- res
+		}
+		reqRes.Done()
+	}()
+	return reqRes
 }
 
 func (app *localClient) InitChain(ctx context.Context, req *cmtabci.RequestInitChain) (*cmtabci.ResponseInitChain, error) {
@@ -201,47 +241,64 @@ func (app *localClient) Query(ctx context.Context, req *cmtabci.RequestQuery) (*
 func (app *localClient) ListSnapshots(ctx context.Context, req *cmtabci.RequestListSnapshots) (*cmtabci.ResponseListSnapshots, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
-
-	if isSnapshotter(app.Application) {
-		snapshotter := app.Application.(cmtabci.Snapshotter)
-		return snapshotter.ListSnapshots(ctx, req)
-	}
+	// Snapshotter not supported, return empty response
 	return &cmtabci.ResponseListSnapshots{}, nil
 }
 
 func (app *localClient) OfferSnapshot(ctx context.Context, req *cmtabci.RequestOfferSnapshot) (*cmtabci.ResponseOfferSnapshot, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
-
-	if isSnapshotter(app.Application) {
-		snapshotter := app.Application.(cmtabci.Snapshotter)
-		return snapshotter.OfferSnapshot(ctx, req)
-	}
-	return &cmtabci.ResponseOfferSnapshot{
-		Result: cmtabci.ResponseOfferSnapshot_REJECT,
-	}, nil
+	// Snapshotter not supported, always reject
+	return &cmtabci.ResponseOfferSnapshot{}, nil
 }
 
 func (app *localClient) LoadSnapshotChunk(ctx context.Context, req *cmtabci.RequestLoadSnapshotChunk) (*cmtabci.ResponseLoadSnapshotChunk, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
-
-	if isSnapshotter(app.Application) {
-		snapshotter := app.Application.(cmtabci.Snapshotter)
-		return snapshotter.LoadSnapshotChunk(ctx, req)
-	}
-	return nil, fmt.Errorf("application does not implement Snapshotter")
+	// Snapshotter not supported
+	return nil, fmt.Errorf("application does not support snapshotting")
 }
 
 func (app *localClient) ApplySnapshotChunk(ctx context.Context, req *cmtabci.RequestApplySnapshotChunk) (*cmtabci.ResponseApplySnapshotChunk, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
+	// Snapshotter not supported, always reject
+	return &cmtabci.ResponseApplySnapshotChunk{}, nil
+}
 
-	if isSnapshotter(app.Application) {
-		snapshotter := app.Application.(cmtabci.Snapshotter)
-		return snapshotter.ApplySnapshotChunk(ctx, req)
+func (app *localClient) Close() error {
+	// No resources to close for local client
+	return nil
+}
+
+func (app *localClient) Echo(ctx context.Context, msg string) (*cmtabci.ResponseEcho, error) {
+	app.mtx.Lock()
+	defer app.mtx.Unlock()
+	if echoer, ok := app.Application.(interface {
+		Echo(context.Context, string) (string, error)
+	}); ok {
+		resp, err := echoer.Echo(ctx, msg)
+		return &cmtabci.ResponseEcho{Message: resp}, err
 	}
-	return &cmtabci.ResponseApplySnapshotChunk{
-		Result: cmtabci.ResponseApplySnapshotChunk_REJECT,
-	}, nil
+	return &cmtabci.ResponseEcho{Message: msg}, nil
+}
+
+// Start starts the client
+func (app *localClient) Start() error {
+	// Local client is always ready
+	return nil
+}
+
+// Stop stops the client
+func (app *localClient) Stop() error {
+	// Local client doesn't need to be stopped
+	return nil
+}
+
+// Quit returns a channel that is closed when the client is stopped
+func (app *localClient) Quit() <-chan struct{} {
+	// Local client never quits
+	ch := make(chan struct{})
+	// TODO: Implement proper lifecycle management
+	return ch
 }

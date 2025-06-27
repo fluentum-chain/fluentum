@@ -8,10 +8,8 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
-	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/proxy"
 	sm "github.com/fluentum-chain/fluentum/state"
@@ -152,37 +150,37 @@ func genValSet(size int) *types.ValidatorSet {
 	return types.NewValidatorSet(vals)
 }
 
-func makeHeaderPartsResponsesValPubKeyChange(
+func makeHeaderPartsResponsesVal(
+	height int64,
 	state sm.State,
-	pubkey crypto.PubKey,
-) (types.Header, types.BlockID, *tmstate.ABCIResponses) {
-
+	valSet *types.ValidatorSet,
+	appHash []byte,
+) (types.Header, types.BlockID, *ABCIResponses) {
 	block := makeBlock(state, state.LastBlockHeight+1)
-	abciResponses := &tmstate.ABCIResponses{
+	abciResponses := &ABCIResponses{
 		BeginBlock: &abci.ResponseBeginBlock{},
 		EndBlock:   &abci.ResponseEndBlock{ValidatorUpdates: nil},
 	}
 	// If the pubkey is new, remove the old and add the new.
 	_, val := state.NextValidators.GetByIndex(0)
-	if !bytes.Equal(pubkey.Bytes(), val.PubKey.Bytes()) {
+	if !bytes.Equal(valSet.GetPubKey(0).Bytes(), val.PubKey.Bytes()) {
 		abciResponses.EndBlock = &abci.ResponseEndBlock{
 			ValidatorUpdates: []abci.ValidatorUpdate{
 				types.TM2PB.NewValidatorUpdate(val.PubKey, 0),
-				types.TM2PB.NewValidatorUpdate(pubkey, 10),
+				types.TM2PB.NewValidatorUpdate(valSet.GetPubKey(0), 10),
 			},
 		}
 	}
-
 	return block.Header, types.BlockID{Hash: block.Hash(), PartSetHeader: types.PartSetHeader{}}, abciResponses
 }
 
 func makeHeaderPartsResponsesValPowerChange(
 	state sm.State,
 	power int64,
-) (types.Header, types.BlockID, *tmstate.ABCIResponses) {
+) (types.Header, types.BlockID, *ABCIResponses) {
 
 	block := makeBlock(state, state.LastBlockHeight+1)
-	abciResponses := &tmstate.ABCIResponses{
+	abciResponses := &ABCIResponses{
 		BeginBlock: &abci.ResponseBeginBlock{},
 		EndBlock:   &abci.ResponseEndBlock{ValidatorUpdates: nil},
 	}
@@ -203,10 +201,10 @@ func makeHeaderPartsResponsesValPowerChange(
 func makeHeaderPartsResponsesParams(
 	state sm.State,
 	params tmproto.ConsensusParams,
-) (types.Header, types.BlockID, *tmstate.ABCIResponses) {
+) (types.Header, types.BlockID, *ABCIResponses) {
 
 	block := makeBlock(state, state.LastBlockHeight+1)
-	abciResponses := &tmstate.ABCIResponses{
+	abciResponses := &ABCIResponses{
 		BeginBlock: &abci.ResponseBeginBlock{},
 		EndBlock:   &abci.ResponseEndBlock{ConsensusParamUpdates: types.TM2PB.ConsensusParams(&params)},
 	}

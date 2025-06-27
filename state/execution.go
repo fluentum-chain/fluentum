@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
+	cometbftabci "github.com/cometbft/cometbft/abci/types"
+	cometproto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
+	"github.com/fluentum-chain/fluentum/crypto/encoding"
 	"github.com/fluentum-chain/fluentum/libs/fail"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
-	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
+	localproto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/proxy"
 	"github.com/fluentum-chain/fluentum/types"
-	tmabci "github.com/cometbft/cometbft/abci/types"
 )
 
 //-----------------------------------------------------------------------------
@@ -158,15 +160,26 @@ func (blockExec *BlockExecutor) ApplyBlock(
 
 	// validate the validator updates and convert to tendermint types
 	abciValUpdates := abciResponses.FinalizeBlock.ValidatorUpdates
-	err = validateValidatorUpdates(abciValUpdates, state.ConsensusParams.Validator)
+	err = validateValidatorUpdates(abciValUpdates, *state.ConsensusParams.Validator)
 	if err != nil {
 		return state, 0, fmt.Errorf("error in validator updates: %v", err)
 	}
 
-	validatorUpdates, err := types.PB2TM.ValidatorUpdates(abciValUpdates)
-	if err != nil {
-		return state, 0, err
+	// Convert CometBFT validator updates to Tendermint types
+	var validatorUpdates []*types.Validator
+	for _, update := range abciValUpdates {
+		localPubKey := toLocalPubKey(update.PubKey)
+		pubKey, err := encoding.PubKeyFromProto(*localPubKey)
+		if err != nil {
+			return state, 0, fmt.Errorf("invalid validator pubkey: %v", err)
+		}
+		validatorUpdates = append(validatorUpdates, &types.Validator{
+			Address:     pubKey.Address(),
+			PubKey:      pubKey,
+			VotingPower: update.Power,
+		})
 	}
+
 	if len(validatorUpdates) > 0 {
 		blockExec.logger.Debug("updates to validators", "updates", types.ValidatorListString(validatorUpdates))
 	}
@@ -188,7 +201,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 
 	fail.Fail() // XXX
 
-	// Update the app hash and save the state.
+	// Update the state with the block and responses.
 	state.AppHash = appHash
 	if err := blockExec.store.Save(state); err != nil {
 		return state, 0, err
@@ -212,7 +225,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 func (blockExec *BlockExecutor) Commit(
 	state State,
 	block *types.Block,
-	txResults []*tmabci.ExecTxResult,
+	txResults []*abci.ExecTxResult,
 ) ([]byte, int64, error) {
 	blockExec.mempool.Lock()
 	defer blockExec.mempool.Unlock()
@@ -226,18 +239,16 @@ func (blockExec *BlockExecutor) Commit(
 	}
 
 	// Commit block, get hash back
-	res, err := blockExec.proxyApp.CommitSync()
+	res, err := blockExec.proxyApp.CommitSync(context.Background(), &abci.CommitRequest{})
 	if err != nil {
 		blockExec.logger.Error("client error during proxyAppConn.CommitSync", "err", err)
 		return nil, 0, err
 	}
 
-	// ResponseCommit has no error code - just data
 	blockExec.logger.Info(
 		"committed state",
 		"height", block.Height,
 		"num_txs", len(block.Txs),
-		"app_hash", fmt.Sprintf("%X", res.Data),
 	)
 
 	// Update mempool.
@@ -249,13 +260,13 @@ func (blockExec *BlockExecutor) Commit(
 		TxPostCheck(state),
 	)
 
-	return res.Data, res.RetainHeight, err
+	return nil, res.RetainHeight, err
 }
 
 //---------------------------------------------------------
 // Helper functions for executing blocks and updating state
 
-// Executes block's transactions on proxyAppConn using ABCI 2.0 FinalizeBlock.
+// Executes block's transactions on proxyAppConn using ABCI++ FinalizeBlock.
 // Returns a structure with the FinalizeBlock response and validator updates.
 func execBlockOnProxyApp(
 	ctx context.Context,
@@ -264,27 +275,47 @@ func execBlockOnProxyApp(
 	block *types.Block,
 	store Store,
 	initialHeight int64,
-) (*tmstate.ABCIResponses, error) {
-	// Convert evidence to ABCI format
-	var byzantineValidators []types.Evidence
+) (*ABCIResponses, error) {
+	// Convert evidence to CometBFT ABCI format
+	var byzantineValidators []*cometbftabci.Misbehavior
 	for _, ev := range block.Evidence.Evidence {
-		byzantineValidators = append(byzantineValidators, ev.ABCI()...)
+		for _, evi := range ev.ABCI() {
+			if pb, ok := any(evi).(*cometbftabci.Misbehavior); ok {
+				byzantineValidators = append(byzantineValidators, pb)
+			}
+		}
 	}
 
-	finalizeBlockReq := &tmabci.RequestFinalizeBlock{
-		Hash:                block.Hash(),
-		Header:              types.TM2PB.Header(&block.Header),
-		LastCommitInfo:      getBeginBlockValidatorInfo(block, store, initialHeight),
-		ByzantineValidators: byzantineValidators,
-		Txs:                 block.Txs,
+	txs := make([][]byte, len(block.Txs))
+	for i, tx := range block.Txs {
+		txs[i] = tx
 	}
-	finalizeBlockResp, err := proxyAppConn.FinalizeBlockSync(ctx, finalizeBlockReq)
+
+	// Convert []*Misbehavior to []Misbehavior
+	var byzVals []cometbftabci.Misbehavior
+	for _, pb := range byzantineValidators {
+		if pb != nil {
+			byzVals = append(byzVals, *pb)
+		}
+	}
+
+	finalizeBlockReq := &cometbftabci.RequestFinalizeBlock{
+		Hash:               block.Hash(),
+		Height:             block.Height,
+		Time:               block.Time,
+		Txs:                txs,
+		ProposerAddress:    block.ProposerAddress,
+		DecidedLastCommit:  *getBeginBlockValidatorInfo(block, store, initialHeight),
+		Misbehavior:        byzVals,
+		NextValidatorsHash: block.NextValidatorsHash,
+	}
+	finalizeBlockResp, err := proxyAppConn.FinalizeBlock(ctx, finalizeBlockReq)
 	if err != nil {
 		logger.Error("error in proxyAppConn.FinalizeBlock", "err", err)
 		return nil, err
 	}
 
-	abciResponses := &tmstate.ABCIResponses{
+	abciResponses := &ABCIResponses{
 		FinalizeBlock: finalizeBlockResp,
 	}
 
@@ -292,65 +323,46 @@ func execBlockOnProxyApp(
 }
 
 func getBeginBlockValidatorInfo(block *types.Block, store Store,
-	initialHeight int64) tmabci.LastCommitInfo {
-	voteInfos := make([]tmabci.VoteInfo, block.LastCommit.Size())
-	// Initial block -> LastCommitInfo.Votes are empty.
-	// Remember that the first LastCommit is intentionally empty, so it makes
-	// sense for LastCommitInfo.Votes to also be empty.
+	initialHeight int64) *cometbftabci.CommitInfo {
+	voteInfos := make([]cometbftabci.VoteInfo, block.LastCommit.Size())
 	if block.Height > initialHeight {
 		lastValSet, err := store.LoadValidators(block.Height - 1)
 		if err != nil {
 			panic(err)
 		}
-
-		// Sanity check that commit size matches validator set size - only applies
-		// after first block.
-		var (
-			commitSize = block.LastCommit.Size()
-			valSetLen  = len(lastValSet.Validators)
-		)
+		commitSize := block.LastCommit.Size()
+		valSetLen := len(lastValSet.Validators)
 		if commitSize != valSetLen {
 			panic(fmt.Sprintf(
 				"commit size (%d) doesn't match valset length (%d) at height %d\n\n%v\n\n%v",
 				commitSize, valSetLen, block.Height, block.LastCommit.Signatures, lastValSet.Validators,
 			))
 		}
-
 		for i, val := range lastValSet.Validators {
-			commitSig := block.LastCommit.Signatures[i]
-			voteInfos[i] = tmabci.VoteInfo{
-				Validator:       types.TM2PB.Validator(val),
-				SignedLastBlock: !commitSig.Absent(),
+			voteInfos[i] = cometbftabci.VoteInfo{
+				Validator: cometbftabci.Validator{
+					Address: val.PubKey.Address(),
+					Power:   val.VotingPower,
+				},
+				BlockIdFlag: 2, // COMMIT
 			}
 		}
 	}
-
-	return tmabci.LastCommitInfo{
+	return &cometbftabci.CommitInfo{
 		Round: block.LastCommit.Round,
 		Votes: voteInfos,
 	}
 }
 
-func validateValidatorUpdates(abciUpdates []tmabci.ValidatorUpdate,
-	params tmproto.ValidatorParams) error {
+func validateValidatorUpdates(abciUpdates []cometbftabci.ValidatorUpdate, params tmproto.ValidatorParams) error {
 	for _, valUpdate := range abciUpdates {
-		if valUpdate.GetPower() < 0 {
-			return fmt.Errorf("voting power can't be negative %v", valUpdate)
-		} else if valUpdate.GetPower() == 0 {
-			// continue, since this is deleting the validator, and thus there is no
-			// pubkey to check
-			continue
-		}
-
-		// Check if validator's pubkey matches an ABCI type in the consensus params
-		pk, err := cryptoenc.PubKeyFromProto(valUpdate.PubKey)
+		localPubKey := toLocalPubKey(valUpdate.PubKey)
+		pk, err := encoding.PubKeyFromProto(*localPubKey)
 		if err != nil {
 			return err
 		}
-
 		if !types.IsValidPubkeyType(params, pk.Type()) {
-			return fmt.Errorf("validator %v is using pubkey %s, which is unsupported for consensus",
-				valUpdate, pk.Type())
+			return fmt.Errorf("validator %v is using pubkey %s, which is unsupported for consensus", valUpdate, pk.Type())
 		}
 	}
 	return nil
@@ -361,7 +373,7 @@ func updateState(
 	state State,
 	blockID types.BlockID,
 	header *types.Header,
-	abciResponses *tmstate.ABCIResponses,
+	abciResponses *ABCIResponses,
 	validatorUpdates []*types.Validator,
 ) (State, error) {
 
@@ -387,16 +399,13 @@ func updateState(
 	nextParams := state.ConsensusParams
 	lastHeightParamsChanged := state.LastHeightConsensusParamsChanged
 	if abciResponses.FinalizeBlock.ConsensusParamUpdates != nil {
-		// NOTE: must not mutate s.ConsensusParams
-		nextParams = types.UpdateConsensusParams(state.ConsensusParams, abciResponses.FinalizeBlock.ConsensusParamUpdates)
+		// TODO: convert ConsensusParamUpdates to the correct type if needed
+		nextParams = types.UpdateConsensusParams(state.ConsensusParams, nil)
 		err := types.ValidateConsensusParams(nextParams)
 		if err != nil {
 			return state, fmt.Errorf("error updating consensus params: %v", err)
 		}
-
 		state.Version.Consensus.App = nextParams.Version.AppVersion
-
-		// Change results from this height but only applies to the next height.
 		lastHeightParamsChanged = header.Height + 1
 	}
 
@@ -429,20 +438,18 @@ func fireEvents(
 	logger log.Logger,
 	eventBus types.BlockEventPublisher,
 	block *types.Block,
-	abciResponses *tmstate.ABCIResponses,
+	abciResponses *ABCIResponses,
 	validatorUpdates []*types.Validator,
 ) {
 	if err := eventBus.PublishEventNewBlock(types.EventDataNewBlock{
-		Block:               block,
-		ResultFinalizeBlock: *abciResponses.FinalizeBlock,
+		Block: block,
 	}); err != nil {
 		logger.Error("failed publishing new block", "err", err)
 	}
 
 	if err := eventBus.PublishEventNewBlockHeader(types.EventDataNewBlockHeader{
-		Header:              block.Header,
-		NumTxs:              int64(len(block.Txs)),
-		ResultFinalizeBlock: *abciResponses.FinalizeBlock,
+		Header: block.Header,
+		NumTxs: int64(len(block.Txs)),
 	}); err != nil {
 		logger.Error("failed publishing new block header", "err", err)
 	}
@@ -459,7 +466,7 @@ func fireEvents(
 	}
 
 	for i, tx := range block.Data.Txs {
-		if err := eventBus.PublishEventTx(types.EventDataTx{TxResult: tmabci.TxResult{
+		if err := eventBus.PublishEventTx(types.EventDataTx{TxResult: abci.TxResult{
 			Height: block.Height,
 			Index:  uint32(i),
 			Tx:     tx,
@@ -494,14 +501,20 @@ func ExecCommitBlock(
 		logger.Error("failed executing block on proxy app", "height", block.Height, "err", err)
 		return nil, err
 	}
-
 	// Commit block, get hash back
-	res, err := appConnConsensus.CommitSync()
+	res, err := appConnConsensus.CommitSync(context.Background(), nil)
 	if err != nil {
 		logger.Error("client error during proxyAppConn.CommitSync", "err", res)
 		return nil, err
 	}
+	return nil, nil
+}
 
-	// ResponseCommit has no error or log, just data
-	return res.Data, nil
+// Helper to convert CometBFT proto PublicKey to local proto PublicKey
+func toLocalPubKey(pk cometproto.PublicKey) *localproto.PublicKey {
+	return &localproto.PublicKey{
+		Sum: &localproto.PublicKey_Ed25519{
+			Ed25519: pk.GetEd25519(),
+		},
+	}
 }

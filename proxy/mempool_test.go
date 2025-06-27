@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cometbft/cometbft/abci/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/proxy/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -15,19 +15,19 @@ func TestMempoolCheckTx(t *testing.T) {
 
 	t.Run("successful check tx", func(t *testing.T) {
 		mock := mocks.NewMockMempool()
-		mock.CheckTxFn = func(ctx context.Context, req *types.RequestCheckTx) (*types.ResponseCheckTx, error) {
+		mock.CheckTxFn = func(ctx context.Context, req *abci.CheckTxRequest) (*abci.CheckTxResponse, error) {
 			require.Equal(t, []byte("test_tx"), req.Tx)
-			return &types.ResponseCheckTx{Code: 0}, nil
+			return &abci.CheckTxResponse{Code: 0}, nil
 		}
 
-		res, err := mock.CheckTx(context.Background(), &types.RequestCheckTx{Tx: []byte("test_tx")})
+		res, err := mock.CheckTx(context.Background(), &abci.CheckTxRequest{Tx: []byte("test_tx")})
 		require.NoError(t, err)
 		require.Equal(t, uint32(0), res.Code)
 	})
 
 	t.Run("timeout handling", func(t *testing.T) {
 		mock := mocks.NewMockMempool()
-		mock.CheckTxFn = func(ctx context.Context, req *types.RequestCheckTx) (*types.ResponseCheckTx, error) {
+		mock.CheckTxFn = func(ctx context.Context, req *abci.CheckTxRequest) (*abci.CheckTxResponse, error) {
 			<-ctx.Done() // Wait for cancellation
 			return nil, ctx.Err()
 		}
@@ -35,7 +35,7 @@ func TestMempoolCheckTx(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
 		defer cancel()
 
-		_, err := mock.CheckTx(ctx, &types.RequestCheckTx{Tx: []byte("test")})
+		_, err := mock.CheckTx(ctx, &abci.CheckTxRequest{Tx: []byte("test")})
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 }
@@ -44,14 +44,14 @@ func TestConsensusFinalizeBlock(t *testing.T) {
 	t.Parallel()
 
 	mock := &mocks.MockAppConnConsensus{}
-	mock.FinalizeBlockFn = func(ctx context.Context, req *types.RequestFinalizeBlock) (*types.ResponseFinalizeBlock, error) {
+	mock.FinalizeBlockFn = func(ctx context.Context, req *abci.FinalizeBlockRequest) (*abci.FinalizeBlockResponse, error) {
 		require.Equal(t, int64(1), req.Height)
-		return &types.ResponseFinalizeBlock{
-			TxResults: []*types.ExecTxResult{{Code: 0}},
+		return &abci.FinalizeBlockResponse{
+			TxResults: []*abci.ExecTxResult{{Code: 0}},
 		}, nil
 	}
 
-	res, err := mock.FinalizeBlock(context.Background(), &types.RequestFinalizeBlock{Height: 1})
+	res, err := mock.FinalizeBlock(context.Background(), &abci.FinalizeBlockRequest{Height: 1})
 	require.NoError(t, err)
 	require.Len(t, res.TxResults, 1)
 }

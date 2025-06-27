@@ -3,7 +3,6 @@ package types
 import (
 	"context"
 	"fmt"
-	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/log"

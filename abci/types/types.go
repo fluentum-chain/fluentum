@@ -2,9 +2,12 @@ package types
 
 import (
 	"context"
+
 	cometbftabci "github.com/cometbft/cometbft/abci/types"
 	cometbftcrypto "github.com/cometbft/cometbft/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
+	cryptoproto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
 // ABCI Types - Direct aliases to CometBFT v0.38.17 types for full compatibility
@@ -44,11 +47,11 @@ type LoadSnapshotChunkResponse = cometbftabci.ResponseLoadSnapshotChunk
 type ApplySnapshotChunkResponse = cometbftabci.ResponseApplySnapshotChunk
 
 // Consensus and block types
-type ConsensusParams = cometbftabci.ConsensusParams
-type BlockParams = cometbftabci.BlockParams
-type EvidenceParams = cometbftabci.EvidenceParams
-type ValidatorParams = cometbftabci.ValidatorParams
-type VersionParams = cometbftabci.VersionParams
+type ConsensusParams = tmproto.ConsensusParams
+type BlockParams = tmproto.BlockParams
+type EvidenceParams = tmproto.EvidenceParams
+type ValidatorParams = tmproto.ValidatorParams
+type VersionParams = tmproto.VersionParams
 type Header = cometbfttypes.Header
 type BlockID = cometbfttypes.BlockID
 type PartSetHeader = cometbfttypes.PartSetHeader
@@ -75,28 +78,29 @@ type ExtendedCommitInfo = cometbftabci.ExtendedCommitInfo
 type Misbehavior = cometbftabci.Misbehavior
 
 // Proof types
-type ProofOp = cometbftabci.ProofOp
-type ProofOps = cometbftabci.ProofOps
+type ProofOp = cryptoproto.ProofOp
+type ProofOps = cryptoproto.ProofOps
 
 // CheckTx types
 type CheckTxType = cometbftabci.CheckTxType
 
 // Response status types
-type ResponseProcessProposal_Status = cometbftabci.ResponseProcessProposal_Status
-type ResponseVerifyVoteExtension_Status = cometbftabci.ResponseVerifyVoteExtension_Status
+// type ResponseProcessProposal_Status = cometbftabci.ResponseProcessProposal_Status
+// type ResponseVerifyVoteExtension_Status = cometbftabci.ResponseVerifyVoteExtension_Status
 type ResponseOfferSnapshot_Result = cometbftabci.ResponseOfferSnapshot_Result
 type ResponseApplySnapshotChunk_Result = cometbftabci.ResponseApplySnapshotChunk_Result
 
 // Constants for response statuses
 const (
-	ResponseProcessProposal_ACCEPT  = cometbftabci.ResponseProcessProposal_ACCEPT
-	ResponseProcessProposal_REJECT  = cometbftabci.ResponseProcessProposal_REJECT
+	ResponseProcessProposal_ACCEPT     = cometbftabci.ResponseProcessProposal_ACCEPT
+	ResponseProcessProposal_REJECT     = cometbftabci.ResponseProcessProposal_REJECT
 	ResponseVerifyVoteExtension_ACCEPT = cometbftabci.ResponseVerifyVoteExtension_ACCEPT
 	ResponseVerifyVoteExtension_REJECT = cometbftabci.ResponseVerifyVoteExtension_REJECT
-	ResponseOfferSnapshot_ACCEPT   = cometbftabci.ResponseOfferSnapshot_ACCEPT
-	ResponseOfferSnapshot_REJECT   = cometbftabci.ResponseOfferSnapshot_REJECT
-	ResponseApplySnapshotChunk_ACCEPT = cometbftabci.ResponseApplySnapshotChunk_ACCEPT
-	ResponseApplySnapshotChunk_REJECT = cometbftabci.ResponseApplySnapshotChunk_REJECT
+	ResponseOfferSnapshot_ACCEPT       = cometbftabci.ResponseOfferSnapshot_ACCEPT
+	ResponseOfferSnapshot_REJECT       = cometbftabci.ResponseOfferSnapshot_REJECT
+	ResponseOfferSnapshot_ABORT        = cometbftabci.ResponseOfferSnapshot_ABORT
+	ResponseApplySnapshotChunk_ACCEPT  = cometbftabci.ResponseApplySnapshotChunk_ACCEPT
+	ResponseApplySnapshotChunk_ABORT   = cometbftabci.ResponseApplySnapshotChunk_ABORT
 )
 
 // CheckTx type constants
@@ -114,6 +118,7 @@ const (
 	CodeTypeInsufficientFunds = uint32(4)
 	CodeTypeUnknownRequest    = uint32(5)
 	CodeTypeInvalidAddress    = uint32(6)
+	CodeTypeUnknownAddress    = uint32(7)
 )
 
 // Utility functions for common operations
@@ -177,7 +182,7 @@ func NewResponseQuery(code uint32, value []byte, log string) *QueryResponse {
 type Application interface {
 	// Echo method for testing
 	Echo(context.Context, string) (string, error)
-	
+
 	// Info/Query Connection
 	Info(context.Context, *InfoRequest) (*InfoResponse, error)
 	Query(context.Context, *QueryRequest) (*QueryResponse, error)
@@ -191,7 +196,7 @@ type Application interface {
 	FinalizeBlock(context.Context, *FinalizeBlockRequest) (*FinalizeBlockResponse, error)
 	ExtendVote(context.Context, *ExtendVoteRequest) (*ExtendVoteResponse, error)
 	VerifyVoteExtension(context.Context, *VerifyVoteExtensionRequest) (*VerifyVoteExtensionResponse, error)
-	Commit(context.Context) (*CommitResponse, error)
+	Commit(context.Context, *CommitRequest) (*CommitResponse, error)
 	InitChain(context.Context, *InitChainRequest) (*InitChainResponse, error)
 
 	// State Sync Connection
@@ -199,4 +204,4 @@ type Application interface {
 	OfferSnapshot(context.Context, *OfferSnapshotRequest) (*OfferSnapshotResponse, error)
 	LoadSnapshotChunk(context.Context, *LoadSnapshotChunkRequest) (*LoadSnapshotChunkResponse, error)
 	ApplySnapshotChunk(context.Context, *ApplySnapshotChunkRequest) (*ApplySnapshotChunkResponse, error)
-} 
+}

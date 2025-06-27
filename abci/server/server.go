@@ -10,8 +10,8 @@ package server
 import (
 	"fmt"
 
-	"github.com/fluentum-chain/fluentum/libs/service"
 	"github.com/cometbft/cometbft/abci/types"
+	"github.com/fluentum-chain/fluentum/libs/service"
 )
 
 func NewServer(protoAddr, transport string, app types.Application) (service.Service, error) {
@@ -21,7 +21,9 @@ func NewServer(protoAddr, transport string, app types.Application) (service.Serv
 	case "socket":
 		s = NewSocketServer(protoAddr, app)
 	case "grpc":
-		s = NewGRPCServer(protoAddr, types.NewGRPCApplication(app))
+		// Note: gRPC server is currently disabled in CometBFT v0.38+
+		// The app parameter is not used in the current implementation
+		s = NewGRPCServer(protoAddr)
 	default:
 		err = fmt.Errorf("unknown server type %s", transport)
 	}

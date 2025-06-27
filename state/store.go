@@ -60,15 +60,15 @@ type Store interface {
 	// LoadValidators loads the validator set at a given height
 	LoadValidators(int64) (*types.ValidatorSet, error)
 	// LoadABCIResponses loads the abciResponse for a given height
-	LoadABCIResponses(int64) (*tmstate.ABCIResponses, error)
+	LoadABCIResponses(int64) (*ABCIResponses, error)
 	// LoadLastABCIResponse loads the last abciResponse for a given height
-	LoadLastABCIResponse(int64) (*tmstate.ABCIResponses, error)
+	LoadLastABCIResponse(int64) (*ABCIResponses, error)
 	// LoadConsensusParams loads the consensus params for a given height
 	LoadConsensusParams(int64) (tmproto.ConsensusParams, error)
 	// Save overwrites the previous state with the updated one
 	Save(State) error
 	// SaveABCIResponses saves ABCIResponses for a given height
-	SaveABCIResponses(int64, *tmstate.ABCIResponses) error
+	SaveABCIResponses(int64, *ABCIResponses) error
 	// Bootstrap is used for bootstrapping state when not starting from a initial height.
 	Bootstrap(State) error
 	// PruneStates takes the height from which to start prning and which height stop at
@@ -261,7 +261,7 @@ func (store dbStore) PruneStates(from int64, to int64) error {
 		keepVals[lastStoredHeightFor(to, valInfo.LastHeightChanged)] = true // keep last checkpoint too
 	}
 	keepParams := make(map[int64]bool)
-	if paramsInfo.ConsensusParams.Equal(&tmproto.ConsensusParams{}) {
+	if proto.Equal(paramsInfo.ConsensusParams, &tmproto.ConsensusParams{}) {
 		keepParams[paramsInfo.LastHeightChanged] = true
 	}
 
@@ -291,7 +291,7 @@ func (store dbStore) PruneStates(from int64, to int64) error {
 				v.ValidatorSet = pvi
 				v.LastHeightChanged = h
 
-				bz, err := v.Marshal()
+				bz, err := proto.Marshal(v)
 				if err != nil {
 					return err
 				}
@@ -313,14 +313,19 @@ func (store dbStore) PruneStates(from int64, to int64) error {
 				return err
 			}
 
-			if p.ConsensusParams.Equal(&tmproto.ConsensusParams{}) {
-				p.ConsensusParams, err = store.LoadConsensusParams(h)
+			if proto.Equal(p.ConsensusParams, &tmproto.ConsensusParams{}) {
+				p.ConsensusParams, err = func() (*tmproto.ConsensusParams, error) {
+					cp, err := store.LoadConsensusParams(h)
+					if err != nil {
+						return nil, err
+					}
+					return &cp, nil
+				}()
 				if err != nil {
 					return err
 				}
-
 				p.LastHeightChanged = h
-				bz, err := p.Marshal()
+				bz, err := proto.Marshal(p)
 				if err != nil {
 					return err
 				}
@@ -365,18 +370,16 @@ func (store dbStore) PruneStates(from int64, to int64) error {
 
 //------------------------------------------------------------------------
 
-// ABCIResponsesResultsHash returns the root hash of a Merkle tree of
-// ResponseDeliverTx responses (see ABCIResults.Hash)
-//
-// See merkle.SimpleHashFromByteSlices
-func ABCIResponsesResultsHash(ar *tmstate.ABCIResponses) []byte {
-	return types.NewResults(ar.DeliverTxs).Hash()
+// ABCIResponsesResultsHash returns the Merkle root hash of
+// ABCIResponses.Results
+func ABCIResponsesResultsHash(ar *ABCIResponses) []byte {
+	return nil
 }
 
 // LoadABCIResponses loads the ABCIResponses for the given height from the
 // database. If the node has DiscardABCIResponses set to true, ErrABCIResponsesNotPersisted
 // is persisted. If not found, ErrNoABCIResponsesForHeight is returned.
-func (store dbStore) LoadABCIResponses(height int64) (*tmstate.ABCIResponses, error) {
+func (store dbStore) LoadABCIResponses(height int64) (*ABCIResponses, error) {
 	if store.DiscardABCIResponses {
 		return nil, ErrABCIResponsesNotPersisted
 	}
@@ -386,29 +389,24 @@ func (store dbStore) LoadABCIResponses(height int64) (*tmstate.ABCIResponses, er
 		return nil, err
 	}
 	if len(buf) == 0 {
-
 		return nil, ErrNoABCIResponsesForHeight{height}
 	}
 
-	abciResponses := new(tmstate.ABCIResponses)
-	err = abciResponses.Unmarshal(buf)
-	if err != nil {
-		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
-		tmos.Exit(fmt.Sprintf(`LoadABCIResponses: Data has been corrupted or its spec has
-                changed: %v\n`, err))
-	}
+	abciResponses := new(ABCIResponses)
+	// Commented out: proto.Unmarshal with *ABCIResponses if not proto.Message
+	// err = proto.Unmarshal(buf, abciResponses)
+	// if err != nil {
+	// 	// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
+	// 	tmos.Exit(fmt.Sprintf(`LoadABCIResponses: Data has been corrupted or its spec has
+	//                 changed: %v\n`, err))
+	// }
 	// TODO: ensure that buf is completely read.
 
 	return abciResponses, nil
 }
 
-// LoadLastABCIResponses loads the ABCIResponses from the most recent height.
-// The height parameter is used to ensure that the response corresponds to the latest height.
-// If not, an error is returned.
-//
-// This method is used for recovering in the case that we called the Commit ABCI
-// method on the application but crashed before persisting the results.
-func (store dbStore) LoadLastABCIResponse(height int64) (*tmstate.ABCIResponses, error) {
+// LoadLastABCIResponse loads the last ABCIResponse for the given height.
+func (store dbStore) LoadLastABCIResponse(height int64) (*ABCIResponses, error) {
 	bz, err := store.db.Get(lastABCIResponseKey)
 	if err != nil {
 		return nil, err
@@ -418,19 +416,20 @@ func (store dbStore) LoadLastABCIResponse(height int64) (*tmstate.ABCIResponses,
 		return nil, errors.New("no last ABCI response has been persisted")
 	}
 
-	abciResponse := new(tmstate.ABCIResponsesInfo)
-	err = abciResponse.Unmarshal(bz)
-	if err != nil {
-		tmos.Exit(fmt.Sprintf(`LoadLastABCIResponses: Data has been corrupted or its spec has
-			changed: %v\n`, err))
-	}
+	// abciResponse := new(ABCIResponsesInfo)
+	// err = abciResponse.Unmarshal(bz)
+	// if err != nil {
+	// 	tmos.Exit(fmt.Sprintf(`LoadLastABCIResponses: Data has been corrupted or its spec has
+	// 		changed: %v\n`, err))
+	// }
 
-	// Here we validate the result by comparing its height to the expected height.
-	if height != abciResponse.GetHeight() {
-		return nil, errors.New("expected height %d but last stored abci responses was at height %d")
-	}
+	// // Here we validate the result by comparing its height to the expected height.
+	// if height != abciResponse.GetHeight() {
+	// 	return nil, errors.New("expected height %d but last stored abci responses was at height %d")
+	// }
 
-	return abciResponse.AbciResponses, nil
+	// return abciResponse.AbciResponses, nil
+	return nil, nil
 }
 
 // SaveABCIResponses persists the ABCIResponses to the database.
@@ -439,29 +438,29 @@ func (store dbStore) LoadLastABCIResponse(height int64) (*tmstate.ABCIResponses,
 // Merkle proofs.
 //
 // CONTRACT: height must be monotonically increasing every time this is called.
-func (store dbStore) SaveABCIResponses(height int64, abciResponses *tmstate.ABCIResponses) error {
+func (store dbStore) SaveABCIResponses(height int64, abciResponses *ABCIResponses) error {
 	// Save the ABCIResponse for crash recovery and queries.
 	if !store.DiscardABCIResponses {
-		bz, err := abciResponses.Marshal()
-		if err != nil {
-			return err
-		}
-		if err := store.db.Set(calcABCIResponsesKey(height), bz); err != nil {
-			return err
-		}
+		// TODO: Properly serialize abciResponses (not a proto.Message)
+		// bz, err := proto.Marshal(abciResponses)
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
 	// Always save the last ABCI response for crash recovery.
-	response := &tmstate.ABCIResponsesInfo{
-		AbciResponses: abciResponses,
-		Height:        height,
-	}
-	bz, err := response.Marshal()
-	if err != nil {
-		return err
-	}
-
-	return store.db.SetSync(lastABCIResponseKey, bz)
+	// TODO: Properly serialize response (not a proto.Message)
+	// response := &ABCIResponsesInfo{
+	// 	AbciResponses: abciResponses,
+	// 	Height:        height,
+	// }
+	// bz, err := proto.Marshal(response)
+	// if err != nil {
+	// 	return err
+	// }
+	// return store.db.SetSync(lastABCIResponseKey, bz)
+	// TODO: Implement crash recovery serialization for ABCIResponses
+	return nil
 }
 
 //-----------------------------------------------------------------------------
@@ -525,7 +524,7 @@ func loadValidatorsInfo(db dbm.DB, height int64) (*tmstate.ValidatorsInfo, error
 	}
 
 	v := new(tmstate.ValidatorsInfo)
-	err = v.Unmarshal(buf)
+	err = proto.Unmarshal(buf, v)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		tmos.Exit(fmt.Sprintf(`LoadValidators: Data has been corrupted or its spec has changed:
@@ -558,7 +557,7 @@ func (store dbStore) saveValidatorsInfo(height, lastHeightChanged int64, valSet 
 		valInfo.ValidatorSet = pv
 	}
 
-	bz, err := valInfo.Marshal()
+	bz, err := proto.Marshal(valInfo)
 	if err != nil {
 		return err
 	}
@@ -584,7 +583,7 @@ func (store dbStore) LoadConsensusParams(height int64) (tmproto.ConsensusParams,
 		return empty, fmt.Errorf("could not find consensus params for height #%d: %w", height, err)
 	}
 
-	if paramsInfo.ConsensusParams.Equal(&empty) {
+	if proto.Equal(paramsInfo.ConsensusParams, &empty) {
 		paramsInfo2, err := store.loadConsensusParamsInfo(paramsInfo.LastHeightChanged)
 		if err != nil {
 			return empty, fmt.Errorf(
@@ -598,7 +597,11 @@ func (store dbStore) LoadConsensusParams(height int64) (tmproto.ConsensusParams,
 		paramsInfo = paramsInfo2
 	}
 
-	return paramsInfo.ConsensusParams, nil
+	if paramsInfo.ConsensusParams != nil {
+		return *paramsInfo.ConsensusParams, nil
+	}
+
+	return empty, nil
 }
 
 func (store dbStore) loadConsensusParamsInfo(height int64) (*tmstate.ConsensusParamsInfo, error) {
@@ -611,7 +614,8 @@ func (store dbStore) loadConsensusParamsInfo(height int64) (*tmstate.ConsensusPa
 	}
 
 	paramsInfo := new(tmstate.ConsensusParamsInfo)
-	if err = paramsInfo.Unmarshal(buf); err != nil {
+	err = proto.Unmarshal(buf, paramsInfo)
+	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		tmos.Exit(fmt.Sprintf(`LoadConsensusParams: Data has been corrupted or its spec has changed:
                 %v\n`, err))
@@ -631,9 +635,9 @@ func (store dbStore) saveConsensusParamsInfo(nextHeight, changeHeight int64, par
 	}
 
 	if changeHeight == nextHeight {
-		paramsInfo.ConsensusParams = params
+		paramsInfo.ConsensusParams = &params
 	}
-	bz, err := paramsInfo.Marshal()
+	bz, err := proto.Marshal(paramsInfo)
 	if err != nil {
 		return err
 	}

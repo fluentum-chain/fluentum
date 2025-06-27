@@ -278,7 +278,7 @@ func (bcR *BlockchainReactor) ReceiveEnvelope(e p2p.Envelope) {
 				peerID: e.Src.ID(),
 				height: bi.Height,
 				block:  bi,
-				length: msg.Size(),
+				length: proto.Size(msg),
 			},
 		}
 		bcR.Logger.Info("Received", "src", e.Src, "height", bi.Height)
@@ -301,7 +301,7 @@ func (bcR *BlockchainReactor) ReceiveEnvelope(e p2p.Envelope) {
 			data: bReactorEventData{
 				peerID: e.Src.ID(),
 				height: msg.Height,
-				length: msg.Size(),
+				length: proto.Size(msg),
 			},
 		}
 		bcR.messagesForFSMCh <- msgForFSM

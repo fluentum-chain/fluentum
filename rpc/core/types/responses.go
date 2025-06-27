@@ -190,15 +190,15 @@ type ResultBroadcastTx struct {
 //
 // New:
 type ResultBroadcastTxCommit struct {
-	CheckTx abci.ResponseCheckTx `json:"check_tx"`
+	CheckTx abci.CheckTxResponse `json:"check_tx"`
 	ExecTx  abci.ExecTxResult    `json:"exec_tx"`
 	Hash    bytes.HexBytes       `json:"hash"`
 	Height  int64                `json:"height"`
 }
 
-// ResultCheckTx wraps abci.ResponseCheckTx.
+// ResultCheckTx wraps abci.CheckTxResponse.
 type ResultCheckTx struct {
-	abci.ResponseCheckTx
+	abci.CheckTxResponse
 }
 
 // Result of querying for a tx
@@ -245,12 +245,12 @@ type ResultUnconfirmedTxs struct {
 
 // Info abci msg
 type ResultABCIInfo struct {
-	Response abci.ResponseInfo `json:"response"`
+	Response abci.InfoResponse `json:"response"`
 }
 
 // Query abci msg
 type ResultABCIQuery struct {
-	Response abci.ResponseQuery `json:"response"`
+	Response abci.QueryResponse `json:"response"`
 }
 
 // Result of broadcasting evidence

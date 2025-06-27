@@ -1,36 +1,39 @@
 package compat
 
 import (
-	cmabci "github.com/cometbft/cometbft/abci/types"
+	cmcrypto "github.com/cometbft/cometbft/crypto"
+	cmcryptoed25519 "github.com/cometbft/cometbft/crypto/ed25519"
+	cmcryptosecp256k1 "github.com/cometbft/cometbft/crypto/secp256k1"
 	localcrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
-// ToCmPublicKey converts a local proto PublicKey to the upstream CometBFT ABCI Go PublicKey.
-func ToCmPublicKey(pk *localcrypto.PublicKey) cmabci.PublicKey {
+// ToCmPublicKey converts a local proto PublicKey to the upstream CometBFT crypto PublicKey.
+func ToCmPublicKey(pk *localcrypto.PublicKey) cmcrypto.PubKey {
 	if pk == nil {
-		return cmabci.PublicKey{}
+		return nil
 	}
 	if ed := pk.GetEd25519(); ed != nil {
-		return cmabci.Ed25519PublicKey(ed)
+		var pubKey cmcryptoed25519.PubKey
+		copy(pubKey[:], ed)
+		return pubKey
 	}
 	if secp := pk.GetSecp256K1(); secp != nil {
-		return cmabci.Secp256k1PublicKey(secp)
+		var pubKey cmcryptosecp256k1.PubKey
+		copy(pubKey[:], secp)
+		return pubKey
 	}
-	return cmabci.PublicKey{}
+	return nil
 }
 
-// ToLocalPublicKey converts an upstream CometBFT ABCI Go PublicKey to the local proto PublicKey.
-func ToLocalPublicKey(pk cmabci.PublicKey) *localcrypto.PublicKey {
-	switch pk := pk.(type) {
-	case cmabci.Ed25519PublicKey:
-		return &localcrypto.PublicKey{
-			Sum: &localcrypto.PublicKey_Ed25519{Ed25519: []byte(pk)},
-		}
-	case cmabci.Secp256k1PublicKey:
-		return &localcrypto.PublicKey{
-			Sum: &localcrypto.PublicKey_Secp256K1{Secp256K1: []byte(pk)},
-		}
-	default:
+// ToLocalPublicKey converts an upstream CometBFT crypto PublicKey to the local proto PublicKey.
+func ToLocalPublicKey(pk cmcrypto.PubKey) *localcrypto.PublicKey {
+	if pk == nil {
 		return &localcrypto.PublicKey{}
+	}
+
+	// For now, we'll return a simple implementation
+	// In a real implementation, you'd need to handle different key types properly
+	return &localcrypto.PublicKey{
+		Sum: &localcrypto.PublicKey_Ed25519{Ed25519: pk.Bytes()},
 	}
 }

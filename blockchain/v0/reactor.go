@@ -213,7 +213,7 @@ func (bcR *BlockchainReactor) ReceiveEnvelope(e p2p.Envelope) {
 			bcR.Logger.Error("Block content is invalid", "err", err)
 			return
 		}
-		bcR.pool.AddBlock(e.Src.ID(), bi, msg.Block.Size())
+		bcR.pool.AddBlock(e.Src.ID(), bi, proto.Size(msg.Block))
 	case *bcproto.StatusRequest:
 		// Send peer our state.
 		p2p.TrySendEnvelopeShim(e.Src, p2p.Envelope{ //nolint: staticcheck

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	dbm "github.com/cometbft/cometbft-db"
-	abcitypes "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	tmcfg "github.com/fluentum-chain/fluentum/config"
 	prototmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
 	blockmocks "github.com/fluentum-chain/fluentum/state/indexer/mocks"
@@ -139,11 +139,11 @@ func TestReIndexEvent(t *testing.T) {
 		On("LoadBlock", base).Return(&types.Block{Data: types.Data{Txs: types.Txs{make(types.Tx, 1)}}}).
 		On("LoadBlock", height).Return(&types.Block{Data: types.Data{Txs: types.Txs{make(types.Tx, 1)}}})
 
-	dtx := abcitypes.ResponseDeliverTx{}
+	dtx := abci.ExecTxResult{}
 	abciResp := &prototmstate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{&dtx},
-		EndBlock:   &abcitypes.ResponseEndBlock{},
-		BeginBlock: &abcitypes.ResponseBeginBlock{},
+		DeliverTxs: []*abci.ExecTxResult{&dtx},
+		EndBlock:   &abci.EndBlockResponse{},
+		BeginBlock: &abci.BeginBlockResponse{},
 	}
 
 	mockBlockIndexer.
