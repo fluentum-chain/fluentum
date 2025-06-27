@@ -3,7 +3,7 @@ package dex
 import (
 	"context"
 
-	"github.com/fluentum-chain/fluentum/types"
+	"github.com/fluentum-chain/fluentum/fluentum/types"
 )
 
 // Client handles interactions with decentralized exchanges

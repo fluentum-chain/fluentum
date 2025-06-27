@@ -3,7 +3,6 @@ package validator
 import (
 	"context"
 	"crypto/ed25519"
-	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"sync"
@@ -34,10 +33,10 @@ type HybridSignerStats struct {
 
 // HybridSignature contains both classical and quantum signatures
 type HybridSignature struct {
-	ClassicSignature []byte `json:"classic_signature"`
-	QuantumSignature []byte `json:"quantum_signature"`
+	ClassicSignature []byte    `json:"classic_signature"`
+	QuantumSignature []byte    `json:"quantum_signature"`
 	Timestamp        time.Time `json:"timestamp"`
-	Mode             string   `json:"mode"` // "dual", "classic", "quantum"
+	Mode             string    `json:"mode"` // "dual", "classic", "quantum"
 }
 
 // NewHybridSigner creates a new hybrid signer
@@ -58,7 +57,7 @@ func NewHybridSigner() (*HybridSigner, error) {
 
 	// Try to load quantum signer
 	pm := plugin.Instance()
-	if pm.IsPluginLoaded() {
+	if pm.GetPluginCount() > 0 {
 		quantumSigner, err := pm.GetSigner()
 		if err == nil {
 			hs.quantumSigner = quantumSigner
@@ -114,29 +113,19 @@ func (hs *HybridSigner) SignAsync(ctx context.Context, privateKey []byte, messag
 
 	// Start classical signing
 	go func() {
-		start := time.Now()
-		sig := ed25519.Sign(hs.classicSigner.privateKey, message)
-		hs.mu.Lock()
-		hs.stats.TotalClassicTime += time.Since(start)
-		hs.stats.ClassicSignCount++
-		hs.mu.Unlock()
-		classicChan <- sig
+		classicSig := ed25519.Sign(hs.classicSigner.privateKey, message)
+		classicChan <- classicSig
 	}()
 
 	// Start quantum signing if available
 	if hs.quantumSigner != nil && hs.useQuantum {
 		go func() {
-			start := time.Now()
-			sig, err := hs.quantumSigner.SignAsync(ctx, privateKey, message)
+			quantumSig, err := hs.quantumSigner.SignAsync(ctx, privateKey, message)
 			if err != nil {
 				errChan <- err
 				return
 			}
-			hs.mu.Lock()
-			hs.stats.TotalQuantumTime += time.Since(start)
-			hs.stats.QuantumSignCount++
-			hs.mu.Unlock()
-			quantumChan <- sig
+			quantumChan <- quantumSig
 		}()
 	}
 
@@ -149,8 +138,9 @@ func (hs *HybridSigner) SignAsync(ctx context.Context, privateKey []byte, messag
 	select {
 	case classicSig := <-classicChan:
 		signature.ClassicSignature = classicSig
+		hs.stats.ClassicSignCount++
 	case <-ctx.Done():
-		return nil, fmt.Errorf("classical signing timed out: %w", ctx.Err())
+		return nil, fmt.Errorf("classical signing timed out")
 	}
 
 	// Get quantum signature if available
@@ -159,10 +149,10 @@ func (hs *HybridSigner) SignAsync(ctx context.Context, privateKey []byte, messag
 		case quantumSig := <-quantumChan:
 			signature.QuantumSignature = quantumSig
 			signature.Mode = "dual"
+			hs.stats.QuantumSignCount++
 		case err := <-errChan:
 			return nil, fmt.Errorf("quantum signing failed: %w", err)
 		case <-ctx.Done():
-			// Quantum signing timed out, but we still have classical signature
 			signature.Mode = "classic"
 		}
 	} else {
@@ -174,21 +164,14 @@ func (hs *HybridSigner) SignAsync(ctx context.Context, privateKey []byte, messag
 
 // Verify verifies a hybrid signature
 func (hs *HybridSigner) Verify(publicKey []byte, message []byte, signature *HybridSignature) (bool, error) {
-	if signature == nil {
-		return false, fmt.Errorf("signature cannot be nil")
-	}
+	hs.mu.RLock()
+	defer hs.mu.RUnlock()
 
 	// Verify classical signature
-	if len(signature.ClassicSignature) == 0 {
-		return false, fmt.Errorf("no classical signature found")
-	}
-
 	start := time.Now()
 	classicValid := ed25519.Verify(hs.classicSigner.publicKey, message, signature.ClassicSignature)
-	hs.mu.Lock()
 	hs.stats.TotalClassicTime += time.Since(start)
 	hs.stats.ClassicVerifyCount++
-	hs.mu.Unlock()
 
 	if !classicValid {
 		return false, fmt.Errorf("classical signature verification failed")
@@ -198,13 +181,12 @@ func (hs *HybridSigner) Verify(publicKey []byte, message []byte, signature *Hybr
 	if len(signature.QuantumSignature) > 0 && hs.quantumSigner != nil {
 		start := time.Now()
 		quantumValid, err := hs.quantumSigner.Verify(publicKey, message, signature.QuantumSignature)
+		hs.stats.TotalQuantumTime += time.Since(start)
+		hs.stats.QuantumVerifyCount++
+
 		if err != nil {
 			return false, fmt.Errorf("quantum signature verification failed: %w", err)
 		}
-		hs.mu.Lock()
-		hs.stats.TotalQuantumTime += time.Since(start)
-		hs.stats.QuantumVerifyCount++
-		hs.mu.Unlock()
 
 		if !quantumValid {
 			return false, fmt.Errorf("quantum signature verification failed")
@@ -213,16 +195,11 @@ func (hs *HybridSigner) Verify(publicKey []byte, message []byte, signature *Hybr
 		return true, nil
 	}
 
-	// Only classical signature was provided
 	return true, nil
 }
 
 // VerifyAsync verifies a hybrid signature asynchronously
 func (hs *HybridSigner) VerifyAsync(ctx context.Context, publicKey []byte, message []byte, signature *HybridSignature) (bool, error) {
-	if signature == nil {
-		return false, fmt.Errorf("signature cannot be nil")
-	}
-
 	// Create channels for results
 	classicChan := make(chan bool, 1)
 	quantumChan := make(chan bool, 1)
@@ -230,28 +207,18 @@ func (hs *HybridSigner) VerifyAsync(ctx context.Context, publicKey []byte, messa
 
 	// Start classical verification
 	go func() {
-		start := time.Now()
 		valid := ed25519.Verify(hs.classicSigner.publicKey, message, signature.ClassicSignature)
-		hs.mu.Lock()
-		hs.stats.TotalClassicTime += time.Since(start)
-		hs.stats.ClassicVerifyCount++
-		hs.mu.Unlock()
 		classicChan <- valid
 	}()
 
 	// Start quantum verification if signature present
 	if len(signature.QuantumSignature) > 0 && hs.quantumSigner != nil {
 		go func() {
-			start := time.Now()
 			valid, err := hs.quantumSigner.VerifyAsync(ctx, publicKey, message, signature.QuantumSignature)
 			if err != nil {
 				errChan <- err
 				return
 			}
-			hs.mu.Lock()
-			hs.stats.TotalQuantumTime += time.Since(start)
-			hs.stats.QuantumVerifyCount++
-			hs.mu.Unlock()
 			quantumChan <- valid
 		}()
 	}
@@ -261,25 +228,27 @@ func (hs *HybridSigner) VerifyAsync(ctx context.Context, publicKey []byte, messa
 	select {
 	case valid := <-classicChan:
 		classicValid = valid
+		hs.stats.ClassicVerifyCount++
 	case <-ctx.Done():
-		return false, fmt.Errorf("classical verification timed out: %w", ctx.Err())
+		return false, fmt.Errorf("classical verification timed out")
 	}
 
 	if !classicValid {
 		return false, fmt.Errorf("classical signature verification failed")
 	}
 
-	// Wait for quantum verification if needed
+	// Wait for quantum verification if present
 	if len(signature.QuantumSignature) > 0 && hs.quantumSigner != nil {
 		select {
 		case quantumValid := <-quantumChan:
+			hs.stats.QuantumVerifyCount++
 			if !quantumValid {
 				return false, fmt.Errorf("quantum signature verification failed")
 			}
 		case err := <-errChan:
 			return false, fmt.Errorf("quantum verification failed: %w", err)
 		case <-ctx.Done():
-			return false, fmt.Errorf("quantum verification timed out: %w", ctx.Err())
+			return false, fmt.Errorf("quantum verification timed out")
 		}
 	}
 
@@ -287,16 +256,10 @@ func (hs *HybridSigner) VerifyAsync(ctx context.Context, publicKey []byte, messa
 }
 
 // EnableQuantum enables quantum signing
-func (hs *HybridSigner) EnableQuantum() error {
+func (hs *HybridSigner) EnableQuantum() {
 	hs.mu.Lock()
 	defer hs.mu.Unlock()
-
-	if hs.quantumSigner == nil {
-		return fmt.Errorf("no quantum signer available")
-	}
-
 	hs.useQuantum = true
-	return nil
 }
 
 // DisableQuantum disables quantum signing
@@ -306,23 +269,24 @@ func (hs *HybridSigner) DisableQuantum() {
 	hs.useQuantum = false
 }
 
-// IsQuantumEnabled returns true if quantum signing is enabled
+// IsQuantumEnabled returns whether quantum signing is enabled
 func (hs *HybridSigner) IsQuantumEnabled() bool {
 	hs.mu.RLock()
 	defer hs.mu.RUnlock()
-	return hs.useQuantum && hs.quantumSigner != nil
+	return hs.useQuantum
 }
 
-// GetStats returns performance statistics
+// GetStats returns the current statistics
 func (hs *HybridSigner) GetStats() *HybridSignerStats {
 	hs.mu.RLock()
 	defer hs.mu.RUnlock()
 
-	stats := *hs.stats // Copy to avoid race conditions
+	// Return a copy to avoid race conditions
+	stats := *hs.stats
 	return &stats
 }
 
-// ResetStats resets performance statistics
+// ResetStats resets all statistics
 func (hs *HybridSigner) ResetStats() {
 	hs.mu.Lock()
 	defer hs.mu.Unlock()
@@ -330,6 +294,30 @@ func (hs *HybridSigner) ResetStats() {
 	hs.stats = &HybridSignerStats{
 		LastReset: time.Now(),
 	}
+}
+
+// GetInfo returns information about the hybrid signer
+func (hs *HybridSigner) GetInfo() map[string]interface{} {
+	hs.mu.RLock()
+	defer hs.mu.RUnlock()
+
+	info := map[string]interface{}{
+		"quantum_enabled":    hs.useQuantum,
+		"classic_algorithm":  "Ed25519",
+		"classic_public_key": hex.EncodeToString(hs.classicSigner.publicKey),
+	}
+
+	if hs.quantumSigner != nil {
+		info["quantum_algorithm"] = hs.quantumSigner.AlgorithmName()
+		info["quantum_security_level"] = hs.quantumSigner.SecurityLevel()
+		info["quantum_resistant"] = hs.quantumSigner.IsQuantumResistant()
+	} else {
+		info["quantum_algorithm"] = "none"
+		info["quantum_security_level"] = "none"
+		info["quantum_resistant"] = false
+	}
+
+	return info
 }
 
 // GetPerformanceMetrics returns detailed performance metrics
@@ -373,23 +361,3 @@ func (hs *HybridSigner) GetPerformanceMetrics() map[string]float64 {
 
 	return metrics
 }
-
-// GetInfo returns information about the hybrid signer
-func (hs *HybridSigner) GetInfo() map[string]interface{} {
-	hs.mu.RLock()
-	defer hs.mu.RUnlock()
-
-	info := map[string]interface{}{
-		"classic_public_key": hex.EncodeToString(hs.classicSigner.publicKey),
-		"quantum_enabled":    hs.useQuantum,
-		"quantum_available":  hs.quantumSigner != nil,
-	}
-
-	if hs.quantumSigner != nil {
-		info["quantum_algorithm"] = hs.quantumSigner.AlgorithmName()
-		info["quantum_security_level"] = hs.quantumSigner.SecurityLevel()
-		info["quantum_resistant"] = hs.quantumSigner.IsQuantumResistant()
-	}
-
-	return info
-} 

@@ -5,12 +5,12 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-	"github.com/fluentum-chain/fluentum/fluentum/types"
 )
 
 // Validator represents a validator node that can sign and verify blocks
@@ -60,54 +60,42 @@ func NewDefaultSigner() (*DefaultSigner, error) {
 
 // NewValidator creates a new validator with quantum signing capability
 func NewValidator(id string, useQuantum bool) (*Validator, error) {
-	v := &Validator{
-		ID:         id,
-		UseQuantum: useQuantum,
-	}
-
 	// Initialize fallback signer
 	fallbackSigner, err := NewDefaultSigner()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create fallback signer: %w", err)
 	}
-	v.FallbackSigner = fallbackSigner
 
-	// Try to load quantum signing plugin
-	if useQuantum {
-		pm := plugin.Instance()
-		if pm.IsPluginLoaded() {
-			signer, err := pm.GetSigner()
-			if err != nil {
-				fmt.Printf("Warning: Failed to get quantum signer: %v, falling back to Ed25519\n", err)
-				v.UseQuantum = false
-			} else {
-				v.SignerPlugin = signer
-				// Generate quantum key pair
-				pk, sk, err := signer.GenerateKeyPair()
-				if err != nil {
-					return nil, fmt.Errorf("failed to generate quantum key pair: %w", err)
-				}
-				v.PublicKey = pk
-				v.PrivateKey = sk
-				fmt.Printf("Quantum signer loaded: %s (Security: %s)\n", signer.AlgorithmName(), signer.SecurityLevel())
-			}
-		} else {
-			fmt.Printf("Warning: No quantum plugin loaded, falling back to Ed25519\n")
-			v.UseQuantum = false
-		}
+	v := &Validator{
+		ID:             id,
+		PublicKey:      fallbackSigner.publicKey,
+		PrivateKey:     fallbackSigner.privateKey,
+		FallbackSigner: fallbackSigner,
+		UseQuantum:     useQuantum,
 	}
 
-	// If not using quantum or quantum failed, use Ed25519
-	if !v.UseQuantum {
-		v.PublicKey = v.FallbackSigner.publicKey
-		v.PrivateKey = v.FallbackSigner.privateKey
-		fmt.Printf("Using Ed25519 signer for validator %s\n", id)
+	// Try to load quantum signer if requested
+	if useQuantum {
+		pm := plugin.Instance()
+		if pm.GetPluginCount() > 0 {
+			quantumSigner, err := pm.GetSigner()
+			if err == nil {
+				v.SignerPlugin = quantumSigner
+				fmt.Printf("Validator initialized with quantum signing: %s\n", quantumSigner.AlgorithmName())
+			} else {
+				fmt.Printf("Warning: Failed to load quantum signer, falling back to Ed25519: %v\n", err)
+				v.UseQuantum = false
+			}
+		} else {
+			fmt.Printf("Warning: No plugins available, falling back to Ed25519\n")
+			v.UseQuantum = false
+		}
 	}
 
 	return v, nil
 }
 
-// SignBlock signs a block with the appropriate signing algorithm
+// SignBlock signs a block using the appropriate signing algorithm
 func (v *Validator) SignBlock(block *Block) error {
 	v.mu.Lock()
 	defer v.mu.Unlock()
@@ -185,111 +173,49 @@ func (v *Validator) VerifyBlock(block *Block) (bool, error) {
 		return false, fmt.Errorf("block cannot be nil")
 	}
 
-	// Prepare block data for verification
+	// Prepare block data for verification (exclude signature fields)
 	blockData, err := v.prepareBlockData(block)
 	if err != nil {
 		return false, fmt.Errorf("failed to prepare block data: %w", err)
 	}
 
-	// Check if this is a quantum signature
+	// Verify quantum signature if present
 	if len(block.QuantumSignature) > 0 && v.SignerPlugin != nil {
-		// Verify quantum signature
 		valid, err := v.SignerPlugin.Verify(block.ValidatorPubKey, blockData, block.QuantumSignature)
 		if err != nil {
-			return false, fmt.Errorf("quantum verification failed: %w", err)
+			return false, fmt.Errorf("quantum signature verification failed: %w", err)
 		}
 		return valid, nil
 	}
 
-	// Verify Ed25519 signature
-	if len(block.Signature) == 0 {
-		return false, fmt.Errorf("no signature found")
-	}
-
+	// Fallback to Ed25519 verification
 	valid := ed25519.Verify(block.ValidatorPubKey, blockData, block.Signature)
 	return valid, nil
 }
 
 // VerifyBlockAsync verifies a block signature asynchronously
 func (v *Validator) VerifyBlockAsync(ctx context.Context, block *Block) (bool, error) {
-	if len(block.QuantumSignature) > 0 && v.SignerPlugin != nil {
-		blockData, err := v.prepareBlockData(block)
-		if err != nil {
-			return false, fmt.Errorf("failed to prepare block data: %w", err)
-		}
+	if block == nil {
+		return false, fmt.Errorf("block cannot be nil")
+	}
 
+	// Prepare block data for verification
+	blockData, err := v.prepareBlockData(block)
+	if err != nil {
+		return false, fmt.Errorf("failed to prepare block data: %w", err)
+	}
+
+	// Verify quantum signature if present
+	if len(block.QuantumSignature) > 0 && v.SignerPlugin != nil {
 		valid, err := v.SignerPlugin.VerifyAsync(ctx, block.ValidatorPubKey, blockData, block.QuantumSignature)
 		if err != nil {
-			return false, fmt.Errorf("async quantum verification failed: %w", err)
+			return false, fmt.Errorf("async quantum signature verification failed: %w", err)
 		}
 		return valid, nil
 	}
 
 	// Fallback to synchronous verification for Ed25519
 	return v.VerifyBlock(block)
-}
-
-// BatchVerifyBlocks verifies multiple blocks efficiently
-func (v *Validator) BatchVerifyBlocks(blocks []*Block) ([]bool, error) {
-	if len(blocks) == 0 {
-		return []bool{}, nil
-	}
-
-	// Separate quantum and classical blocks
-	var quantumBlocks []*Block
-	var classicalBlocks []*Block
-
-	for _, block := range blocks {
-		if len(block.QuantumSignature) > 0 {
-			quantumBlocks = append(quantumBlocks, block)
-		} else {
-			classicalBlocks = append(classicalBlocks, block)
-		}
-	}
-
-	results := make([]bool, len(blocks))
-	blockIndex := 0
-
-	// Verify quantum blocks in batch if possible
-	if len(quantumBlocks) > 0 && v.SignerPlugin != nil {
-		publicKeys := make([][]byte, len(quantumBlocks))
-		messages := make([][]byte, len(quantumBlocks))
-		signatures := make([][]byte, len(quantumBlocks))
-
-		for i, block := range quantumBlocks {
-			blockData, err := v.prepareBlockData(block)
-			if err != nil {
-				return nil, fmt.Errorf("failed to prepare block data for block %d: %w", i, err)
-			}
-
-			publicKeys[i] = block.ValidatorPubKey
-			messages[i] = blockData
-			signatures[i] = block.QuantumSignature
-		}
-
-		quantumResults, err := v.SignerPlugin.BatchVerify(publicKeys, messages, signatures)
-		if err != nil {
-			return nil, fmt.Errorf("batch quantum verification failed: %w", err)
-		}
-
-		// Map results back to original block indices
-		for i, valid := range quantumResults {
-			results[blockIndex] = valid
-			blockIndex++
-		}
-	}
-
-	// Verify classical blocks individually
-	for _, block := range classicalBlocks {
-		valid, err := v.VerifyBlock(block)
-		if err != nil {
-			return nil, fmt.Errorf("classical verification failed: %w", err)
-		}
-		results[blockIndex] = valid
-		blockIndex++
-	}
-
-	return results, nil
 }
 
 // prepareBlockData prepares block data for signing/verification
@@ -306,7 +232,7 @@ func (v *Validator) prepareBlockData(block *Block) ([]byte, error) {
 	}
 
 	// Serialize the block data
-	data, err := types.Encode(blockCopy)
+	data, err := json.Marshal(blockCopy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize block: %w", err)
 	}
@@ -360,49 +286,51 @@ func (v *Validator) SwitchToQuantum() error {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
+	if v.UseQuantum {
+		return fmt.Errorf("validator already using quantum signing")
+	}
+
 	pm := plugin.Instance()
-	if !pm.IsPluginLoaded() {
-		return fmt.Errorf("no quantum plugin loaded")
+	if pm.GetPluginCount() > 0 {
+		quantumSigner, err := pm.GetSigner()
+		if err != nil {
+			return fmt.Errorf("failed to get quantum signer: %w", err)
+		}
+
+		v.SignerPlugin = quantumSigner
+		v.UseQuantum = true
+		return nil
 	}
 
-	signer, err := pm.GetSigner()
-	if err != nil {
-		return fmt.Errorf("failed to get quantum signer: %w", err)
-	}
-
-	// Generate new quantum key pair
-	pk, sk, err := signer.GenerateKeyPair()
-	if err != nil {
-		return fmt.Errorf("failed to generate quantum key pair: %w", err)
-	}
-
-	v.SignerPlugin = signer
-	v.PublicKey = pk
-	v.PrivateKey = sk
-	v.UseQuantum = true
-
-	return nil
+	return fmt.Errorf("no quantum signer plugin available")
 }
 
-// SwitchToClassical switches the validator to use classical Ed25519 signing
-func (v *Validator) SwitchToClassical() error {
+// SwitchToClassical switches the validator to use classical signing
+func (v *Validator) SwitchToClassical() {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
-	// Generate new Ed25519 key pair
-	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		return fmt.Errorf("failed to generate Ed25519 key pair: %w", err)
-	}
-
-	v.FallbackSigner = &DefaultSigner{
-		publicKey:  publicKey,
-		privateKey: privateKey,
-	}
-	v.PublicKey = publicKey
-	v.PrivateKey = privateKey
 	v.UseQuantum = false
 	v.SignerPlugin = nil
+}
 
-	return nil
-} 
+// GetLastBlockInfo returns information about the last signed block
+func (v *Validator) GetLastBlockInfo() map[string]interface{} {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+
+	return map[string]interface{}{
+		"last_block_height": v.lastBlockHeight,
+		"last_block_time":   v.lastBlockTime,
+		"validator_id":      v.ID,
+	}
+}
+
+// ResetLastBlockInfo resets the last block information
+func (v *Validator) ResetLastBlockInfo() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	v.lastBlockHeight = 0
+	v.lastBlockTime = time.Time{}
+}

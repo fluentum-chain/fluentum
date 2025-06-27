@@ -4,9 +4,10 @@ import (
 	"net"
 
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
+	grpcserver "google.golang.org/grpc"
 
 	tmnet "github.com/fluentum-chain/fluentum/libs/net"
+	grpc "github.com/fluentum-chain/fluentum/proto/tendermint/rpc/grpc"
 )
 
 // Config is an gRPC server configuration.
@@ -18,20 +19,20 @@ type Config struct {
 // net.Listener.
 // NOTE: This function blocks - you may want to call it in a go-routine.
 func StartGRPCServer(ln net.Listener) error {
-	grpcServer := grpc.NewServer()
-	RegisterBroadcastAPIServer(grpcServer, &broadcastAPI{})
-	return grpcServer.Serve(ln)
+	server := grpcserver.NewServer()
+	grpc.RegisterBroadcastAPIServer(server, &broadcastAPI{})
+	return server.Serve(ln)
 }
 
 // StartGRPCClient dials the gRPC server using protoAddr and returns a new
 // BroadcastAPIClient.
-func StartGRPCClient(protoAddr string) BroadcastAPIClient {
+func StartGRPCClient(protoAddr string) grpc.BroadcastAPIClient {
 	//nolint:staticcheck // SA1019 Existing use of deprecated but supported dial option.
-	conn, err := grpc.Dial(protoAddr, grpc.WithInsecure(), grpc.WithContextDialer(dialerFunc))
+	conn, err := grpcserver.Dial(protoAddr, grpcserver.WithInsecure(), grpcserver.WithContextDialer(dialerFunc))
 	if err != nil {
 		panic(err)
 	}
-	return NewBroadcastAPIClient(conn)
+	return grpc.NewBroadcastAPIClient(conn)
 }
 
 func dialerFunc(ctx context.Context, addr string) (net.Conn, error) {

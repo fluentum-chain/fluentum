@@ -44,3 +44,10 @@ func (app *Application) Commit(ctx context.Context, req *abci.RequestCommit) (*a
 func (app *Application) Query(ctx context.Context, req *abci.RequestQuery) (*abci.ResponseQuery, error) {
 	return &abci.ResponseQuery{Value: []byte(fmt.Sprintf("counter=%d", app.counter))}, nil
 }
+
+func main() {
+	// This is a simple ABCI application example
+	// In a real implementation, this would be used with tendermint
+	app := NewApplication()
+	fmt.Printf("ABCI Application started with counter=%d\n", app.counter)
+}

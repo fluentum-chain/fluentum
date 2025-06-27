@@ -3,9 +3,8 @@ package mock
 import (
 	"context"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/libs/bytes"
-	"github.com/fluentum-chain/fluentum/proxy"
 	"github.com/fluentum-chain/fluentum/rpc/client"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
 	"github.com/fluentum-chain/fluentum/types"
@@ -25,7 +24,11 @@ var (
 )
 
 func (a ABCIApp) ABCIInfo(ctx context.Context) (*ctypes.ResultABCIInfo, error) {
-	return &ctypes.ResultABCIInfo{Response: a.App.Info(proxy.RequestInfo)}, nil
+	resp, err := a.App.Info(ctx, &abci.InfoRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return &ctypes.ResultABCIInfo{Response: *resp}, nil
 }
 
 func (a ABCIApp) ABCIQuery(ctx context.Context, path string, data bytes.HexBytes) (*ctypes.ResultABCIQuery, error) {
@@ -37,13 +40,16 @@ func (a ABCIApp) ABCIQueryWithOptions(
 	path string,
 	data bytes.HexBytes,
 	opts client.ABCIQueryOptions) (*ctypes.ResultABCIQuery, error) {
-	q := a.App.Query(abci.RequestQuery{
+	resp, err := a.App.Query(ctx, &abci.QueryRequest{
 		Data:   data,
 		Path:   path,
 		Height: opts.Height,
 		Prove:  opts.Prove,
 	})
-	return &ctypes.ResultABCIQuery{Response: q}, nil
+	if err != nil {
+		return nil, err
+	}
+	return &ctypes.ResultABCIQuery{Response: *resp}, nil
 }
 
 // NOTE: Caller should call a.App.Commit() separately,
@@ -51,21 +57,50 @@ func (a ABCIApp) ABCIQueryWithOptions(
 // TODO: Make it wait for a commit and set res.Height appropriately.
 func (a ABCIApp) BroadcastTxCommit(ctx context.Context, tx types.Tx) (*ctypes.ResultBroadcastTxCommit, error) {
 	res := ctypes.ResultBroadcastTxCommit{}
-	res.CheckTx = a.App.CheckTx(abci.RequestCheckTx{Tx: tx})
+
+	// Check transaction
+	checkResp, err := a.App.CheckTx(ctx, &abci.CheckTxRequest{Tx: tx})
+	if err != nil {
+		return nil, err
+	}
+	res.CheckTx = *checkResp
+
 	if res.CheckTx.IsErr() {
 		return &res, nil
 	}
-	res.DeliverTx = a.App.DeliverTx(abci.RequestFinalizeBlock{Tx: tx})
+
+	// Finalize block (simulate delivery)
+	finalizeResp, err := a.App.FinalizeBlock(ctx, &abci.FinalizeBlockRequest{
+		Txs: [][]byte{tx},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(finalizeResp.TxResults) > 0 {
+		// Use ExecTxResult directly
+		res.ExecTx = *finalizeResp.TxResults[0]
+	}
+
 	res.Height = -1 // TODO
 	return &res, nil
 }
 
 func (a ABCIApp) BroadcastTxAsync(ctx context.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
-	c := a.App.CheckTx(abci.RequestCheckTx{Tx: tx})
+	c, err := a.App.CheckTx(ctx, &abci.CheckTxRequest{Tx: tx})
+	if err != nil {
+		return nil, err
+	}
+
 	// and this gets written in a background thread...
 	if !c.IsErr() {
-		go func() { a.App.DeliverTx(abci.RequestFinalizeBlock{Tx: tx}) }()
+		go func() {
+			a.App.FinalizeBlock(context.Background(), &abci.FinalizeBlockRequest{
+				Txs: [][]byte{tx},
+			})
+		}()
 	}
+
 	return &ctypes.ResultBroadcastTx{
 		Code:      c.Code,
 		Data:      c.Data,
@@ -76,11 +111,20 @@ func (a ABCIApp) BroadcastTxAsync(ctx context.Context, tx types.Tx) (*ctypes.Res
 }
 
 func (a ABCIApp) BroadcastTxSync(ctx context.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
-	c := a.App.CheckTx(abci.RequestCheckTx{Tx: tx})
+	c, err := a.App.CheckTx(ctx, &abci.CheckTxRequest{Tx: tx})
+	if err != nil {
+		return nil, err
+	}
+
 	// and this gets written in a background thread...
 	if !c.IsErr() {
-		go func() { a.App.DeliverTx(abci.RequestFinalizeBlock{Tx: tx}) }()
+		go func() {
+			a.App.FinalizeBlock(context.Background(), &abci.FinalizeBlockRequest{
+				Txs: [][]byte{tx},
+			})
+		}()
 	}
+
 	return &ctypes.ResultBroadcastTx{
 		Code:      c.Code,
 		Data:      c.Data,
@@ -105,7 +149,7 @@ func (m ABCIMock) ABCIInfo(ctx context.Context) (*ctypes.ResultABCIInfo, error) 
 	if err != nil {
 		return nil, err
 	}
-	return &ctypes.ResultABCIInfo{Response: res.(abci.ResponseInfo)}, nil
+	return &ctypes.ResultABCIInfo{Response: res.(abci.InfoResponse)}, nil
 }
 
 func (m ABCIMock) ABCIQuery(ctx context.Context, path string, data bytes.HexBytes) (*ctypes.ResultABCIQuery, error) {
@@ -121,7 +165,7 @@ func (m ABCIMock) ABCIQueryWithOptions(
 	if err != nil {
 		return nil, err
 	}
-	resQuery := res.(abci.ResponseQuery)
+	resQuery := res.(abci.QueryResponse)
 	return &ctypes.ResultABCIQuery{Response: resQuery}, nil
 }
 

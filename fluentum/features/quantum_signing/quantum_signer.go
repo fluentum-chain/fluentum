@@ -3,15 +3,14 @@ package quantum_signing
 import (
 	"C"
 	"context"
+	"crypto/rand"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
-	"unsafe"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
 	"github.com/cloudflare/circl/sign/dilithium"
+	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
 )
 
 // QuantumSigner implements the SignerPlugin interface
@@ -28,13 +27,14 @@ var SignerPlugin QuantumSigner
 func init() {
 	// Initialize with Dilithium3 by default
 	SignerPlugin = QuantumSigner{
-		mode:  dilithium.Mode3,
-		stats: &plugin.PerformanceStats{},
+		mode:   dilithium.Mode3,
+		stats:  &plugin.PerformanceStats{},
 		config: plugin.DefaultPluginConfig(),
 	}
 }
 
 // Initialize initializes the plugin with configuration
+//
 //export Initialize
 func Initialize(configJSON *C.char) error {
 	var config plugin.PluginConfig
@@ -68,7 +68,10 @@ func Initialize(configJSON *C.char) error {
 }
 
 func (q *QuantumSigner) GenerateKeyPair() ([]byte, []byte, error) {
-	pk, sk := q.mode.GenerateKey()
+	pk, sk, err := q.mode.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, nil, err
+	}
 	return pk.Bytes(), sk.Bytes(), nil
 }
 
@@ -90,9 +93,8 @@ func (q *QuantumSigner) Sign(privateKey []byte, message []byte) ([]byte, error) 
 
 	start := time.Now()
 
-	sk := q.mode.NewKeyFromSeed(privateKey)
-	signature := make([]byte, q.mode.SignatureSize())
-	sk.Sign(signature, message, nil)
+	sk := q.mode.PrivateKeyFromBytes(privateKey)
+	signature := q.mode.Sign(sk, message)
 
 	q.statsMutex.Lock()
 	defer q.statsMutex.Unlock()
@@ -157,8 +159,8 @@ func (q *QuantumSigner) Verify(publicKey []byte, message []byte, signature []byt
 
 	start := time.Now()
 
-	pk := q.mode.NewPublicKeyFromBytes(publicKey)
-	valid := pk.Verify(message, signature)
+	pk := q.mode.PublicKeyFromBytes(publicKey)
+	valid := q.mode.Verify(pk, message, signature)
 
 	q.statsMutex.Lock()
 	defer q.statsMutex.Unlock()
@@ -226,7 +228,7 @@ func (q *QuantumSigner) BatchVerify(publicKeys [][]byte, messages [][]byte, sign
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
-			semaphore <- struct{}{} // Acquire semaphore
+			semaphore <- struct{}{}        // Acquire semaphore
 			defer func() { <-semaphore }() // Release semaphore
 
 			valid, err := q.Verify(publicKeys[index], messages[index], signatures[index])
@@ -263,7 +265,7 @@ func (q *QuantumSigner) PrivateKeySize() int {
 }
 
 func (q *QuantumSigner) AlgorithmName() string {
-	return q.mode.String()
+	return q.mode.Name()
 }
 
 func (q *QuantumSigner) SecurityLevel() string {
@@ -325,4 +327,4 @@ func (q *QuantumSigner) IsQuantumResistant() bool {
 	return true
 }
 
-func main() {} // Required but unused 
+func main() {} // Required but unused

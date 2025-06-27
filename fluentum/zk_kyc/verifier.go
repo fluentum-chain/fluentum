@@ -1,46 +1,40 @@
 package zk_kyc
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"math/big"
 	"time"
 
+	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	"github.com/iden3/go-iden3-crypto/poseidon"
-	"github.com/iden3/go-merkletree"
 )
 
 // KYCData represents the KYC information for a merchant
 type KYCData struct {
-	MerchantID    string   `json:"merchant_id"`
-	Balance       *big.Int `json:"balance"`
-	KYCLevel      int      `json:"kyc_level"`
-	VerifiedAt    int64    `json:"verified_at"`
-	ExpiresAt     int64    `json:"expires_at"`
-	DocumentHash  string   `json:"document_hash"`
-	CountryCode   string   `json:"country_code"`
-	BusinessType  string   `json:"business_type"`
-	RiskScore     int      `json:"risk_score"`
+	MerchantID   string   `json:"merchant_id"`
+	Balance      *big.Int `json:"balance"`
+	KYCLevel     int      `json:"kyc_level"`
+	VerifiedAt   int64    `json:"verified_at"`
+	ExpiresAt    int64    `json:"expires_at"`
+	DocumentHash string   `json:"document_hash"`
+	CountryCode  string   `json:"country_code"`
+	BusinessType string   `json:"business_type"`
+	RiskScore    int      `json:"risk_score"`
 }
 
 // KYCVerifier handles KYC verification using zero-knowledge proofs
 type KYCVerifier struct {
-	tree     *merkletree.MerkleTree
 	registry map[string]*KYCData
+	items    [][]byte
 }
 
 // NewKYCVerifier creates a new KYC verifier
 func NewKYCVerifier() (*KYCVerifier, error) {
-	tree, err := merkletree.NewMerkleTree(context.Background(), merkletree.MemoryStorage{}, 32)
-	if err != nil {
-		return nil, err
-	}
-
 	return &KYCVerifier{
-		tree:     tree,
 		registry: make(map[string]*KYCData),
+		items:    make([][]byte, 0),
 	}, nil
 }
 
@@ -52,11 +46,11 @@ func (v *KYCVerifier) AddMerchant(data *KYCData) error {
 		return err
 	}
 
-	// Add to merkle tree
-	err = v.tree.Add(context.Background(), hash)
-	if err != nil {
-		return err
-	}
+	// Convert hash to bytes
+	hashBytes := hash.Bytes()
+
+	// Add to items for merkle tree
+	v.items = append(v.items, hashBytes)
 
 	// Store in registry
 	v.registry[data.MerchantID] = data
@@ -76,23 +70,48 @@ func (v *KYCVerifier) GenerateProof(merchantID string) ([]byte, error) {
 		return nil, err
 	}
 
+	// Find the index of this hash in the items
+	hashBytes := hash.Bytes()
+	index := -1
+	for i, item := range v.items {
+		if len(item) == len(hashBytes) {
+			match := true
+			for j := range item {
+				if item[j] != hashBytes[j] {
+					match = false
+					break
+				}
+			}
+			if match {
+				index = i
+				break
+			}
+		}
+	}
+
+	if index == -1 {
+		return nil, errors.New("merchant hash not found in tree")
+	}
+
 	// Generate merkle proof
-	proof, err := v.tree.GenerateProof(context.Background(), hash)
-	if err != nil {
-		return nil, err
+	rootHash, proofs := merkle.ProofsFromByteSlices(v.items)
+	if index >= len(proofs) {
+		return nil, errors.New("proof index out of range")
 	}
 
 	// Create proof data
 	proofData := struct {
-		Proof     *merkletree.Proof
+		Proof     *merkle.Proof
 		Balance   *big.Int
 		KYCLevel  int
 		ExpiresAt int64
+		RootHash  []byte
 	}{
-		Proof:     proof,
+		Proof:     proofs[index],
 		Balance:   data.Balance,
 		KYCLevel:  data.KYCLevel,
 		ExpiresAt: data.ExpiresAt,
+		RootHash:  rootHash,
 	}
 
 	return json.Marshal(proofData)
@@ -101,10 +120,11 @@ func (v *KYCVerifier) GenerateProof(merchantID string) ([]byte, error) {
 // VerifyProof verifies a KYC proof
 func (v *KYCVerifier) VerifyProof(proof []byte, minBalance *big.Int) (bool, error) {
 	var proofData struct {
-		Proof     *merkletree.Proof
+		Proof     *merkle.Proof
 		Balance   *big.Int
 		KYCLevel  int
 		ExpiresAt int64
+		RootHash  []byte
 	}
 
 	err := json.Unmarshal(proof, &proofData)
@@ -113,13 +133,9 @@ func (v *KYCVerifier) VerifyProof(proof []byte, minBalance *big.Int) (bool, erro
 	}
 
 	// Verify merkle proof
-	valid, err := v.tree.VerifyProof(context.Background(), proofData.Proof)
+	err = proofData.Proof.Verify(proofData.RootHash, proofData.Proof.LeafHash)
 	if err != nil {
 		return false, err
-	}
-
-	if !valid {
-		return false, nil
 	}
 
 	// Check balance
@@ -150,10 +166,10 @@ func (v *KYCVerifier) hashMerchantData(data *KYCData) (*big.Int, error) {
 
 	// Create SHA256 hash
 	shaHash := sha256.Sum256(bytes)
-	
+
 	// Convert to big.Int
 	hash := new(big.Int).SetBytes(shaHash[:])
-	
+
 	// Create Poseidon hash
 	return poseidon.Hash([]*big.Int{hash})
-} 
+}
