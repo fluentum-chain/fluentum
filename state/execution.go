@@ -225,7 +225,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 func (blockExec *BlockExecutor) Commit(
 	state State,
 	block *types.Block,
-	txResults []*abci.ExecTxResult,
+	txResults []*cometbftabci.ExecTxResult,
 ) ([]byte, int64, error) {
 	blockExec.mempool.Lock()
 	defer blockExec.mempool.Unlock()

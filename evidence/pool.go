@@ -262,10 +262,10 @@ func (evpool *Pool) Close() error {
 
 // IsExpired checks whether evidence or a polc is expired by checking whether a height and time is older
 // than set by the evidence consensus parameters
-func (evpool *Pool) isExpired(height int64, time time.Time) bool {
+func (evpool *Pool) isExpired(height int64, evidenceTime time.Time) bool {
 	params := evpool.State().ConsensusParams.Evidence
 	ageNumBlocks := evpool.State().LastBlockHeight - height
-	ageDuration := evpool.State().LastBlockTime.Sub(time)
+	ageDuration := evpool.State().LastBlockTime.Sub(evidenceTime)
 
 	// Convert protobuf duration to time.Duration
 	var maxAgeDuration time.Duration

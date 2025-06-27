@@ -7,8 +7,6 @@ import (
 	"plugin"
 	"sync"
 	"time"
-
-	"github.com/fluentum-chain/fluentum/types"
 )
 
 // PluginManager manages the loading and lifecycle of Fluentum plugins
@@ -20,10 +18,10 @@ type PluginManager struct {
 
 // PluginManagerConfig contains configuration for the plugin manager
 type PluginManagerConfig struct {
-	PluginDirectory string            `json:"plugin_directory"`
-	AutoLoad        bool              `json:"auto_load"`
+	PluginDirectory string                 `json:"plugin_directory"`
+	AutoLoad        bool                   `json:"auto_load"`
 	PluginConfigs   map[string]interface{} `json:"plugin_configs"`
-	MaxPlugins      int               `json:"max_plugins"`
+	MaxPlugins      int                    `json:"max_plugins"`
 }
 
 // DefaultPluginManagerConfig returns default configuration
@@ -109,7 +107,7 @@ func (pm *PluginManager) LoadPlugin(pluginPath, symbolName string) (interface{},
 // LoadAIPlugin loads the AI validation plugin
 func (pm *PluginManager) LoadAIPlugin() (AIValidatorPlugin, error) {
 	pluginPath := filepath.Join(pm.config.PluginDirectory, "qmoe_validator.so")
-	
+
 	plugin, err := pm.LoadPlugin(pluginPath, "AIValidatorPlugin")
 	if err != nil {
 		return nil, err
@@ -126,7 +124,7 @@ func (pm *PluginManager) LoadAIPlugin() (AIValidatorPlugin, error) {
 // LoadSigner loads the quantum signing plugin
 func (pm *PluginManager) LoadSigner() (SignerPlugin, error) {
 	pluginPath := filepath.Join(pm.config.PluginDirectory, "quantum_signer.so")
-	
+
 	plugin, err := pm.LoadPlugin(pluginPath, "SignerPlugin")
 	if err != nil {
 		return nil, err
@@ -206,7 +204,7 @@ func (pm *PluginManager) autoLoadPlugins() error {
 		// Check if it's a plugin file
 		if filepath.Ext(entry.Name()) == ".so" || filepath.Ext(entry.Name()) == ".dll" {
 			pluginPath := filepath.Join(pm.config.PluginDirectory, entry.Name())
-			
+
 			// Try to load as AI plugin
 			if _, err := pm.LoadAIPlugin(); err == nil {
 				continue
@@ -268,10 +266,10 @@ func (pm *PluginManager) GetPluginInfo(pluginPath string) (*PluginInfo, error) {
 	}
 
 	info := &PluginInfo{
-		Path:      pluginPath,
-		Type:      "unknown",
-		Loaded:    true,
-		LoadTime:  time.Now(), // We don't track actual load time, using current time
+		Path:     pluginPath,
+		Type:     "unknown",
+		Loaded:   true,
+		LoadTime: time.Now(), // We don't track actual load time, using current time
 	}
 
 	// Determine plugin type

@@ -95,7 +95,7 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 		}
 
 		err = VerifyLightClientAttack(ev, commonHeader, trustedHeader, commonVals, state.LastBlockTime,
-			state.ConsensusParams.Evidence.MaxAgeDuration)
+			state.ConsensusParams.Evidence.MaxAgeDuration.AsDuration())
 		if err != nil {
 			return err
 		}
@@ -189,12 +189,10 @@ func VerifyDuplicateVote(e *types.DuplicateVoteEvidence, chainID string, valSet 
 		)
 	}
 
-	// BlockIDs must be different
-	if e.VoteA.BlockID.Equals(e.VoteB.BlockID) {
-		return fmt.Errorf(
-			"block IDs are the same (%v) - not a real duplicate vote",
-			e.VoteA.BlockID,
-		)
+	// BlockIds must be different
+	if e.VoteA.BlockId.Equals(e.VoteB.BlockId) {
+		return fmt.Errorf("votes do not have different block ids; got %v",
+			e.VoteA.BlockId)
 	}
 
 	// pubkey must match address (this should already be true, sanity check)

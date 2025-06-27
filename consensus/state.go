@@ -1255,14 +1255,14 @@ func (cs *State) defaultDoPrevote(height int64, round int32) {
 	// If a block is locked, prevote that.
 	if cs.LockedBlock != nil {
 		logger.Debug("prevote step; already locked on a block; prevoting locked block")
-		cs.signAddVote(tmproto.PrevoteType, cs.LockedBlock.Hash(), cs.LockedBlockParts.Header())
+		cs.signAddVote(types.PrevoteType, cs.LockedBlock.Hash(), cs.LockedBlockParts.Header())
 		return
 	}
 
 	// If ProposalBlock is nil, prevote nil.
 	if cs.ProposalBlock == nil {
 		logger.Debug("prevote step: ProposalBlock is nil")
-		cs.signAddVote(tmproto.PrevoteType, nil, types.PartSetHeader{})
+		cs.signAddVote(types.PrevoteType, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -1271,7 +1271,7 @@ func (cs *State) defaultDoPrevote(height int64, round int32) {
 	if err != nil {
 		// ProposalBlock is invalid, prevote nil.
 		logger.Error("prevote step: ProposalBlock is invalid", "err", err)
-		cs.signAddVote(tmproto.PrevoteType, nil, types.PartSetHeader{})
+		cs.signAddVote(types.PrevoteType, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -1279,7 +1279,7 @@ func (cs *State) defaultDoPrevote(height int64, round int32) {
 	// NOTE: the proposal signature is validated when it is received,
 	// and the proposal block parts are validated as they are received (against the merkle hash in the proposal)
 	logger.Debug("prevote step: ProposalBlock is valid")
-	cs.signAddVote(tmproto.PrevoteType, cs.ProposalBlock.Hash(), cs.ProposalBlockParts.Header())
+	cs.signAddVote(types.PrevoteType, cs.ProposalBlock.Hash(), cs.ProposalBlockParts.Header())
 }
 
 // Enter: any +2/3 prevotes at next round.
@@ -1349,7 +1349,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 			logger.Debug("precommit step; no +2/3 prevotes during enterPrecommit; precommitting nil")
 		}
 
-		cs.signAddVote(tmproto.PrecommitType, nil, types.PartSetHeader{})
+		cs.signAddVote(types.PrecommitType, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -1379,7 +1379,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 			}
 		}
 
-		cs.signAddVote(tmproto.PrecommitType, nil, types.PartSetHeader{})
+		cs.signAddVote(types.PrecommitType, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -1394,7 +1394,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 			logger.Error("failed publishing event relock", "err", err)
 		}
 
-		cs.signAddVote(tmproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
+		cs.signAddVote(types.PrecommitType, blockID.Hash, blockID.PartSetHeader)
 		return
 	}
 
@@ -1415,7 +1415,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 			logger.Error("failed publishing event lock", "err", err)
 		}
 
-		cs.signAddVote(tmproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
+		cs.signAddVote(types.PrecommitType, blockID.Hash, blockID.PartSetHeader)
 		return
 	}
 
@@ -1437,7 +1437,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 		logger.Error("failed publishing event unlock", "err", err)
 	}
 
-	cs.signAddVote(tmproto.PrecommitType, nil, types.PartSetHeader{})
+	cs.signAddVote(types.PrecommitType, nil, types.PartSetHeader{})
 }
 
 // Enter: any +2/3 precommits for next round.
@@ -2003,7 +2003,7 @@ func (cs *State) addVote(vote *types.Vote, peerID p2p.ID) (added bool, err error
 
 	// A precommit for the previous height?
 	// These come in while we wait timeoutCommit
-	if vote.Height+1 == cs.Height && vote.Type == tmproto.PrecommitType {
+	if vote.Height+1 == cs.Height && vote.Type == types.PrecommitType {
 		if cs.Step != cstypes.RoundStepNewHeight {
 			// Late precommit at prior height is ignored
 			cs.Logger.Debug("precommit vote came in after commit timeout and has been ignored", "vote", vote)
@@ -2052,7 +2052,7 @@ func (cs *State) addVote(vote *types.Vote, peerID p2p.ID) (added bool, err error
 	cs.evsw.FireEvent(types.EventVote, vote)
 
 	switch vote.Type {
-	case tmproto.PrevoteType:
+	case types.PrevoteType:
 		prevotes := cs.Votes.Prevotes(vote.Round)
 		cs.Logger.Debug("added vote to prevote", "vote", vote, "prevotes", prevotes.StringShort())
 
@@ -2131,7 +2131,7 @@ func (cs *State) addVote(vote *types.Vote, peerID p2p.ID) (added bool, err error
 			}
 		}
 
-	case tmproto.PrecommitType:
+	case types.PrecommitType:
 		precommits := cs.Votes.Precommits(vote.Round)
 		cs.Logger.Debug("added vote to precommit",
 			"height", vote.Height,
@@ -2192,13 +2192,13 @@ func (cs *State) signVote(
 		Round:            cs.Round,
 		Timestamp:        cs.voteTime(),
 		Type:             msgType,
-		BlockID:          types.BlockID{Hash: hash, PartSetHeader: header},
+		BlockId:          types.BlockID{Hash: hash, PartSetHeader: header},
 	}
 
 	v := vote.ToProto()
 	err := cs.privValidator.SignVote(cs.state.ChainID, v)
 	vote.Signature = v.Signature
-	vote.Timestamp = v.Timestamp
+	vote.Timestamp = v.Timestamp.AsTime()
 
 	return vote, err
 }

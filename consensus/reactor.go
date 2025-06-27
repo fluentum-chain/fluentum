@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	cstypes "github.com/fluentum-chain/fluentum/consensus/types"
 	"github.com/fluentum-chain/fluentum/libs/bits"
 	tmevents "github.com/fluentum-chain/fluentum/libs/events"
@@ -20,6 +19,7 @@ import (
 	sm "github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
+	"github.com/gogo/protobuf/proto"
 )
 
 const (
@@ -291,21 +291,22 @@ func (conR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 			// (and consequently shows which we don't have)
 			var ourVotes *bits.BitArray
 			switch msg.Type {
-			case tmproto.PrevoteType:
+			case types.PrevoteType:
 				ourVotes = votes.Prevotes(msg.Round).BitArrayByBlockID(msg.BlockID)
-			case tmproto.PrecommitType:
+			case types.PrecommitType:
 				ourVotes = votes.Precommits(msg.Round).BitArrayByBlockID(msg.BlockID)
 			default:
 				panic("Bad VoteSetBitsMessage field Type. Forgot to add a check in ValidateBasic?")
 			}
+			blockIdProto := msg.BlockID.ToProto()
 			eMsg := &tmcons.VoteSetBits{
 				Height:  msg.Height,
 				Round:   msg.Round,
 				Type:    msg.Type,
-				BlockID: msg.BlockID.ToProto(),
+				BlockId: &blockIdProto,
 			}
 			if votes := ourVotes.ToProto(); votes != nil {
-				eMsg.Votes = *votes
+				eMsg.Votes = votes
 			}
 			p2p.TrySendEnvelopeShim(e.Src, p2p.Envelope{ //nolint: staticcheck
 				ChannelID: VoteSetBitsChannel,
@@ -371,9 +372,9 @@ func (conR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 			if height == msg.Height {
 				var ourVotes *bits.BitArray
 				switch msg.Type {
-				case tmproto.PrevoteType:
+				case types.PrevoteType:
 					ourVotes = votes.Prevotes(msg.Round).BitArrayByBlockID(msg.BlockID)
-				case tmproto.PrecommitType:
+				case types.PrecommitType:
 					ourVotes = votes.Precommits(msg.Round).BitArrayByBlockID(msg.BlockID)
 				default:
 					panic("Bad VoteSetBitsMessage field Type. Forgot to add a check in ValidateBasic?")
@@ -467,10 +468,11 @@ func (conR *Reactor) broadcastNewRoundStepMessage(rs *cstypes.RoundState) {
 
 func (conR *Reactor) broadcastNewValidBlockMessage(rs *cstypes.RoundState) {
 	psh := rs.ProposalBlockParts.Header()
+	pshProto := psh.ToProto()
 	csMsg := &tmcons.NewValidBlock{
 		Height:             rs.Height,
 		Round:              rs.Round,
-		BlockPartSetHeader: psh.ToProto(),
+		BlockPartSetHeader: &pshProto,
 		BlockParts:         rs.ProposalBlockParts.BitArray().ToProto(),
 		IsCommit:           rs.Step == cstypes.RoundStepCommit,
 	}
@@ -572,9 +574,10 @@ OUTER_LOOP:
 		if rs.ProposalBlockParts.HasHeader(prs.ProposalBlockPartSetHeader) {
 			if index, ok := rs.ProposalBlockParts.BitArray().Sub(prs.ProposalBlockParts.Copy()).PickRandom(); ok {
 				part := rs.ProposalBlockParts.GetPart(index)
-				parts, err := part.ToProto()
+				partProto, err := part.ToProto()
 				if err != nil {
-					panic(err)
+					logger.Error("Could not convert part to proto", "index", index, "error", err)
+					return
 				}
 				logger.Debug("Sending block part", "height", prs.Height, "round", prs.Round)
 				if p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
@@ -582,7 +585,7 @@ OUTER_LOOP:
 					Message: &tmcons.BlockPart{
 						Height: rs.Height, // This tells peer that this part applies to us.
 						Round:  rs.Round,  // This tells peer that this part applies to us.
-						Part:   *parts,
+						Part:   partProto,
 					},
 				}, logger) {
 					ps.SetHasProposalBlockPart(prs.Height, prs.Round, index)
@@ -631,9 +634,10 @@ OUTER_LOOP:
 			// Proposal: share the proposal metadata with peer.
 			{
 				logger.Debug("Sending proposal", "height", prs.Height, "round", prs.Round)
+				proposalProto := rs.Proposal.ToProto()
 				if p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
 					ChannelID: DataChannel,
-					Message:   &tmcons.Proposal{Proposal: *rs.Proposal.ToProto()},
+					Message:   &tmcons.Proposal{Proposal: proposalProto},
 				}, logger) {
 					// NOTE[ZM]: A peer might have received different proposal msg so this Proposal msg will be rejected!
 					ps.SetHasProposal(rs.Proposal)
@@ -645,12 +649,13 @@ OUTER_LOOP:
 			// so we definitely have rs.Votes.Prevotes(rs.Proposal.POLRound).
 			if 0 <= rs.Proposal.POLRound {
 				logger.Debug("Sending POL", "height", prs.Height, "round", prs.Round)
+				bitArrayProto := rs.Votes.Prevotes(rs.Proposal.POLRound).BitArray().ToProto()
 				p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
 					ChannelID: DataChannel,
 					Message: &tmcons.ProposalPOL{
 						Height:           rs.Height,
 						ProposalPolRound: rs.Proposal.POLRound,
-						ProposalPol:      *rs.Votes.Prevotes(rs.Proposal.POLRound).BitArray().ToProto(),
+						ProposalPol:      bitArrayProto,
 					},
 				}, logger)
 			}
@@ -690,7 +695,7 @@ func (conR *Reactor) gossipDataForCatchup(logger log.Logger, rs *cstypes.RoundSt
 		}
 		// Send the part
 		logger.Debug("Sending block part for catchup", "round", prs.Round, "index", index)
-		pp, err := part.ToProto()
+		partProto, err := part.ToProto()
 		if err != nil {
 			logger.Error("Could not convert part to proto", "index", index, "error", err)
 			return
@@ -700,7 +705,7 @@ func (conR *Reactor) gossipDataForCatchup(logger log.Logger, rs *cstypes.RoundSt
 			Message: &tmcons.BlockPart{
 				Height: prs.Height, // Not our height, so it doesn't matter.
 				Round:  prs.Round,  // Not our height, so it doesn't matter.
-				Part:   *pp,
+				Part:   partProto,
 			},
 		}, logger) {
 			ps.SetHasProposalBlockPart(prs.Height, prs.Round, index)
@@ -862,13 +867,14 @@ OUTER_LOOP:
 			if rs.Height == prs.Height {
 				if maj23, ok := rs.Votes.Prevotes(prs.Round).TwoThirdsMajority(); ok {
 
+					maj23Proto := maj23.ToProto()
 					p2p.TrySendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
 						ChannelID: StateChannel,
 						Message: &tmcons.VoteSetMaj23{
 							Height:  prs.Height,
 							Round:   prs.Round,
-							Type:    tmproto.PrevoteType,
-							BlockID: maj23.ToProto(),
+							Type:    types.PrevoteType,
+							BlockId: &maj23Proto,
 						},
 					}, ps.logger)
 					time.Sleep(conR.conS.config.PeerQueryMaj23SleepDuration)
@@ -882,57 +888,14 @@ OUTER_LOOP:
 			prs := ps.GetRoundState()
 			if rs.Height == prs.Height {
 				if maj23, ok := rs.Votes.Precommits(prs.Round).TwoThirdsMajority(); ok {
+					maj23Proto := maj23.ToProto()
 					p2p.TrySendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
 						ChannelID: StateChannel,
 						Message: &tmcons.VoteSetMaj23{
 							Height:  prs.Height,
 							Round:   prs.Round,
-							Type:    tmproto.PrecommitType,
-							BlockID: maj23.ToProto(),
-						},
-					}, ps.logger)
-					time.Sleep(conR.conS.config.PeerQueryMaj23SleepDuration)
-				}
-			}
-		}
-
-		// Maybe send Height/Round/ProposalPOL
-		{
-			rs := conR.getRoundState()
-			prs := ps.GetRoundState()
-			if rs.Height == prs.Height && prs.ProposalPOLRound >= 0 {
-				if maj23, ok := rs.Votes.Prevotes(prs.ProposalPOLRound).TwoThirdsMajority(); ok {
-
-					p2p.TrySendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
-						ChannelID: StateChannel,
-						Message: &tmcons.VoteSetMaj23{
-							Height:  prs.Height,
-							Round:   prs.ProposalPOLRound,
-							Type:    tmproto.PrevoteType,
-							BlockID: maj23.ToProto(),
-						},
-					}, ps.logger)
-					time.Sleep(conR.conS.config.PeerQueryMaj23SleepDuration)
-				}
-			}
-		}
-
-		// Little point sending LastCommitRound/LastCommit,
-		// These are fleeting and non-blocking.
-
-		// Maybe send Height/CatchupCommitRound/CatchupCommit.
-		{
-			prs := ps.GetRoundState()
-			if prs.CatchupCommitRound != -1 && prs.Height > 0 && prs.Height <= conR.conS.blockStore.Height() &&
-				prs.Height >= conR.conS.blockStore.Base() {
-				if commit := conR.conS.LoadCommit(prs.Height); commit != nil {
-					p2p.TrySendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
-						ChannelID: StateChannel,
-						Message: &tmcons.VoteSetMaj23{
-							Height:  prs.Height,
-							Round:   commit.Round,
-							Type:    tmproto.PrecommitType,
-							BlockID: commit.BlockID.ToProto(),
+							Type:    types.PrecommitType,
+							BlockId: &maj23Proto,
 						},
 					}, ps.logger)
 					time.Sleep(conR.conS.config.PeerQueryMaj23SleepDuration)
@@ -1201,25 +1164,25 @@ func (ps *PeerState) getVoteBitArray(height int64, round int32, votesType tmprot
 	if ps.PRS.Height == height {
 		if ps.PRS.Round == round {
 			switch votesType {
-			case tmproto.PrevoteType:
+			case types.PrevoteType:
 				return ps.PRS.Prevotes
-			case tmproto.PrecommitType:
+			case types.PrecommitType:
 				return ps.PRS.Precommits
 			}
 		}
 		if ps.PRS.CatchupCommitRound == round {
 			switch votesType {
-			case tmproto.PrevoteType:
+			case types.PrevoteType:
 				return nil
-			case tmproto.PrecommitType:
+			case types.PrecommitType:
 				return ps.PRS.CatchupCommit
 			}
 		}
 		if ps.PRS.ProposalPOLRound == round {
 			switch votesType {
-			case tmproto.PrevoteType:
+			case types.PrevoteType:
 				return ps.PRS.ProposalPOL
-			case tmproto.PrecommitType:
+			case types.PrecommitType:
 				return nil
 			}
 		}
@@ -1228,9 +1191,9 @@ func (ps *PeerState) getVoteBitArray(height int64, round int32, votesType tmprot
 	if ps.PRS.Height == height+1 {
 		if ps.PRS.LastCommitRound == round {
 			switch votesType {
-			case tmproto.PrevoteType:
+			case types.PrevoteType:
 				return nil
-			case tmproto.PrecommitType:
+			case types.PrecommitType:
 				return ps.PRS.LastCommit
 			}
 		}

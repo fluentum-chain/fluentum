@@ -12,6 +12,7 @@ import (
 	"github.com/creachadair/taskgroup"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/libs/clist"
 	"github.com/fluentum-chain/fluentum/libs/log"
@@ -231,9 +232,9 @@ func (txmp *TxMempool) CheckTx(tx types.Tx, cb func(*cmtabci.Response), txInfo m
 		height:    height,
 	}
 	wtx.SetPeer(txInfo.SenderID)
-	txmp.addNewTransaction(wtx, rsp)
+	txmp.addNewTransaction(wtx, ConvertCheckTxResponse(rsp))
 	if cb != nil {
-		cb(&cmtabci.Response{Value: &cmtabci.Response_CheckTx{CheckTx: rsp}})
+		cb(&cmtabci.Response{Value: &cmtabci.Response_CheckTx{CheckTx: ConvertCheckTxResponse(rsp)}})
 	}
 	return nil
 }
@@ -475,7 +476,7 @@ func (txmp *TxMempool) addNewTransaction(wtx *WrappedTx, checkTxRes *cmtabci.Res
 		// If there was a post-check error, record its text in the result for
 		// debugging purposes.
 		if err != nil {
-			checkTxRes.MempoolError = err.Error()
+			// checkTxRes.MempoolError = err.Error() // Remove this line - MempoolError doesn't exist in CometBFT types
 		}
 		return
 	}
@@ -657,7 +658,7 @@ func (txmp *TxMempool) recheckTransactions() {
 					txmp.logger.Error("failed to execute CheckTx during recheck",
 						"err", err, "hash", fmt.Sprintf("%x", wtx.tx.Hash()))
 				} else {
-					txmp.handleRecheckResult(wtx.tx, rsp)
+					txmp.handleRecheckResult(wtx.tx, ConvertCheckTxResponse(rsp))
 				}
 				return nil
 			})
@@ -735,5 +736,52 @@ func (txmp *TxMempool) notifyTxsAvailable() {
 		case txmp.txsAvailable <- struct{}{}:
 		default:
 		}
+	}
+}
+
+// ConvertCheckTxResponse converts a local CheckTxResponse to a CometBFT ResponseCheckTx
+func ConvertCheckTxResponse(local *abci.CheckTxResponse) *cmtabci.ResponseCheckTx {
+	if local == nil {
+		return nil
+	}
+
+	// Convert Events from local to CometBFT types
+	var events []cmtabci.Event
+	if local.Events != nil {
+		events = make([]cmtabci.Event, len(local.Events))
+		for i, event := range local.Events {
+			if event != nil {
+				// Convert EventAttributes
+				var attributes []cmtabci.EventAttribute
+				if event.Attributes != nil {
+					attributes = make([]cmtabci.EventAttribute, len(event.Attributes))
+					for j, attr := range event.Attributes {
+						if attr != nil {
+							attributes[j] = cmtabci.EventAttribute{
+								Key:   string(attr.Key),
+								Value: string(attr.Value),
+								Index: attr.Index,
+							}
+						}
+					}
+				}
+
+				events[i] = cmtabci.Event{
+					Type:       event.Type,
+					Attributes: attributes,
+				}
+			}
+		}
+	}
+
+	return &cmtabci.ResponseCheckTx{
+		Code:      local.Code,
+		Data:      local.Data,
+		Log:       local.Log,
+		Info:      local.Info,
+		GasWanted: local.GasWanted,
+		GasUsed:   local.GasUsed,
+		Events:    events,
+		Codespace: local.Codespace,
 	}
 }

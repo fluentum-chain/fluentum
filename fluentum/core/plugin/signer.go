@@ -84,8 +84,8 @@ func DefaultPluginConfig() PluginConfig {
 	}
 }
 
-// PluginInfo contains information about a loaded plugin
-type PluginInfo struct {
+// SignerPluginInfo contains information about a loaded plugin
+type SignerPluginInfo struct {
 	Name          string    `json:"name"`
 	Version       string    `json:"version"`
 	Algorithm     string    `json:"algorithm"`
@@ -115,8 +115,8 @@ const (
 	ErrCodeInternal       = "INTERNAL_ERROR"
 )
 
-// SignerPlugin interface for quantum-resistant signing
-type SignerPlugin interface {
+// QuantumSignerPlugin interface for quantum-resistant signing
+type QuantumSignerPlugin interface {
 	// Initialize the signer with configuration
 	Initialize(config map[string]interface{}) error
 
