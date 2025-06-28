@@ -83,11 +83,13 @@ dir = "data"
 # Logging Configuration
 [log_level]
 default = "info"
-module = "consensus:info"
-module = "mempool:info"
-module = "p2p:info"
-module = "state:info"
-module = "main:info"
+module = [
+    "consensus:info",
+    "mempool:info", 
+    "p2p:info",
+    "state:info",
+    "main:info"
+]
 
 # Instrumentation Configuration
 [instrumentation]
@@ -171,7 +173,6 @@ gas_prices = "0.025uatom"
 min_gas_prices = ""
 broadcast_mode = "sync"
 simulate_and_execute_gas_multiplier = 1.1
-keyring_backend = "test"
 output_format = "text"
 output = "text"
 sign_mode = "direct"
