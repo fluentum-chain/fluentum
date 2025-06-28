@@ -6,6 +6,9 @@ replace github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.38.6
 
 replace github.com/tendermint/tendermint-db => github.com/cometbft/cometbft-db v1.0.4
 
+// Replace cosmossdk.io/api to avoid protobuf namespace conflicts
+replace cosmossdk.io/api => github.com/fluentum-chain/fluentum/cosmossdk-api v0.0.0-00010101000000-000000000000
+
 require (
 	cloud.google.com/go/kms v1.15.7
 	cosmossdk.io/core v0.11.0
@@ -98,7 +101,6 @@ require (
 	github.com/ashanbrown/forbidigo v1.5.1 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bkielbasa/cyclop v1.2.0 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
 	github.com/bombsimon/wsl/v3 v3.4.0 // indirect
