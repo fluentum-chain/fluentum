@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -31,7 +32,6 @@ import (
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/fluentum/app"
@@ -838,24 +838,55 @@ func initializeNode(homeDir, moniker, chainID string) error {
 	if tmos.FileExists(genFile) {
 		fmt.Printf("Found genesis file: %s\n", genFile)
 	} else {
-		genDoc := fluentumtypes.GenesisDoc{
-			ChainID:         chainID,
-			GenesisTime:     tmtime.Now(),
-			ConsensusParams: fluentumtypes.DefaultConsensusParams(),
-		}
-
+		// Create a simple genesis file using JSON
 		pubKey, err := pv.GetPubKey()
 		if err != nil {
 			return fmt.Errorf("can't get pubkey: %w", err)
 		}
 
-		genDoc.Validators = []fluentumtypes.GenesisValidator{{
-			Address: pubKey.Address(),
-			PubKey:  pubKey,
-			Power:   10,
-		}}
+		// Create a basic genesis structure
+		genesis := map[string]interface{}{
+			"genesis_time":   tmtime.Now().Format(time.RFC3339),
+			"chain_id":       chainID,
+			"initial_height": "1",
+			"consensus_params": map[string]interface{}{
+				"block": map[string]interface{}{
+					"max_bytes":    "22020096",
+					"max_gas":      "-1",
+					"time_iota_ms": "1000",
+				},
+				"evidence": map[string]interface{}{
+					"max_age_num_blocks": "100000",
+					"max_age_duration":   "172800000000000",
+					"max_bytes":          "1048576",
+				},
+				"validator": map[string]interface{}{
+					"pub_key_types": []string{"ed25519"},
+				},
+				"version": map[string]interface{}{},
+			},
+			"validators": []map[string]interface{}{
+				{
+					"address": pubKey.Address().String(),
+					"pub_key": map[string]interface{}{
+						"type":  "tendermint/PubKeyEd25519",
+						"value": pubKey.Bytes(),
+					},
+					"power": "10",
+				},
+			},
+			"app_hash":  "",
+			"app_state": map[string]interface{}{},
+		}
 
-		if err := genDoc.SaveAs(genFile); err != nil {
+		// Marshal to JSON
+		genesisJSON, err := json.MarshalIndent(genesis, "", "  ")
+		if err != nil {
+			return fmt.Errorf("failed to marshal genesis: %w", err)
+		}
+
+		// Write to file
+		if err := os.WriteFile(genFile, genesisJSON, 0644); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
 		}
 		fmt.Printf("Generated genesis file: %s\n", genFile)
