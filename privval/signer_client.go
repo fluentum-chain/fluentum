@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	privvalproto "github.com/fluentum-chain/fluentum/proto/tendermint/privval"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
+	"github.com/gogo/protobuf/proto"
 )
 
 // SignerClient implements PrivValidator.
@@ -82,7 +84,13 @@ func (sc *SignerClient) GetPubKey() (crypto.PubKey, error) {
 		return nil, &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
 	}
 
-	pk, err := cryptoenc.PubKeyFromProto(resp.PubKey)
+	// Convert []byte to cosmosproto.PublicKey
+	var pubKeyProto cosmosproto.PublicKey
+	if err := proto.Unmarshal(resp.PubKey, &pubKeyProto); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal public key: %w", err)
+	}
+
+	pk, err := cryptoenc.PubKeyFromProto(pubKeyProto)
 	if err != nil {
 		return nil, err
 	}

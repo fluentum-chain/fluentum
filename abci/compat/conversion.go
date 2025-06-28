@@ -6,6 +6,7 @@ import (
 	cmcrypto "github.com/cometbft/cometbft/crypto"
 	cmcryptoed25519 "github.com/cometbft/cometbft/crypto/ed25519"
 	cmcryptosecp256k1 "github.com/cometbft/cometbft/crypto/secp256k1"
+	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cmttypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	localabci "github.com/fluentum-chain/fluentum/abci/types"
 )
@@ -101,20 +102,10 @@ func ExecTxResultsFromComet(src []*cmtabci.ExecTxResult) []*localabci.ExecTxResu
 }
 
 // ProofOps conversion
-func ProofOpsFromComet(src *cmcrypto.ProofOps) *localabci.ProofOps {
+func ProofOpsFromComet(src *cmtcrypto.ProofOps) *cmtcrypto.ProofOps {
 	if src == nil {
 		return nil
 	}
-	// Convert from CometBFT ProofOps to local ProofOps
-	ops := make([]*localabci.ProofOp, len(src.Ops))
-	for i, op := range src.Ops {
-		ops[i] = &localabci.ProofOp{
-			Type: op.Type,
-			Key:  op.Key,
-			Data: op.Data,
-		}
-	}
-	return &localabci.ProofOps{
-		Ops: ops,
-	}
+	// Since we're using CometBFT crypto types, just return the same type
+	return src
 }

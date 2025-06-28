@@ -8,6 +8,7 @@ import (
 	privvalproto "github.com/fluentum-chain/fluentum/proto/tendermint/privval"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
+	"github.com/golang/protobuf/proto"
 )
 
 func DefaultValidationRequestHandler(
@@ -39,11 +40,17 @@ func DefaultValidationRequestHandler(
 			return res, err
 		}
 
+		// Convert PublicKey to bytes
+		pkBytes, err := proto.Marshal(&pk)
+		if err != nil {
+			return res, err
+		}
+
 		if err != nil {
 			res = mustWrapMsg(&privvalproto.PubKeyResponse{
 				PubKey: []byte{}, Error: &privvalproto.RemoteSignerError{Code: 0, Description: err.Error()}})
 		} else {
-			res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: pk, Error: nil})
+			res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: pkBytes, Error: nil})
 		}
 
 	case *privvalproto.Message_SignVoteRequest:
