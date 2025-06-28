@@ -1,7 +1,6 @@
 package types
 
 import (
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
@@ -143,7 +142,7 @@ type pb2tm struct{}
 func (pb2tm) ValidatorUpdates(vals []abci.ValidatorUpdate) ([]*Validator, error) {
 	tmVals := make([]*Validator, len(vals))
 	for i, v := range vals {
-		var pkProto cosmosproto.PublicKey
+		var pkProto protocrypto.PublicKey
 		err := proto.Unmarshal(v.PubKey, &pkProto)
 		if err != nil {
 			return nil, err

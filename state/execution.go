@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	cometbftabci "github.com/cometbft/cometbft/abci/types"
 	cometproto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	abci "github.com/fluentum-chain/fluentum/abci/types"
@@ -13,6 +12,7 @@ import (
 	"github.com/fluentum-chain/fluentum/libs/fail"
 	"github.com/fluentum-chain/fluentum/libs/log"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
+	protocrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/proxy"
 	"github.com/fluentum-chain/fluentum/types"
@@ -511,21 +511,10 @@ func ExecCommitBlock(
 }
 
 // Helper to convert CometBFT proto PublicKey to Cosmos SDK API proto PublicKey
-func toLocalPubKey(pk cometproto.PublicKey) *cosmosproto.PublicKey {
-	switch pk.Sum.(type) {
-	case *cometproto.PublicKey_Ed25519:
-		return &cosmosproto.PublicKey{
-			Sum: &cosmosproto.PublicKey_Ed25519{
-				Ed25519: pk.GetEd25519(),
-			},
-		}
-	case *cometproto.PublicKey_Secp256K1:
-		return &cosmosproto.PublicKey{
-			Sum: &cosmosproto.PublicKey_Secp256K1{
-				Secp256K1: pk.GetSecp256K1(),
-			},
-		}
-	default:
-		return &cosmosproto.PublicKey{}
+func toLocalPubKey(pk cometproto.PublicKey) *protocrypto.PublicKey {
+	return &protocrypto.PublicKey{
+		Sum: &protocrypto.PublicKey_Ed25519{
+			Ed25519: pk.Bytes(),
+		},
 	}
 }

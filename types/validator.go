@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	ce "github.com/fluentum-chain/fluentum/crypto/encoding"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	protocrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/gogo/protobuf/proto"
 )
@@ -172,7 +172,7 @@ func ValidatorFromProto(vp *tmproto.Validator) (*Validator, error) {
 		return nil, errors.New("nil validator")
 	}
 
-	var pkProto cosmosproto.PublicKey
+	var pkProto protocrypto.PublicKey
 	err := proto.Unmarshal(vp.PubKey, &pkProto)
 	if err != nil {
 		return nil, err
