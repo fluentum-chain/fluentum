@@ -53,104 +53,33 @@ func (a appOptions) Get(key string) interface{} { return a[key] }
 func NewRootCmd() (*cobra.Command, app.EncodingConfig) {
 	encodingConfig := app.MakeEncodingConfig()
 
-	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Marshaler).
-		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
-		WithTxConfig(encodingConfig.TxConfig).
-		WithLegacyAmino(encodingConfig.Amino).
-		WithInput(os.Stdin).
-		WithAccountRetriever(authtypes.AccountRetriever{}).
-		WithHomeDir(app.DefaultNodeHome).
-		WithViper("")
-
 	rootCmd := &cobra.Command{
 		Use:   "fluentumd",
 		Short: "Fluentum Core - A hybrid consensus blockchain",
 		Long: `Fluentum Core is a blockchain platform that combines DPoS and ZK-Rollups
-for high throughput and security. It features:
-- Hybrid consensus mechanism
-- Zero-knowledge proofs
-- Quantum-resistant signatures
-- Cross-chain gas abstraction
-- Hybrid liquidity routing`,
-		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			fmt.Println("DEBUG: PersistentPreRunE called")
+for high throughput and security.`,
+	}
 
-			// set the default command outputs
-			cmd.SetOut(os.Stdout)
-			cmd.SetErr(os.Stderr)
-
-			// Temporarily skip all the complex initialization to isolate the issue
-			/*
-				initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
-				if err != nil {
-					return err
-				}
-
-				initClientCtx, err = clientconfig.ReadFromClientConfig(initClientCtx)
-				if err != nil {
-					return err
-				}
-
-				if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
-					return err
-				}
-
-				// Skip config validation for init command since config doesn't exist yet
-				// Check if this is the init command by looking at the command path
-				if cmd.Name() == "init" || (cmd.Parent() != nil && cmd.Parent().Name() == "fluentumd" && cmd.Name() == "init") {
-					return nil
-				}
-
-				return server.InterceptConfigsPreRunHandler(cmd, "", nil, nil)
-			*/
-
-			fmt.Println("DEBUG: PersistentPreRunE completed successfully")
+	// Create a minimal start command
+	startCmd := &cobra.Command{
+		Use:   "start",
+		Short: "Start the Fluentum node",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("DEBUG: Minimal start command called")
 			return nil
 		},
 	}
 
-	initRootCmd(rootCmd, encodingConfig)
+	// Add minimal flags
+	startCmd.Flags().String("home", app.DefaultNodeHome, "The application home directory")
+
+	rootCmd.AddCommand(startCmd)
 
 	return rootCmd, encodingConfig
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
-	cfg := sdk.GetConfig()
-	cfg.Seal()
-
-	// Create address codec for genutil commands
-	addressCodec := app.SimpleAddressCodec{Prefix: cfg.GetBech32AccountAddrPrefix()}
-
-	// Temporarily comment out all commands except start to isolate the issue
-	/*
-		rootCmd.AddCommand(
-			createInitCommand(), // Custom init command instead of genutilcli.InitCmd
-			genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, nil, addressCodec),
-			genutilcli.MigrateGenesisCmd(nil), // TODO: implement migration map
-			genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, addressCodec),
-			genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-			AddGenesisAccountCmd(app.DefaultNodeHome),
-			debug.Cmd(),
-			versionCmd(),
-			// config.Cmd(), // Removed - not available in v0.50.6
-		)
-	*/
-
-	// Create a proper start command for the Fluentum node
-	startCmd := createStartCommand(encodingConfig)
-	rootCmd.AddCommand(startCmd)
-
-	// Temporarily comment out other commands
-	/*
-		// add keybase, auxiliary RPC, query, and tx child commands
-		rootCmd.AddCommand(
-			// rpc.StatusCommand(), // Removed - not available in v0.50.6
-			queryCommand(),
-			txCommand(),
-			keys.Commands(), // Removed home parameter
-		)
-	*/
+	// Do nothing for now
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
