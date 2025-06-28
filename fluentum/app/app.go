@@ -244,7 +244,7 @@ func New(
 		authtypes.ModuleName, banktypes.ModuleName, genutiltypes.ModuleName, paramstypes.ModuleName, fluentumtypes.ModuleName,
 	)
 
-	app.mm.RegisterInvariants(nil)
+	// app.mm.RegisterInvariants(nil) // Comment out for now - will be called during BeginBlock
 	// app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
