@@ -12,8 +12,8 @@ interface IERC20 {
 }
 
 contract FluentumGasStation is Ownable, ReentrancyGuard {
-    IERC20 public immutable FLUX_TOKEN;
-    uint256 public minStake = 500 ether; // 500 FLUX
+    IERC20 public immutable FLUMX_TOKEN;
+    uint256 public minStake = 500 ether; // 500 FLUMX
 
     mapping(address => uint256) public stakedAmount;
     mapping(address => bool) public isStaker;
@@ -26,12 +26,12 @@ contract FluentumGasStation is Ownable, ReentrancyGuard {
     event Subsidized(address indexed staker, bytes txData);
 
     constructor(address fluxTokenAddress) {
-        FLUX_TOKEN = IERC20(fluxTokenAddress);
+        FLUMX_TOKEN = IERC20(fluxTokenAddress);
     }
 
     function stake(uint256 amount) external nonReentrant {
         require(amount >= minStake, "Insufficient stake");
-        FLUX_TOKEN.transferFrom(msg.sender, address(this), amount);
+        FLUMX_TOKEN.transferFrom(msg.sender, address(this), amount);
         stakedAmount[msg.sender] += amount;
         if (!isStaker[msg.sender]) {
             isStaker[msg.sender] = true;
@@ -57,7 +57,7 @@ contract FluentumGasStation is Ownable, ReentrancyGuard {
             stakers.pop();
             delete stakerIndex[msg.sender];
         }
-        FLUX_TOKEN.transfer(msg.sender, amount);
+        FLUMX_TOKEN.transfer(msg.sender, amount);
         emit Unstaked(msg.sender, amount);
     }
 
@@ -70,7 +70,7 @@ contract FluentumGasStation is Ownable, ReentrancyGuard {
         } else {
             // Charge normal gas fees
             uint256 gasFee = calculateGasFee(txData);
-            FLUX_TOKEN.transferFrom(user, address(this), gasFee);
+            FLUMX_TOKEN.transferFrom(user, address(this), gasFee);
             (bool success, ) = address(this).call(txData);
             require(success, "Transaction failed");
             emit GasFeeCharged(user, gasFee);
@@ -83,10 +83,10 @@ contract FluentumGasStation is Ownable, ReentrancyGuard {
     }
 
     function _redistributeFees() internal onlyOwner {
-        uint256 fees = FLUX_TOKEN.balanceOf(address(this));
+        uint256 fees = FLUMX_TOKEN.balanceOf(address(this));
         uint256 toBurn = fees / 2;
         uint256 toDistribute = fees - toBurn;
-        FLUX_TOKEN.burn(toBurn);
+        FLUMX_TOKEN.burn(toBurn);
         _distributeToStakers(toDistribute);
     }
 
@@ -95,7 +95,7 @@ contract FluentumGasStation is Ownable, ReentrancyGuard {
         if (totalStakers == 0) return;
         uint256 share = amount / totalStakers;
         for (uint i = 0; i < totalStakers; i++) {
-            FLUX_TOKEN.transfer(stakers[i], share);
+            FLUMX_TOKEN.transfer(stakers[i], share);
         }
     }
 

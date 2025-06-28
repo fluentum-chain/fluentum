@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IFLUXToken {
+interface IFLUMXToken {
     function mint(address to, uint256 amount) external;
     function burn(uint256 amount) external;
     function transfer(address to, uint256 amount) external returns (bool);

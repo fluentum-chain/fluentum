@@ -18,7 +18,7 @@ type GasConfig struct {
 	LastUpdate     time.Time
 }
 
-// GasAbstraction handles cross-chain gas payments using FLUX tokens
+// GasAbstraction handles cross-chain gas payments using FLUMX tokens
 type GasAbstraction struct {
 	configs    map[string]*GasConfig
 	priceFeeds map[string]PriceFeed
@@ -32,14 +32,14 @@ func NewGasAbstraction() *GasAbstraction {
 	}
 }
 
-// PayGasWithFLUX handles gas payment using FLUX tokens
-func (ga *GasAbstraction) PayGasWithFLUX(ctx context.Context, tx types.Tx, chainID string) error {
+// PayGasWithFLUMX handles gas payment using FLUMX tokens
+func (ga *GasAbstraction) PayGasWithFLUMX(ctx context.Context, tx types.Tx, chainID string) error {
 	// TODO: Implement gas payment logic
 	// For now, just return success
 	return nil
 }
 
-// calculateGasCost calculates the gas cost in FLUX tokens
+// calculateGasCost calculates the gas cost in FLUMX tokens
 func (ga *GasAbstraction) calculateGasCost(ctx context.Context, tx types.Tx, chainID string, config *GasConfig) (*big.Int, error) {
 	// TODO: Implement gas cost calculation
 	return big.NewInt(0), nil

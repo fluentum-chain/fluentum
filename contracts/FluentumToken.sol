@@ -7,10 +7,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
 /**
- * @title FLUXToken
- * @notice Implements FLUX Economic Security Checklist controls and auditability.
+ * @title FLUMXToken
+ * @notice Implements FLUMX Economic Security Checklist controls and auditability.
  *
- * ## FLUX Economic Security Checklist
+ * ## FLUMX Economic Security Checklist
  *
  * ### Supply Security
  * - Hard cap enforcement: MAX_SUPPLY is enforced in mint logic
@@ -43,10 +43,10 @@ import "@openzeppelin/contracts/security/Pausable.sol";
  * - Flash loan protection: TODO (add anti-flash-loan logic)
  */
 
-// FLUX ERC-20 Quantum Token Contract
-contract FLUXToken is ERC20, ERC20Burnable, Ownable, Pausable {
-    uint256 public constant MAX_SUPPLY = 10_000_000_000 * 10**9; // 10B with 9 decimals
-    uint256 public constant INITIAL_SUPPLY = 2_500_000_000 * 10**9;
+// FLUMX ERC-20 Quantum Token Contract
+contract FLUMXToken is ERC20, ERC20Burnable, Ownable, Pausable {
+    uint256 public constant MAX_SUPPLY = 1_000_000_000 * 10**9; // 1B with 9 decimals
+    uint256 public constant INITIAL_SUPPLY = 250_000_000 * 10**9;
     uint256 public emissionRate; // Dynamic emission per block
     uint256 public lastVelocityUpdate;
     address public quantumTreasury;
@@ -89,15 +89,15 @@ contract FLUXToken is ERC20, ERC20Burnable, Ownable, Pausable {
     uint256 public emissionStartBlock;
 
     // --- Emission Security ---
-    uint256 public constant MIN_EMISSION_RATE = 1 * 10**9; // Example: 1 FLUX/block
-    uint256 public constant MAX_EMISSION_RATE = 100_000 * 10**9; // Example: 100k FLUX/block
+    uint256 public constant MIN_EMISSION_RATE = 1 * 10**9; // Example: 1 FLUMX/block
+    uint256 public constant MAX_EMISSION_RATE = 100_000 * 10**9; // Example: 100k FLUMX/block
 
-    constructor(address initialTreasury, address _teamVesting, address _airdropDistributor) ERC20("FLUX Token", "FLUX") {
+    constructor(address initialTreasury, address _teamVesting, address _airdropDistributor) ERC20("FLUMX Token", "FLUMX") {
         require(initialTreasury != address(0), "Treasury required");
         require(_teamVesting != address(0), "Team vesting required");
         require(_airdropDistributor != address(0), "Airdrop distributor required");
         _mint(msg.sender, INITIAL_SUPPLY);
-        emissionRate = 25_000 * 10**9; // Initial 25k FLUX/block
+        emissionRate = 25_000 * 10**9; // Initial 25k FLUMX/block
         quantumTreasury = initialTreasury;
         teamVesting = _teamVesting;
         airdropDistributor = _airdropDistributor;
@@ -154,7 +154,7 @@ contract FLUXToken is ERC20, ERC20Burnable, Ownable, Pausable {
         emit Emission(quantumTreasury, toMint, totalSupply());
     }
 
-    /// @notice Mint new FLUX tokens (onlyOwner or onlyGovernance)
+    /// @notice Mint new FLUMX tokens (onlyOwner or onlyGovernance)
     function mint(address to, uint256 amount) external {
         require(msg.sender == owner() || msg.sender == governanceMultisig, "Not authorized");
         require(to != address(0), "Zero address");

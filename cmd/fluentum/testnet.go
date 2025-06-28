@@ -136,8 +136,8 @@ timeout_propose = "1s"
 		],
 		"app_hash": "",
 		"app_state": {
-			"flux_token": {
-				"denom": "aflux",
+			"flumx_token": {
+				"denom": "aflumx",
 				"initial_supply": "1000000000000000000"
 			}
 		}

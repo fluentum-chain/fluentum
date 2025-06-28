@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IFLUXToken.sol";
+import "./interfaces/IFLUMXToken.sol";
 import "./libraries/StakingMath.sol";
 
 contract FluentumStaking is ReentrancyGuard, Ownable {
@@ -13,14 +13,14 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
     using StakingMath for uint256;
 
     // Constants
-    uint256 public constant MIN_VALIDATOR_STAKE = 50_000 * 10**18; // 50k FLUX
-    uint256 public constant MIN_DELEGATION = 100 * 10**18; // 100 FLUX
+    uint256 public constant MIN_VALIDATOR_STAKE = 50_000 * 10**18; // 50k FLUMX
+    uint256 public constant MIN_DELEGATION = 100 * 10**18; // 100 FLUMX
     uint256 public constant MAX_COMMISSION_RATE = 20; // 20%
-    uint256 public constant GAS_REFUND_THRESHOLD = 10_000 * 10**18; // 10k FLUX
+    uint256 public constant GAS_REFUND_THRESHOLD = 10_000 * 10**18; // 10k FLUMX
     uint256 public constant GAS_REFUND_MULTIPLIER = 100000;
     
     // State
-    IFLUXToken public immutable fluxToken;
+    IFLUMXToken public immutable fluxToken;
     Validator[] public validators;
     mapping(address => uint256) public delegations;
     mapping(uint256 => mapping(address => uint256)) public validatorDelegations;
@@ -55,7 +55,7 @@ contract FluentumStaking is ReentrancyGuard, Ownable {
     
     constructor(address _fluxToken) {
         require(_fluxToken != address(0), "Invalid token address");
-        fluxToken = IFLUXToken(_fluxToken);
+        fluxToken = IFLUMXToken(_fluxToken);
     }
     
     function createValidator(uint256 amount, uint256 commission) external nonReentrant {

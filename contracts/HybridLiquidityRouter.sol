@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./interfaces/IFLUXToken.sol";
+import "./interfaces/IFLUMXToken.sol";
 import "./interfaces/IFluentumDEX.sol";
 import "./interfaces/ICEXVault.sol";
 
@@ -15,12 +15,12 @@ contract HybridLiquidityRouter is ReentrancyGuard, Ownable {
     // Constants
     uint256 public constant THRESHOLD = 10_000 * 10**18; // $10k
     uint256 public constant MAX_SLIPPAGE = 50; // 5%
-    uint256 public constant MIN_LIQUIDITY = 1000 * 10**18; // 1000 FLUX
+    uint256 public constant MIN_LIQUIDITY = 1000 * 10**18; // 1000 FLUMX
     
     // State
     ICEXVault public immutable cexVault;
     IFluentumDEX public immutable dex;
-    IFLUXToken public immutable fluxToken;
+    IFLUMXToken public immutable fluxToken;
     mapping(address => bool) public isWhitelisted;
     mapping(address => mapping(address => bool)) public isPairEnabled;
     mapping(address => uint256) public lastTrade;
@@ -67,7 +67,7 @@ contract HybridLiquidityRouter is ReentrancyGuard, Ownable {
         
         cexVault = ICEXVault(_cexVault);
         dex = IFluentumDEX(_dex);
-        fluxToken = IFLUXToken(_fluxToken);
+        fluxToken = IFLUMXToken(_fluxToken);
     }
     
     function enableTokenPair(address tokenA, address tokenB) external onlyOwner {

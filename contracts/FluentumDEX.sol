@@ -5,13 +5,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./GasStation.sol";
-import "./interfaces/IFLUXToken.sol";
+import "./interfaces/IFLUMXToken.sol";
 
 contract FluentumDEX is GasStation {
     using SafeERC20 for IERC20;
 
     // Constants
-    uint256 public constant MIN_LIQUIDITY = 1000 * 10**18; // 1000 FLUX
+    uint256 public constant MIN_LIQUIDITY = 1000 * 10**18; // 1000 FLUMX
     uint256 public constant MAX_SLIPPAGE = 50; // 5%
     
     // State

@@ -4,8 +4,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  // Deploy FLUXToken
-  const fluxToken = await deploy("FLUXToken", {
+  // Deploy FLUMXToken
+  const fluxToken = await deploy("FLUMXToken", {
     from: deployer,
     args: [
       "0x1234567890abcdef1234567890abcdef12345678", // Initial treasury address
@@ -37,7 +37,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
 
   // Log deployed addresses
-  console.log("FLUXToken deployed to:", fluxToken.address);
+  console.log("FLUMXToken deployed to:", fluxToken.address);
   console.log("FluxGovernance deployed to:", fluxGovernance.address);
   console.log("EmissionScheduler deployed to:", emissionScheduler.address);
   console.log("QuantumValidatorRegistry deployed to:", quantumValidatorRegistry.address);

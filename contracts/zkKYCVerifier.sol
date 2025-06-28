@@ -87,7 +87,7 @@ interface ICrossChain {
 }
 
 contract GasAbstraction {
-    address public immutable FLUX_TOKEN;
+    address public immutable FLUMX_TOKEN;
 
     event CrossChainExecuted(
         address indexed user,
@@ -99,7 +99,7 @@ contract GasAbstraction {
     );
 
     constructor(address fluxToken) {
-        FLUX_TOKEN = fluxToken;
+        FLUMX_TOKEN = fluxToken;
     }
 
     function executeCrossChain(
@@ -107,9 +107,9 @@ contract GasAbstraction {
         address contractAddress,
         bytes calldata payload
     ) external payable {
-        // 1. Pay with FLUX on any chain (assume msg.value is in native token, e.g., ETH)
-        uint256 fluxValue = convertToFLUX(msg.value);
-        IERC20(FLUX_TOKEN).burn(fluxValue / 2);
+        // 1. Pay with FLUMX on any chain (assume msg.value is in native token, e.g., ETH)
+        uint256 fluxValue = convertToFLUMX(msg.value);
+        IERC20(FLUMX_TOKEN).burn(fluxValue / 2);
 
         // 2. Calculate gas for the target chain
         uint256 gasValue = calculateGas(targetChain);
@@ -127,10 +127,10 @@ contract GasAbstraction {
         );
     }
 
-    // Placeholder: convert native token value to FLUX equivalent
-    function convertToFLUX(uint256 value) public pure returns (uint256) {
+    // Placeholder: convert native token value to FLUMX equivalent
+    function convertToFLUMX(uint256 value) public pure returns (uint256) {
         // TODO: Integrate with price oracle or DEX for real conversion
-        return value * 1000; // Example: 1 ETH = 1000 FLUX (replace with real logic)
+        return value * 1000; // Example: 1 ETH = 1000 FLUMX (replace with real logic)
     }
 
     // Placeholder: calculate gas for the target chain

@@ -4,15 +4,15 @@ pragma solidity ^0.8.20;
 import "ds-test/test.sol";
 import "./FluentumToken.sol";
 
-contract FLUXTokenTest is DSTest {
-    FLUXToken token;
+contract FLUMXTokenTest is DSTest {
+    FLUMXToken token;
     address owner = address(this);
     address treasury = address(0xBEEF);
     address validator = address(0xCAFE);
     address notValidator = address(0xBAD);
 
     function setUp() public {
-        token = new FLUXToken();
+        token = new FLUMXToken();
         token.setQuantumTreasury(treasury);
     }
 
@@ -22,7 +22,7 @@ contract FLUXTokenTest is DSTest {
     }
 
     function testMaxSupply() public {
-        assertEq(token.MAX_SUPPLY(), 10_000_000_000 * 10**9);
+        assertEq(token.MAX_SUPPLY(), 1_000_000_000 * 10**9);
     }
 
     function testEmitToTreasuryOwner() public {
