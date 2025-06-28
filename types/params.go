@@ -37,10 +37,10 @@ func DefaultConsensusParams() *tmproto.ConsensusParams {
 	versionParams := DefaultVersionParams()
 
 	return &tmproto.ConsensusParams{
-		Block:     &blockParams,
-		Evidence:  &evidenceParams,
-		Validator: &validatorParams,
-		Version:   &versionParams,
+		Block:     blockParams,
+		Evidence:  evidenceParams,
+		Validator: validatorParams,
+		Version:   versionParams,
 	}
 }
 
@@ -56,9 +56,9 @@ func DefaultBlockParams() tmproto.BlockParams {
 // DefaultEvidenceParams returns a default EvidenceParams.
 func DefaultEvidenceParams() tmproto.EvidenceParams {
 	return tmproto.EvidenceParams{
-		MaxAgeNumBlocks: 100000,  // 27.8 hrs at 1block/s
-		MaxAgeDuration:  nil,     // TODO: Fix duration conversion
-		MaxBytes:        1048576, // 1MB
+		MaxAgeNumBlocks: 100000,           // 27.8 hrs at 1block/s
+		MaxAgeDuration:  time.Duration(0), // 0 duration
+		MaxBytes:        1048576,          // 1MB
 	}
 }
 
@@ -112,12 +112,11 @@ func ValidateConsensusParams(params tmproto.ConsensusParams) error {
 			params.Evidence.MaxAgeNumBlocks)
 	}
 
-	if params.Evidence.MaxAgeDuration == nil {
+	if params.Evidence.MaxAgeDuration == 0 {
 		return fmt.Errorf("evidence.MaxAgeDuration must be provided")
 	}
 
-	// Check if duration is negative by accessing the seconds field
-	if params.Evidence.MaxAgeDuration.Seconds < 0 {
+	if params.Evidence.MaxAgeDuration < 0 {
 		return fmt.Errorf("evidence.MaxAgeDuration must be greater than 0 if provided, Got %v",
 			params.Evidence.MaxAgeDuration)
 	}

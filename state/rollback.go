@@ -75,7 +75,7 @@ func Rollback(bs BlockStore, ss Store) (int64, []byte, error) {
 	// build the new state from the old state and the prior block
 	rolledBackState := State{
 		Version: tmstate.Version{
-			Consensus: &tmversion.Consensus{
+			Consensus: tmversion.Consensus{
 				Block: version.BlockProtocol,
 				App:   previousParams.Version.AppVersion,
 			},

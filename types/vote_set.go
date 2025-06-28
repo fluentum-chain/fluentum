@@ -159,7 +159,7 @@ func (voteSet *VoteSet) addVote(vote *Vote) (added bool, err error) {
 	}
 	valIndex := vote.ValidatorIndex
 	valAddr := vote.ValidatorAddress
-	blockKey := vote.BlockId.Key()
+	blockKey := vote.BlockID.Key()
 
 	// Ensure that validator index was set
 	if valIndex < 0 {
@@ -219,7 +219,7 @@ func (voteSet *VoteSet) addVote(vote *Vote) (added bool, err error) {
 
 // Returns (vote, true) if vote exists for valIndex and blockKey.
 func (voteSet *VoteSet) getVote(valIndex int32, blockKey string) (vote *Vote, ok bool) {
-	if existing := voteSet.votes[valIndex]; existing != nil && existing.BlockId.Key() == blockKey {
+	if existing := voteSet.votes[valIndex]; existing != nil && existing.BlockID.Key() == blockKey {
 		return existing, true
 	}
 	if existing := voteSet.votesByBlock[blockKey].getByIndex(valIndex); existing != nil {
@@ -239,7 +239,7 @@ func (voteSet *VoteSet) addVerifiedVote(
 
 	// Already exists in voteSet.votes?
 	if existing := voteSet.votes[valIndex]; existing != nil {
-		if existing.BlockId.Equals(vote.BlockId) {
+		if existing.BlockID.Equals(vote.BlockID) {
 			panic("addVerifiedVote does not expect duplicate votes")
 		} else {
 			conflicting = existing
@@ -289,7 +289,7 @@ func (voteSet *VoteSet) addVerifiedVote(
 	if origSum < quorum && quorum <= votesByBlock.sum {
 		// Only consider the first quorum reached
 		if voteSet.maj23 == nil {
-			maj23BlockID := vote.BlockId
+			maj23BlockID := vote.BlockID
 			voteSet.maj23 = &maj23BlockID
 			// And also copy votes over to voteSet.votes
 			for i, vote := range votesByBlock.votes {
@@ -626,7 +626,7 @@ func (voteSet *VoteSet) MakeCommit() *Commit {
 	for i, v := range voteSet.votes {
 		commitSig := v.CommitSig()
 		// if block ID exists but doesn't match, exclude sig
-		if commitSig.ForBlock() && !v.BlockId.Equals(*voteSet.maj23) {
+		if commitSig.ForBlock() && !v.BlockID.Equals(*voteSet.maj23) {
 			commitSig = NewCommitSigAbsent()
 		}
 		commitSigs[i] = commitSig

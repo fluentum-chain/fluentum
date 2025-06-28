@@ -37,11 +37,7 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 	ageDuration := state.LastBlockTime.Sub(evTime)
 
 	// check that the evidence hasn't expired
-	// Convert protobuf duration to time.Duration
-	var maxAgeDuration time.Duration
-	if evidenceParams.MaxAgeDuration != nil {
-		maxAgeDuration = evidenceParams.MaxAgeDuration.AsDuration()
-	}
+	maxAgeDuration := evidenceParams.MaxAgeDuration
 
 	if ageDuration > maxAgeDuration && ageNumBlocks > evidenceParams.MaxAgeNumBlocks {
 		return fmt.Errorf(
@@ -95,7 +91,7 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 		}
 
 		err = VerifyLightClientAttack(ev, commonHeader, trustedHeader, commonVals, state.LastBlockTime,
-			state.ConsensusParams.Evidence.MaxAgeDuration.AsDuration())
+			state.ConsensusParams.Evidence.MaxAgeDuration)
 		if err != nil {
 			return err
 		}
@@ -189,10 +185,10 @@ func VerifyDuplicateVote(e *types.DuplicateVoteEvidence, chainID string, valSet 
 		)
 	}
 
-	// BlockIds must be different
-	if e.VoteA.BlockId.Equals(e.VoteB.BlockId) {
+	// BlockIDs must be different
+	if e.VoteA.BlockID.Equals(e.VoteB.BlockID) {
 		return fmt.Errorf("votes do not have different block ids; got %v",
-			e.VoteA.BlockId)
+			e.VoteA.BlockID)
 	}
 
 	// pubkey must match address (this should already be true, sanity check)

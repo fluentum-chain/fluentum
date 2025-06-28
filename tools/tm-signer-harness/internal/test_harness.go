@@ -267,7 +267,7 @@ func (th *TestHarness) TestSignVote() error {
 			Type:   voteType,
 			Height: 101,
 			Round:  0,
-			BlockId: types.BlockID{
+			BlockID: types.BlockID{
 				Hash: hash,
 				PartSetHeader: types.PartSetHeader{
 					Hash:  hash,

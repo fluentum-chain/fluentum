@@ -24,10 +24,10 @@ func CanonicalizeBlockID(bid tmproto.BlockID) *tmproto.CanonicalBlockID {
 	if rbid == nil || rbid.IsZero() {
 		cbid = nil
 	} else {
-		partSetHeader := CanonicalizePartSetHeader(*bid.PartSetHeader)
+		partSetHeader := CanonicalizePartSetHeader(bid.PartSetHeader)
 		cbid = &tmproto.CanonicalBlockID{
 			Hash:          bid.Hash,
-			PartSetHeader: &partSetHeader,
+			PartSetHeader: partSetHeader,
 		}
 	}
 
@@ -42,18 +42,18 @@ func CanonicalizePartSetHeader(psh tmproto.PartSetHeader) tmproto.CanonicalPartS
 // CanonicalizeVote transforms the given Proposal to a CanonicalProposal.
 func CanonicalizeProposal(chainID string, proposal *tmproto.Proposal) tmproto.CanonicalProposal {
 	var blockID *tmproto.CanonicalBlockID
-	if proposal.BlockId != nil {
-		blockID = CanonicalizeBlockID(*proposal.BlockId)
+	if proposal.BlockID.Hash != nil {
+		blockID = CanonicalizeBlockID(proposal.BlockID)
 	}
 
 	return tmproto.CanonicalProposal{
-		Type:      tmproto.SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL,
+		Type:      tmproto.ProposalType,
 		Height:    proposal.Height,       // encoded as sfixed64
 		Round:     int64(proposal.Round), // encoded as sfixed64
-		PolRound:  int64(proposal.PolRound),
-		BlockId:   blockID,
+		POLRound:  int64(proposal.PolRound),
+		BlockID:   blockID,
 		Timestamp: proposal.Timestamp,
-		ChainId:   chainID,
+		ChainID:   chainID,
 	}
 }
 
@@ -61,17 +61,17 @@ func CanonicalizeProposal(chainID string, proposal *tmproto.Proposal) tmproto.Ca
 // not contain ValidatorIndex and ValidatorAddress fields.
 func CanonicalizeVote(chainID string, vote *tmproto.Vote) tmproto.CanonicalVote {
 	var blockID *tmproto.CanonicalBlockID
-	if vote.BlockId != nil {
-		blockID = CanonicalizeBlockID(*vote.BlockId)
+	if vote.BlockID.Hash != nil {
+		blockID = CanonicalizeBlockID(vote.BlockID)
 	}
 
 	return tmproto.CanonicalVote{
 		Type:      vote.Type,
 		Height:    vote.Height,       // encoded as sfixed64
 		Round:     int64(vote.Round), // encoded as sfixed64
-		BlockId:   blockID,
+		BlockID:   blockID,
 		Timestamp: vote.Timestamp,
-		ChainId:   chainID,
+		ChainID:   chainID,
 	}
 }
 

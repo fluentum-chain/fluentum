@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	auto "github.com/fluentum-chain/fluentum/libs/autofile"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
@@ -304,7 +303,7 @@ func (enc *WALEncoder) Encode(v *TimedWALMessage) error {
 		return err
 	}
 	pv := tmcons.TimedWALMessage{
-		Time: timestamppb.New(v.Time),
+		Time: v.Time,
 		Msg:  pbMsg,
 	}
 
@@ -412,7 +411,7 @@ func (dec *WALDecoder) Decode() (*TimedWALMessage, error) {
 		return nil, DataCorruptionError{fmt.Errorf("failed to convert from proto: %w", err)}
 	}
 	tMsgWal := &TimedWALMessage{
-		Time: res.Time.AsTime(),
+		Time: res.Time,
 		Msg:  walMsg,
 	}
 

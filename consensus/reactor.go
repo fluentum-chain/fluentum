@@ -303,10 +303,10 @@ func (conR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 				Height:  msg.Height,
 				Round:   msg.Round,
 				Type:    msg.Type,
-				BlockId: &blockIdProto,
+				BlockID: blockIdProto,
 			}
 			if votes := ourVotes.ToProto(); votes != nil {
-				eMsg.Votes = votes
+				eMsg.Votes = *votes
 			}
 			p2p.TrySendEnvelopeShim(e.Src, p2p.Envelope{ //nolint: staticcheck
 				ChannelID: VoteSetBitsChannel,
@@ -472,7 +472,7 @@ func (conR *Reactor) broadcastNewValidBlockMessage(rs *cstypes.RoundState) {
 	csMsg := &tmcons.NewValidBlock{
 		Height:             rs.Height,
 		Round:              rs.Round,
-		BlockPartSetHeader: &pshProto,
+		BlockPartSetHeader: pshProto,
 		BlockParts:         rs.ProposalBlockParts.BitArray().ToProto(),
 		IsCommit:           rs.Step == cstypes.RoundStepCommit,
 	}
@@ -585,7 +585,7 @@ OUTER_LOOP:
 					Message: &tmcons.BlockPart{
 						Height: rs.Height, // This tells peer that this part applies to us.
 						Round:  rs.Round,  // This tells peer that this part applies to us.
-						Part:   partProto,
+						Part:   *partProto,
 					},
 				}, logger) {
 					ps.SetHasProposalBlockPart(prs.Height, prs.Round, index)
@@ -637,7 +637,7 @@ OUTER_LOOP:
 				proposalProto := rs.Proposal.ToProto()
 				if p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
 					ChannelID: DataChannel,
-					Message:   &tmcons.Proposal{Proposal: proposalProto},
+					Message:   &tmcons.Proposal{Proposal: *proposalProto},
 				}, logger) {
 					// NOTE[ZM]: A peer might have received different proposal msg so this Proposal msg will be rejected!
 					ps.SetHasProposal(rs.Proposal)
@@ -655,7 +655,7 @@ OUTER_LOOP:
 					Message: &tmcons.ProposalPOL{
 						Height:           rs.Height,
 						ProposalPolRound: rs.Proposal.POLRound,
-						ProposalPol:      bitArrayProto,
+						ProposalPol:      *bitArrayProto,
 					},
 				}, logger)
 			}
@@ -705,7 +705,7 @@ func (conR *Reactor) gossipDataForCatchup(logger log.Logger, rs *cstypes.RoundSt
 			Message: &tmcons.BlockPart{
 				Height: prs.Height, // Not our height, so it doesn't matter.
 				Round:  prs.Round,  // Not our height, so it doesn't matter.
-				Part:   partProto,
+				Part:   *partProto,
 			},
 		}, logger) {
 			ps.SetHasProposalBlockPart(prs.Height, prs.Round, index)
@@ -835,11 +835,28 @@ func (conR *Reactor) gossipVotesForHeight(
 			return true
 		}
 	}
-	// If there are POLPrevotes to send...
-	if prs.ProposalPOLRound != -1 {
+	// If there are POL2 prevotes to send...
+	if prs.Step <= cstypes.RoundStepPropose && prs.Round != -1 && prs.Round <= rs.Round && prs.ProposalPOLRound != -1 {
 		if polPrevotes := rs.Votes.Prevotes(prs.ProposalPOLRound); polPrevotes != nil {
 			if ps.PickSendVote(polPrevotes) {
 				logger.Debug("Picked rs.Prevotes(prs.ProposalPOLRound) to send",
+					"round", prs.ProposalPOLRound)
+				return true
+			}
+		}
+	}
+	// If there are precommits to send...Needed because of validBlock mechanism
+	if prs.Round != -1 && prs.Round <= rs.Round {
+		if ps.PickSendVote(rs.Votes.Precommits(prs.Round)) {
+			logger.Debug("Picked rs.Precommits(prs.Round) to send", "round", prs.Round)
+			return true
+		}
+	}
+	// If there are POL2 precommits to send...
+	if prs.Step <= cstypes.RoundStepPropose && prs.Round != -1 && prs.Round <= rs.Round && prs.ProposalPOLRound != -1 {
+		if polPrecommits := rs.Votes.Precommits(prs.ProposalPOLRound); polPrecommits != nil {
+			if ps.PickSendVote(polPrecommits) {
+				logger.Debug("Picked rs.Precommits(prs.ProposalPOLRound) to send",
 					"round", prs.ProposalPOLRound)
 				return true
 			}
@@ -852,7 +869,6 @@ func (conR *Reactor) gossipVotesForHeight(
 // NOTE: `queryMaj23Routine` has a simple crude design since it only comes
 // into play for liveness when there's a signature DDoS attack happening.
 func (conR *Reactor) queryMaj23Routine(peer p2p.Peer, ps *PeerState) {
-
 OUTER_LOOP:
 	for {
 		// Manage disconnects from self or peer.
@@ -866,7 +882,6 @@ OUTER_LOOP:
 			prs := ps.GetRoundState()
 			if rs.Height == prs.Height {
 				if maj23, ok := rs.Votes.Prevotes(prs.Round).TwoThirdsMajority(); ok {
-
 					maj23Proto := maj23.ToProto()
 					p2p.TrySendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
 						ChannelID: StateChannel,
@@ -874,7 +889,7 @@ OUTER_LOOP:
 							Height:  prs.Height,
 							Round:   prs.Round,
 							Type:    types.PrevoteType,
-							BlockId: &maj23Proto,
+							BlockID: maj23Proto,
 						},
 					}, ps.logger)
 					time.Sleep(conR.conS.config.PeerQueryMaj23SleepDuration)
@@ -895,7 +910,7 @@ OUTER_LOOP:
 							Height:  prs.Height,
 							Round:   prs.Round,
 							Type:    types.PrecommitType,
-							BlockId: &maj23Proto,
+							BlockID: maj23Proto,
 						},
 					}, ps.logger)
 					time.Sleep(conR.conS.config.PeerQueryMaj23SleepDuration)

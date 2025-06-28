@@ -15,7 +15,6 @@ import (
 	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
 	"github.com/fluentum-chain/fluentum/version"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // database key
@@ -30,7 +29,7 @@ var (
 // The Consensus.App version will be set during the Handshake, once
 // we hear from the app what protocol version it is running.
 var InitStateVersion = tmstate.Version{
-	Consensus: &tmversion.Consensus{
+	Consensus: tmversion.Consensus{
 		Block: version.BlockProtocol,
 		App:   0,
 	},
@@ -139,14 +138,14 @@ func (state *State) ToProto() (*tmstate.State, error) {
 
 	sm := new(tmstate.State)
 
-	sm.Version = &state.Version
-	sm.ChainId = state.ChainID
+	sm.Version = state.Version
+	sm.ChainID = state.ChainID
 	sm.InitialHeight = state.InitialHeight
 	sm.LastBlockHeight = state.LastBlockHeight
 
 	lastBlockID := state.LastBlockID.ToProto()
-	sm.LastBlockId = &lastBlockID
-	sm.LastBlockTime = timestamppb.New(state.LastBlockTime)
+	sm.LastBlockID = lastBlockID
+	sm.LastBlockTime = state.LastBlockTime
 	vals, err := state.Validators.ToProto()
 	if err != nil {
 		return nil, err
@@ -168,7 +167,7 @@ func (state *State) ToProto() (*tmstate.State, error) {
 	}
 
 	sm.LastHeightValidatorsChanged = state.LastHeightValidatorsChanged
-	sm.ConsensusParams = &state.ConsensusParams
+	sm.ConsensusParams = state.ConsensusParams
 	sm.LastHeightConsensusParamsChanged = state.LastHeightConsensusParamsChanged
 	sm.LastResultsHash = state.LastResultsHash
 	sm.AppHash = state.AppHash
@@ -184,17 +183,17 @@ func FromProto(pb *tmstate.State) (*State, error) { //nolint:golint
 
 	state := new(State)
 
-	state.Version = *pb.Version
-	state.ChainID = pb.ChainId
+	state.Version = pb.Version
+	state.ChainID = pb.ChainID
 	state.InitialHeight = pb.InitialHeight
 
-	bi, err := types.BlockIDFromProto(pb.LastBlockId)
+	bi, err := types.BlockIDFromProto(&pb.LastBlockID)
 	if err != nil {
 		return nil, err
 	}
 	state.LastBlockID = *bi
 	state.LastBlockHeight = pb.LastBlockHeight
-	state.LastBlockTime = pb.LastBlockTime.AsTime()
+	state.LastBlockTime = pb.LastBlockTime
 
 	vals, err := types.ValidatorSetFromProto(pb.Validators)
 	if err != nil {
@@ -219,7 +218,7 @@ func FromProto(pb *tmstate.State) (*State, error) { //nolint:golint
 	}
 
 	state.LastHeightValidatorsChanged = pb.LastHeightValidatorsChanged
-	state.ConsensusParams = *pb.ConsensusParams
+	state.ConsensusParams = pb.ConsensusParams
 	state.LastHeightConsensusParamsChanged = pb.LastHeightConsensusParamsChanged
 	state.LastResultsHash = pb.LastResultsHash
 	state.AppHash = pb.AppHash
@@ -253,7 +252,7 @@ func (state State) MakeBlock(
 
 	// Fill rest of header with state data.
 	block.Header.Populate(
-		*state.Version.Consensus, state.ChainID,
+		state.Version.Consensus, state.ChainID,
 		timestamp, state.LastBlockID,
 		state.Validators.Hash(), state.NextValidators.Hash(),
 		types.HashConsensusParams(state.ConsensusParams), state.AppHash, state.LastResultsHash,

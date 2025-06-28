@@ -12,7 +12,7 @@ import (
 	"github.com/fluentum-chain/fluentum/light/store"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
-	"google.golang.org/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 )
 
 var (

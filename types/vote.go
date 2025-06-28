@@ -10,7 +10,6 @@ import (
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	"github.com/fluentum-chain/fluentum/libs/protoio"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -52,7 +51,7 @@ type Vote struct {
 	Type             tmproto.SignedMsgType `json:"type"`
 	Height           int64                 `json:"height"`
 	Round            int32                 `json:"round"`    // assume there will not be greater than 2_147_483_647 rounds
-	BlockId          BlockID               `json:"block_id"` // zero if vote is nil.
+	BlockID          BlockID               `json:"block_id"` // zero if vote is nil.
 	Timestamp        time.Time             `json:"timestamp"`
 	ValidatorAddress Address               `json:"validator_address"`
 	ValidatorIndex   int32                 `json:"validator_index"`
@@ -67,9 +66,9 @@ func (vote *Vote) CommitSig() CommitSig {
 
 	var blockIDFlag BlockIDFlag
 	switch {
-	case vote.BlockId.IsComplete():
+	case vote.BlockID.IsComplete():
 		blockIDFlag = BlockIDFlagCommit
-	case vote.BlockId.IsZero():
+	case vote.BlockID.IsZero():
 		blockIDFlag = BlockIDFlagNil
 	default:
 		panic(fmt.Sprintf("Invalid vote %v - expected BlockID to be either empty or complete", vote))
@@ -139,7 +138,7 @@ func (vote *Vote) String() string {
 		vote.Round,
 		vote.Type,
 		typeString,
-		tmbytes.Fingerprint(vote.BlockId.Hash),
+		tmbytes.Fingerprint(vote.BlockID.Hash),
 		tmbytes.Fingerprint(vote.Signature),
 		CanonicalTime(vote.Timestamp),
 	)
@@ -172,14 +171,14 @@ func (vote *Vote) ValidateBasic() error {
 
 	// NOTE: Timestamp validation is subtle and handled elsewhere.
 
-	if err := vote.BlockId.ValidateBasic(); err != nil {
+	if err := vote.BlockID.ValidateBasic(); err != nil {
 		return fmt.Errorf("wrong BlockID: %v", err)
 	}
 
 	// BlockID.ValidateBasic would not err if we for instance have an empty hash but a
 	// non-empty PartsSetHeader:
-	if !vote.BlockId.IsZero() && !vote.BlockId.IsComplete() {
-		return fmt.Errorf("blockID must be either empty or complete, got: %v", vote.BlockId)
+	if !vote.BlockID.IsZero() && !vote.BlockID.IsComplete() {
+		return fmt.Errorf("blockID must be either empty or complete, got: %v", vote.BlockID)
 	}
 
 	if len(vote.ValidatorAddress) != crypto.AddressSize {
@@ -209,13 +208,13 @@ func (vote *Vote) ToProto() *tmproto.Vote {
 		return nil
 	}
 
-	blockIDProto := vote.BlockId.ToProto()
+	blockIDProto := vote.BlockID.ToProto()
 	return &tmproto.Vote{
 		Type:             vote.Type,
 		Height:           vote.Height,
 		Round:            vote.Round,
-		BlockId:          &blockIDProto,
-		Timestamp:        timestamppb.New(vote.Timestamp),
+		BlockID:          blockIDProto,
+		Timestamp:        vote.Timestamp,
 		ValidatorAddress: vote.ValidatorAddress,
 		ValidatorIndex:   vote.ValidatorIndex,
 		Signature:        vote.Signature,
@@ -229,7 +228,7 @@ func VoteFromProto(pv *tmproto.Vote) (*Vote, error) {
 		return nil, errors.New("nil vote")
 	}
 
-	blockID, err := BlockIDFromProto(pv.BlockId)
+	blockID, err := BlockIDFromProto(&pv.BlockID)
 	if err != nil {
 		return nil, err
 	}
@@ -238,8 +237,8 @@ func VoteFromProto(pv *tmproto.Vote) (*Vote, error) {
 	vote.Type = pv.Type
 	vote.Height = pv.Height
 	vote.Round = pv.Round
-	vote.BlockId = *blockID
-	vote.Timestamp = pv.Timestamp.AsTime()
+	vote.BlockID = *blockID
+	vote.Timestamp = pv.Timestamp
 	vote.ValidatorAddress = pv.ValidatorAddress
 	vote.ValidatorIndex = pv.ValidatorIndex
 	vote.Signature = pv.Signature

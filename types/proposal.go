@@ -9,7 +9,6 @@ import (
 	"github.com/fluentum-chain/fluentum/libs/protoio"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -37,7 +36,7 @@ type Proposal struct {
 // If there is no POLRound, polRound should be -1.
 func NewProposal(height int64, round int32, polRound int32, blockID BlockID) *Proposal {
 	return &Proposal{
-		Type:      tmproto.SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL,
+		Type:      tmproto.ProposalType,
 		Height:    height,
 		Round:     round,
 		BlockID:   blockID,
@@ -48,7 +47,7 @@ func NewProposal(height int64, round int32, polRound int32, blockID BlockID) *Pr
 
 // ValidateBasic performs basic validation.
 func (p *Proposal) ValidateBasic() error {
-	if p.Type != tmproto.SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL {
+	if p.Type != tmproto.ProposalType {
 		return errors.New("invalid Type")
 	}
 	if p.Height < 0 {
@@ -126,12 +125,12 @@ func (p *Proposal) ToProto() *tmproto.Proposal {
 	pb := new(tmproto.Proposal)
 
 	blockID := p.BlockID.ToProto()
-	pb.BlockId = &blockID
+	pb.BlockID = blockID
 	pb.Type = p.Type
 	pb.Height = p.Height
 	pb.Round = p.Round
 	pb.PolRound = p.POLRound
-	pb.Timestamp = timestamppb.New(p.Timestamp)
+	pb.Timestamp = p.Timestamp
 	pb.Signature = p.Signature
 
 	return pb
@@ -146,7 +145,7 @@ func ProposalFromProto(pp *tmproto.Proposal) (*Proposal, error) {
 
 	p := new(Proposal)
 
-	blockID, err := BlockIDFromProto(pp.BlockId)
+	blockID, err := BlockIDFromProto(&pp.BlockID)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +155,7 @@ func ProposalFromProto(pp *tmproto.Proposal) (*Proposal, error) {
 	p.Height = pp.Height
 	p.Round = pp.Round
 	p.POLRound = pp.PolRound
-	p.Timestamp = pp.Timestamp.AsTime()
+	p.Timestamp = pp.Timestamp
 	p.Signature = pp.Signature
 
 	return p, p.ValidateBasic()

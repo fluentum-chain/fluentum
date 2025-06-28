@@ -113,7 +113,7 @@ func (sc *SignerClient) SignVote(chainID string, vote *tmproto.Vote) error {
 		return &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
 	}
 
-	*vote = *resp.Vote
+	*vote = resp.Vote
 
 	return nil
 }
@@ -135,7 +135,7 @@ func (sc *SignerClient) SignProposal(chainID string, proposal *tmproto.Proposal)
 		return &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
 	}
 
-	*proposal = *resp.Proposal
+	*proposal = resp.Proposal
 
 	return nil
 }

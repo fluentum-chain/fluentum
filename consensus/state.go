@@ -2192,13 +2192,13 @@ func (cs *State) signVote(
 		Round:            cs.Round,
 		Timestamp:        cs.voteTime(),
 		Type:             msgType,
-		BlockId:          types.BlockID{Hash: hash, PartSetHeader: header},
+		BlockID:          types.BlockID{Hash: hash, PartSetHeader: header},
 	}
 
 	v := vote.ToProto()
 	err := cs.privValidator.SignVote(cs.state.ChainID, v)
 	vote.Signature = v.Signature
-	vote.Timestamp = v.Timestamp.AsTime()
+	vote.Timestamp = v.Timestamp
 
 	return vote, err
 }

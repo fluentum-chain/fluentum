@@ -20,7 +20,7 @@ func MakeCommit(blockID BlockID, height int64, round int32,
 			Height:           height,
 			Round:            round,
 			Type:             PrecommitType,
-			BlockId:          blockID,
+			BlockID:          blockID,
 			Timestamp:        now,
 		}
 
@@ -64,7 +64,7 @@ func MakeVote(
 		Round:            0,
 		Timestamp:        now,
 		Type:             PrecommitType,
-		BlockId:          blockID,
+		BlockID:          blockID,
 	}
 	v := vote.ToProto()
 

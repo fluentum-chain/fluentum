@@ -261,7 +261,7 @@ func (store dbStore) PruneStates(from int64, to int64) error {
 		keepVals[lastStoredHeightFor(to, valInfo.LastHeightChanged)] = true // keep last checkpoint too
 	}
 	keepParams := make(map[int64]bool)
-	if proto.Equal(paramsInfo.ConsensusParams, &tmproto.ConsensusParams{}) {
+	if proto.Equal(&paramsInfo.ConsensusParams, &tmproto.ConsensusParams{}) {
 		keepParams[paramsInfo.LastHeightChanged] = true
 	}
 
@@ -313,17 +313,12 @@ func (store dbStore) PruneStates(from int64, to int64) error {
 				return err
 			}
 
-			if proto.Equal(p.ConsensusParams, &tmproto.ConsensusParams{}) {
-				p.ConsensusParams, err = func() (*tmproto.ConsensusParams, error) {
-					cp, err := store.LoadConsensusParams(h)
-					if err != nil {
-						return nil, err
-					}
-					return &cp, nil
-				}()
+			if proto.Equal(&p.ConsensusParams, &tmproto.ConsensusParams{}) {
+				cp, err := store.LoadConsensusParams(h)
 				if err != nil {
 					return err
 				}
+				p.ConsensusParams = cp
 				p.LastHeightChanged = h
 				bz, err := proto.Marshal(p)
 				if err != nil {
@@ -583,7 +578,7 @@ func (store dbStore) LoadConsensusParams(height int64) (tmproto.ConsensusParams,
 		return empty, fmt.Errorf("could not find consensus params for height #%d: %w", height, err)
 	}
 
-	if proto.Equal(paramsInfo.ConsensusParams, &empty) {
+	if proto.Equal(&paramsInfo.ConsensusParams, &empty) {
 		paramsInfo2, err := store.loadConsensusParamsInfo(paramsInfo.LastHeightChanged)
 		if err != nil {
 			return empty, fmt.Errorf(
@@ -597,11 +592,7 @@ func (store dbStore) LoadConsensusParams(height int64) (tmproto.ConsensusParams,
 		paramsInfo = paramsInfo2
 	}
 
-	if paramsInfo.ConsensusParams != nil {
-		return *paramsInfo.ConsensusParams, nil
-	}
-
-	return empty, nil
+	return paramsInfo.ConsensusParams, nil
 }
 
 func (store dbStore) loadConsensusParamsInfo(height int64) (*tmstate.ConsensusParamsInfo, error) {
@@ -635,7 +626,7 @@ func (store dbStore) saveConsensusParamsInfo(nextHeight, changeHeight int64, par
 	}
 
 	if changeHeight == nextHeight {
-		paramsInfo.ConsensusParams = &params
+		paramsInfo.ConsensusParams = params
 	}
 	bz, err := proto.Marshal(paramsInfo)
 	if err != nil {

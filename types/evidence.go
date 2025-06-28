@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
@@ -59,7 +58,7 @@ func NewDuplicateVoteEvidence(vote1, vote2 *Vote, blockTime time.Time, valSet *V
 		return nil
 	}
 
-	if strings.Compare(vote1.BlockId.Key(), vote2.BlockId.Key()) == -1 {
+	if strings.Compare(vote1.BlockID.Key(), vote2.BlockID.Key()) == -1 {
 		voteA = vote1
 		voteB = vote2
 	} else {
@@ -79,12 +78,12 @@ func NewDuplicateVoteEvidence(vote1, vote2 *Vote, blockTime time.Time, valSet *V
 func (dve *DuplicateVoteEvidence) ABCI() []abci.Evidence {
 	return []abci.Evidence{{
 		Type: abci.EvidenceType_DUPLICATE_VOTE,
-		Validator: &abci.Validator{
+		Validator: abci.Validator{
 			Address: dve.VoteA.ValidatorAddress,
 			Power:   dve.ValidatorPower,
 		},
 		Height:           dve.VoteA.Height,
-		Time:             timestamppb.New(dve.Timestamp),
+		Time:             dve.Timestamp,
 		TotalVotingPower: dve.TotalVotingPower,
 	}}
 }
@@ -136,7 +135,7 @@ func (dve *DuplicateVoteEvidence) ValidateBasic() error {
 		return fmt.Errorf("invalid VoteB: %w", err)
 	}
 	// Enforce Votes are lexicographically sorted on blockID
-	if strings.Compare(dve.VoteA.BlockId.Key(), dve.VoteB.BlockId.Key()) >= 0 {
+	if strings.Compare(dve.VoteA.BlockID.Key(), dve.VoteB.BlockID.Key()) >= 0 {
 		return errors.New("duplicate votes in invalid order")
 	}
 	return nil
@@ -151,7 +150,7 @@ func (dve *DuplicateVoteEvidence) ToProto() *tmproto.DuplicateVoteEvidence {
 		VoteB:            voteB,
 		TotalVotingPower: dve.TotalVotingPower,
 		ValidatorPower:   dve.ValidatorPower,
-		Timestamp:        timestamppb.New(dve.Timestamp),
+		Timestamp:        dve.Timestamp,
 	}
 	return &tp
 }
@@ -177,7 +176,7 @@ func DuplicateVoteEvidenceFromProto(pb *tmproto.DuplicateVoteEvidence) (*Duplica
 		VoteB:            vB,
 		TotalVotingPower: pb.TotalVotingPower,
 		ValidatorPower:   pb.ValidatorPower,
-		Timestamp:        pb.Timestamp.AsTime(),
+		Timestamp:        pb.Timestamp,
 	}
 
 	return dve, dve.ValidateBasic()
@@ -208,12 +207,12 @@ func (l *LightClientAttackEvidence) ABCI() []abci.Evidence {
 	for idx, val := range l.ByzantineValidators {
 		abciEv[idx] = abci.Evidence{
 			Type: abci.EvidenceType_LIGHT_CLIENT_ATTACK,
-			Validator: &abci.Validator{
+			Validator: abci.Validator{
 				Address: val.PubKey.Address(),
 				Power:   val.VotingPower,
 			},
 			Height:           l.Height(),
-			Time:             timestamppb.New(l.Timestamp),
+			Time:             l.Timestamp,
 			TotalVotingPower: l.TotalVotingPower,
 		}
 	}
@@ -393,7 +392,7 @@ func (l *LightClientAttackEvidence) ToProto() (*tmproto.LightClientAttackEvidenc
 		CommonHeight:        l.CommonHeight,
 		ByzantineValidators: byzVals,
 		TotalVotingPower:    l.TotalVotingPower,
-		Timestamp:           timestamppb.New(l.Timestamp),
+		Timestamp:           l.Timestamp,
 	}, nil
 }
 
@@ -422,7 +421,7 @@ func LightClientAttackEvidenceFromProto(lpb *tmproto.LightClientAttackEvidence) 
 		CommonHeight:        lpb.CommonHeight,
 		ByzantineValidators: byzVals,
 		TotalVotingPower:    lpb.TotalVotingPower,
-		Timestamp:           lpb.Timestamp.AsTime(),
+		Timestamp:           lpb.Timestamp,
 	}
 
 	return l, l.ValidateBasic()
@@ -587,7 +586,7 @@ func makeMockVote(height int64, round, index int32, addr Address,
 		Type:             tmproto.SignedMsgType(2),
 		Height:           height,
 		Round:            round,
-		BlockId:          blockID,
+		BlockID:          blockID,
 		Timestamp:        time,
 		ValidatorAddress: addr,
 		ValidatorIndex:   index,

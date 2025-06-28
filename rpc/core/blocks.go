@@ -155,7 +155,7 @@ func BlockResults(ctx *rpctypes.Context, heightPtr *int64) (*ctypes.ResultBlockR
 		Height:                height,
 		TxsResults:            compat.ExecTxResultsFromComet(results.FinalizeBlock.TxResults),
 		ValidatorUpdates:      results.FinalizeBlock.ValidatorUpdates,
-		ConsensusParamUpdates: compat.ConsensusParamsFromComet(results.FinalizeBlock.ConsensusParamUpdates),
+		ConsensusParamUpdates: compat.ConsensusParamsToProtoTypes(compat.ConsensusParamsFromComet(results.FinalizeBlock.ConsensusParamUpdates)),
 	}, nil
 }
 

@@ -267,11 +267,7 @@ func (evpool *Pool) isExpired(height int64, evidenceTime time.Time) bool {
 	ageNumBlocks := evpool.State().LastBlockHeight - height
 	ageDuration := evpool.State().LastBlockTime.Sub(evidenceTime)
 
-	// Convert protobuf duration to time.Duration
-	var maxAgeDuration time.Duration
-	if params.MaxAgeDuration != nil {
-		maxAgeDuration = params.MaxAgeDuration.AsDuration()
-	}
+	maxAgeDuration := params.MaxAgeDuration
 
 	return ageNumBlocks > params.MaxAgeNumBlocks &&
 		ageDuration > maxAgeDuration
@@ -381,7 +377,7 @@ func (evpool *Pool) listEvidence(prefixKey byte, maxBytes int64) ([]types.Eviden
 		if err != nil {
 			return evidence, totalSize, err
 		}
-		evList.Evidence = append(evList.Evidence, &evpb)
+		evList.Evidence = append(evList.Evidence, evpb)
 		evSize = int64(proto.Size(&evList))
 		if maxBytes != -1 && evSize > maxBytes {
 			if err := iter.Error(); err != nil {
@@ -426,10 +422,7 @@ func (evpool *Pool) removeExpiredPendingEvidence() (int64, time.Time) {
 
 			// return the height and time with which this evidence will have expired so we know when to prune next
 			params := evpool.State().ConsensusParams.Evidence
-			var maxAgeDuration time.Duration
-			if params.MaxAgeDuration != nil {
-				maxAgeDuration = params.MaxAgeDuration.AsDuration()
-			}
+			maxAgeDuration := params.MaxAgeDuration
 			return ev.Height() + params.MaxAgeNumBlocks + 1,
 				ev.Time().Add(maxAgeDuration).Add(time.Second)
 		}

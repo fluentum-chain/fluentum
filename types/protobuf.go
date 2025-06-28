@@ -9,7 +9,6 @@ import (
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 //-------------------------------------------------------
@@ -38,12 +37,12 @@ type tm2pb struct{}
 func (tm2pb) Header(header *Header) tmproto.Header {
 	lastBlockID := header.LastBlockID.ToProto()
 	return tmproto.Header{
-		Version: &header.Version,
-		ChainId: header.ChainID,
+		Version: header.Version,
+		ChainID: header.ChainID,
 		Height:  header.Height,
-		Time:    timestamppb.New(header.Time),
+		Time:    header.Time,
 
-		LastBlockId: &lastBlockID,
+		LastBlockId: lastBlockID,
 
 		LastCommitHash: header.LastCommitHash,
 		DataHash:       header.DataHash,
@@ -70,7 +69,7 @@ func (tm2pb) BlockID(blockID BlockID) tmproto.BlockID {
 	partSetHeader := TM2PB.PartSetHeader(blockID.PartSetHeader)
 	return tmproto.BlockID{
 		Hash:          blockID.Hash,
-		PartSetHeader: &partSetHeader,
+		PartSetHeader: partSetHeader,
 	}
 }
 
@@ -112,8 +111,8 @@ func (tm2pb) ConsensusParams(params *tmproto.ConsensusParams) *abci.ConsensusPar
 			MaxBytes: params.Block.MaxBytes,
 			MaxGas:   params.Block.MaxGas,
 		},
-		Evidence:  params.Evidence,
-		Validator: params.Validator,
+		Evidence:  &params.Evidence,
+		Validator: &params.Validator,
 	}
 }
 

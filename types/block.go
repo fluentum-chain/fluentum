@@ -23,7 +23,6 @@ import (
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	tmversion "github.com/fluentum-chain/fluentum/proto/tendermint/version"
 	"github.com/fluentum-chain/fluentum/version"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Type aliases for backward compatibility
@@ -272,12 +271,12 @@ func BlockFromProto(bp *tmproto.Block) (*Block, error) {
 		return nil, err
 	}
 	b.Header = h
-	data, err := DataFromProto(bp.Data)
+	data, err := DataFromProto(&bp.Data)
 	if err != nil {
 		return nil, err
 	}
 	b.Data = data
-	if err := b.Evidence.FromProto(bp.Evidence); err != nil {
+	if err := b.Evidence.FromProto(&bp.Evidence); err != nil {
 		return nil, err
 	}
 
@@ -731,7 +730,7 @@ func (cs *CommitSig) ToProto() *tmproto.CommitSig {
 	return &tmproto.CommitSig{
 		BlockIdFlag:      tmproto.BlockIDFlag(cs.BlockIDFlag),
 		ValidatorAddress: cs.ValidatorAddress,
-		Timestamp:        timestamppb.New(cs.Timestamp),
+		Timestamp:        cs.Timestamp,
 		Signature:        cs.Signature,
 	}
 }
@@ -742,7 +741,7 @@ func (cs *CommitSig) FromProto(csp tmproto.CommitSig) error {
 
 	cs.BlockIDFlag = BlockIDFlag(csp.BlockIdFlag)
 	cs.ValidatorAddress = csp.ValidatorAddress
-	cs.Timestamp = csp.Timestamp.AsTime()
+	cs.Timestamp = csp.Timestamp
 	cs.Signature = csp.Signature
 
 	return cs.ValidateBasic()
@@ -795,7 +794,7 @@ func CommitToVoteSet(chainID string, commit *Commit, vals *ValidatorSet) *VoteSe
 			Height:           commit.Height,
 			Round:            commit.Round,
 			Type:             PrecommitType,
-			BlockId:          commitSig.BlockID(commit.BlockID),
+			BlockID:          commitSig.BlockID(commit.BlockID),
 			Timestamp:        commitSig.Timestamp,
 			Signature:        commitSig.Signature,
 		}
@@ -819,7 +818,7 @@ func (commit *Commit) GetVote(valIdx int32) *Vote {
 		Type:             PrecommitType,
 		Height:           commit.Height,
 		Round:            commit.Round,
-		BlockId:          commitSig.BlockID(commit.BlockID),
+		BlockID:          commitSig.BlockID(commit.BlockID),
 		Timestamp:        commitSig.Timestamp,
 		ValidatorAddress: commitSig.ValidatorAddress,
 		ValidatorIndex:   valIdx,
@@ -974,15 +973,16 @@ func (commit *Commit) ToProto() *tmproto.Commit {
 	}
 
 	c := new(tmproto.Commit)
-	sigs := make([]*tmproto.CommitSig, len(commit.Signatures))
+	sigs := make([]tmproto.CommitSig, len(commit.Signatures))
 	for i, sig := range commit.Signatures {
-		sigs[i] = sig.ToProto()
+		sigProto := sig.ToProto()
+		sigs[i] = *sigProto
 	}
 
 	blockID := commit.BlockID.ToProto()
 	c.Height = commit.Height
 	c.Round = commit.Round
-	c.BlockId = &blockID
+	c.BlockID = blockID
 	c.Signatures = sigs
 
 	return c
@@ -997,14 +997,14 @@ func CommitFromProto(cp *tmproto.Commit) (*Commit, error) {
 
 	commit := new(Commit)
 
-	bi, err := BlockIDFromProto(cp.BlockId)
+	bi, err := BlockIDFromProto(&cp.BlockID)
 	if err != nil {
 		return nil, err
 	}
 
 	sigs := make([]CommitSig, len(cp.Signatures))
 	for i, sig := range cp.Signatures {
-		err := sigs[i].FromProto(*sig)
+		err := sigs[i].FromProto(sig)
 		if err != nil {
 			return nil, err
 		}
@@ -1160,13 +1160,13 @@ func (data *EvidenceData) ToProto() (*tmproto.EvidenceList, error) {
 	}
 
 	evi := new(tmproto.EvidenceList)
-	eviBzs := make([]*tmproto.Evidence, len(data.Evidence))
+	eviBzs := make([]tmproto.Evidence, len(data.Evidence))
 	for i := range data.Evidence {
 		protoEvi, err := EvidenceToProto(data.Evidence[i])
 		if err != nil {
 			return nil, err
 		}
-		eviBzs[i] = protoEvi
+		eviBzs[i] = *protoEvi
 	}
 	evi.Evidence = eviBzs
 
@@ -1181,7 +1181,7 @@ func (data *EvidenceData) FromProto(eviData *tmproto.EvidenceList) error {
 
 	eviBzs := make(EvidenceList, len(eviData.Evidence))
 	for i := range eviData.Evidence {
-		evi, err := EvidenceFromProto(eviData.Evidence[i])
+		evi, err := EvidenceFromProto(&eviData.Evidence[i])
 		if err != nil {
 			return err
 		}
@@ -1269,7 +1269,7 @@ func (blockID *BlockID) ToProto() tmproto.BlockID {
 	partSetHeader := blockID.PartSetHeader.ToProto()
 	return tmproto.BlockID{
 		Hash:          blockID.Hash,
-		PartSetHeader: &partSetHeader,
+		PartSetHeader: partSetHeader,
 	}
 }
 
@@ -1281,7 +1281,7 @@ func BlockIDFromProto(bID *tmproto.BlockID) (*BlockID, error) {
 	}
 
 	blockID := new(BlockID)
-	ph, err := PartSetHeaderFromProto(bID.PartSetHeader)
+	ph, err := PartSetHeaderFromProto(&bID.PartSetHeader)
 	if err != nil {
 		return nil, err
 	}

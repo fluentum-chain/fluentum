@@ -183,7 +183,8 @@ func (sh *SignedHeader) ToProto() *tmproto.SignedHeader {
 
 	psh := new(tmproto.SignedHeader)
 	if sh.Header != nil {
-		psh.Header = sh.Header.ToProto()
+		hdr := sh.Header.ToProto()
+		psh.Header = &hdr
 	}
 	if sh.Commit != nil {
 		psh.Commit = sh.Commit.ToProto()
@@ -202,7 +203,7 @@ func SignedHeaderFromProto(shp *tmproto.SignedHeader) (*SignedHeader, error) {
 	sh := new(SignedHeader)
 
 	if shp.Header != nil {
-		h, err := HeaderFromProto(shp.Header)
+		h, err := HeaderFromProto(*shp.Header)
 		if err != nil {
 			return nil, err
 		}

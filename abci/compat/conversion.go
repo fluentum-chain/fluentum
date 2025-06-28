@@ -111,3 +111,48 @@ func ProofOpsFromComet(src *cmtcrypto.ProofOps) *cmtcrypto.ProofOps {
 	// Since we're using CometBFT crypto types, just return the same type
 	return src
 }
+
+// ConsensusParamsToProtoTypes converts abci.ConsensusParams to types.ConsensusParams
+func ConsensusParamsToProtoTypes(src *protoabci.ConsensusParams) *prototypes.ConsensusParams {
+	if src == nil {
+		return nil
+	}
+
+	var block prototypes.BlockParams
+	if src.Block != nil {
+		block = prototypes.BlockParams{
+			MaxBytes: src.Block.MaxBytes,
+			MaxGas:   src.Block.MaxGas,
+		}
+	}
+
+	var evidence prototypes.EvidenceParams
+	if src.Evidence != nil {
+		evidence = prototypes.EvidenceParams{
+			MaxAgeNumBlocks: src.Evidence.MaxAgeNumBlocks,
+			MaxAgeDuration:  src.Evidence.MaxAgeDuration,
+			MaxBytes:        src.Evidence.MaxBytes,
+		}
+	}
+
+	var validator prototypes.ValidatorParams
+	if src.Validator != nil {
+		validator = prototypes.ValidatorParams{
+			PubKeyTypes: src.Validator.PubKeyTypes,
+		}
+	}
+
+	var version prototypes.VersionParams
+	if src.Version != nil {
+		version = prototypes.VersionParams{
+			AppVersion: src.Version.AppVersion,
+		}
+	}
+
+	return &prototypes.ConsensusParams{
+		Block:     block,
+		Evidence:  evidence,
+		Validator: validator,
+		Version:   version,
+	}
+}

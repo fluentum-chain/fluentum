@@ -19,7 +19,6 @@ import (
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // TODO: type ?
@@ -322,7 +321,7 @@ func (pv *FilePV) signVote(chainID string, vote *tmproto.Vote) error {
 		if bytes.Equal(signBytes, lss.SignBytes) {
 			vote.Signature = lss.Signature
 		} else if timestamp, ok := checkVotesOnlyDifferByTimestamp(lss.SignBytes, signBytes); ok {
-			vote.Timestamp = timestamppb.New(timestamp)
+			vote.Timestamp = timestamp
 			vote.Signature = lss.Signature
 		} else {
 			err = fmt.Errorf("conflicting data")
@@ -364,7 +363,7 @@ func (pv *FilePV) signProposal(chainID string, proposal *tmproto.Proposal) error
 		if bytes.Equal(signBytes, lss.SignBytes) {
 			proposal.Signature = lss.Signature
 		} else if timestamp, ok := checkProposalsOnlyDifferByTimestamp(lss.SignBytes, signBytes); ok {
-			proposal.Timestamp = timestamppb.New(timestamp)
+			proposal.Timestamp = timestamp
 			proposal.Signature = lss.Signature
 		} else {
 			err = fmt.Errorf("conflicting data")
@@ -407,11 +406,11 @@ func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.T
 		panic(fmt.Sprintf("signBytes cannot be unmarshalled into vote: %v", err))
 	}
 
-	lastTime := lastVote.Timestamp.AsTime()
+	lastTime := lastVote.Timestamp
 	// set the times to the same value and check equality
 	now := tmtime.Now()
-	lastVote.Timestamp = timestamppb.New(now)
-	newVote.Timestamp = timestamppb.New(now)
+	lastVote.Timestamp = now
+	newVote.Timestamp = now
 
 	return lastTime, proto.Equal(&newVote, &lastVote)
 }
@@ -427,11 +426,11 @@ func checkProposalsOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (ti
 		panic(fmt.Sprintf("signBytes cannot be unmarshalled into proposal: %v", err))
 	}
 
-	lastTime := lastProposal.Timestamp.AsTime()
+	lastTime := lastProposal.Timestamp
 	// set the times to the same value and check equality
 	now := tmtime.Now()
-	lastProposal.Timestamp = timestamppb.New(now)
-	newProposal.Timestamp = timestamppb.New(now)
+	lastProposal.Timestamp = now
+	newProposal.Timestamp = now
 
 	return lastTime, proto.Equal(&newProposal, &lastProposal)
 }
