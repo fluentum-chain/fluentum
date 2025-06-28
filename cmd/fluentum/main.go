@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -42,6 +43,8 @@ import (
 	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/proxy"
+	"github.com/fluentum-chain/fluentum/types"
+	tmtime "github.com/fluentum-chain/fluentum/types/time"
 	"github.com/fluentum-chain/fluentum/version"
 )
 
@@ -110,7 +113,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	addressCodec := app.SimpleAddressCodec{Prefix: cfg.GetBech32AccountAddrPrefix()}
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
+		createInitCommand(), // Custom init command instead of genutilcli.InitCmd
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, nil, addressCodec),
 		genutilcli.MigrateGenesisCmd(nil), // TODO: implement migration map
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, addressCodec),
@@ -739,6 +742,141 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	// Wait for interrupt signal
 	fluentumLogger.Info("Fluentum node is running. Press Ctrl+C to exit.")
 	select {}
+}
+
+// createInitCommand creates a custom init command that uses the Tendermint approach
+func createInitCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "init [moniker]",
+		Short: "Initialize Fluentum node",
+		Long: `Initialize a new Fluentum node with the following files:
+- Private validator key
+- Node key
+- Genesis file
+- Configuration files`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			moniker := args[0]
+
+			// Get home directory from flags
+			homeDir, err := cmd.Flags().GetString(flags.FlagHome)
+			if err != nil {
+				return err
+			}
+
+			// Get chain ID from flags
+			chainID, err := cmd.Flags().GetString(flags.FlagChainID)
+			if err != nil {
+				return err
+			}
+
+			// Use default chain ID if not provided
+			if chainID == "" {
+				chainID = "fluentum-testnet-1"
+			}
+
+			return initializeNode(homeDir, moniker, chainID)
+		},
+	}
+
+	// Add flags
+	cmd.Flags().String(flags.FlagHome, app.DefaultNodeHome, "The application home directory")
+	cmd.Flags().String(flags.FlagChainID, "", "Genesis file chain-id, if left blank will be randomly created")
+	cmd.Flags().String("default-denom", "stake", "Genesis file default denomination, if left blank default value is 'stake'")
+	cmd.Flags().Int("initial-height", 1, "Specify the initial block height at genesis")
+	cmd.Flags().BoolP("overwrite", "o", false, "Overwrite the genesis.json file")
+	cmd.Flags().Bool("recover", false, "Provide seed phrase to recover existing key instead of creating")
+
+	return cmd
+}
+
+// initializeNode performs the actual node initialization
+func initializeNode(homeDir, moniker, chainID string) error {
+	// Create home directory if it doesn't exist
+	if err := os.MkdirAll(homeDir, 0755); err != nil {
+		return fmt.Errorf("failed to create home directory: %w", err)
+	}
+
+	// Create config directory
+	configDir := filepath.Join(homeDir, "config")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Create data directory
+	dataDir := filepath.Join(homeDir, "data")
+	if err := os.MkdirAll(dataDir, 0755); err != nil {
+		return fmt.Errorf("failed to create data directory: %w", err)
+	}
+
+	// Generate private validator key
+	privValKeyFile := filepath.Join(configDir, "priv_validator_key.json")
+	privValStateFile := filepath.Join(dataDir, "priv_validator_state.json")
+
+	var pv *privval.FilePV
+	if tmos.FileExists(privValKeyFile) {
+		pv = privval.LoadFilePV(privValKeyFile, privValStateFile)
+		fmt.Printf("Found private validator key: %s\n", privValKeyFile)
+	} else {
+		pv = privval.GenFilePV(privValKeyFile, privValStateFile)
+		pv.Save()
+		fmt.Printf("Generated private validator key: %s\n", privValKeyFile)
+	}
+
+	// Generate node key
+	nodeKeyFile := filepath.Join(configDir, "node_key.json")
+	if tmos.FileExists(nodeKeyFile) {
+		fmt.Printf("Found node key: %s\n", nodeKeyFile)
+	} else {
+		if _, err := p2p.LoadOrGenNodeKey(nodeKeyFile); err != nil {
+			return fmt.Errorf("failed to generate node key: %w", err)
+		}
+		fmt.Printf("Generated node key: %s\n", nodeKeyFile)
+	}
+
+	// Create genesis file
+	genFile := filepath.Join(configDir, "genesis.json")
+	if tmos.FileExists(genFile) {
+		fmt.Printf("Found genesis file: %s\n", genFile)
+	} else {
+		genDoc := types.GenesisDoc{
+			ChainID:         chainID,
+			GenesisTime:     tmtime.Now(),
+			ConsensusParams: types.DefaultConsensusParams(),
+		}
+
+		pubKey, err := pv.GetPubKey()
+		if err != nil {
+			return fmt.Errorf("can't get pubkey: %w", err)
+		}
+
+		genDoc.Validators = []types.GenesisValidator{{
+			Address: pubKey.Address(),
+			PubKey:  pubKey,
+			Power:   10,
+		}}
+
+		if err := genDoc.SaveAs(genFile); err != nil {
+			return fmt.Errorf("failed to save genesis file: %w", err)
+		}
+		fmt.Printf("Generated genesis file: %s\n", genFile)
+	}
+
+	// Create default config.toml
+	configFile := filepath.Join(configDir, "config.toml")
+	if !tmos.FileExists(configFile) {
+		defaultConfig := config.DefaultConfig()
+		defaultConfig.Moniker = moniker
+		defaultConfig.SetRoot(homeDir)
+
+		if err := defaultConfig.SaveAs(configFile); err != nil {
+			return fmt.Errorf("failed to save config file: %w", err)
+		}
+		fmt.Printf("Generated config file: %s\n", configFile)
+	}
+
+	fmt.Printf("Initialized Fluentum node with moniker '%s' in %s\n", moniker, homeDir)
+	return nil
 }
 
 func main() {
