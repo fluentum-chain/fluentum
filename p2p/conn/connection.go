@@ -625,10 +625,10 @@ FOR_LOOP:
 				// never block
 			}
 		case *tmp2p.Packet_PacketMsg:
-			channelID := byte(pkt.PacketMsg.ChannelId)
+			channelID := byte(pkt.PacketMsg.ChannelID)
 			channel, ok := c.channelsIdx[channelID]
-			if pkt.PacketMsg.ChannelId < 0 || pkt.PacketMsg.ChannelId > math.MaxUint8 || !ok || channel == nil {
-				err := fmt.Errorf("unknown channel %X", pkt.PacketMsg.ChannelId)
+			if pkt.PacketMsg.ChannelID < 0 || pkt.PacketMsg.ChannelID > math.MaxUint8 || !ok || channel == nil {
+				err := fmt.Errorf("unknown channel %X", pkt.PacketMsg.ChannelID)
 				c.Logger.Debug("Connection failed @ recvRoutine", "conn", c, "err", err)
 				c.stopForError(err)
 				break FOR_LOOP
@@ -673,8 +673,8 @@ func (c *MConnection) stopPongTimer() {
 // maxPacketMsgSize returns a maximum size of PacketMsg
 func (c *MConnection) maxPacketMsgSize() int {
 	bz, err := proto.Marshal(mustWrapPacket(&tmp2p.PacketMsg{
-		ChannelId: 0x01,
-		Eof:       true,
+		ChannelID: 0x01,
+		EOF:       true,
 		Data:      make([]byte, c.config.MaxPacketMsgPayloadSize),
 	}))
 	if err != nil {
@@ -828,15 +828,15 @@ func (ch *Channel) isSendPending() bool {
 // Creates a new PacketMsg to send.
 // Not goroutine-safe
 func (ch *Channel) nextPacketMsg() tmp2p.PacketMsg {
-	packet := tmp2p.PacketMsg{ChannelId: int32(ch.desc.ID)}
+	packet := tmp2p.PacketMsg{ChannelID: int32(ch.desc.ID)}
 	maxSize := ch.maxPacketMsgPayloadSize
 	packet.Data = ch.sending[:tmmath.MinInt(maxSize, len(ch.sending))]
 	if len(ch.sending) <= maxSize {
-		packet.Eof = true
+		packet.EOF = true
 		ch.sending = nil
 		atomic.AddInt32(&ch.sendQueueSize, -1) // decrement sendQueueSize
 	} else {
-		packet.Eof = false
+		packet.EOF = false
 		ch.sending = ch.sending[tmmath.MinInt(maxSize, len(ch.sending)):]
 	}
 	return packet
@@ -861,7 +861,7 @@ func (ch *Channel) recvPacketMsg(packet tmp2p.PacketMsg) ([]byte, error) {
 		return nil, fmt.Errorf("received message exceeds available capacity: %v < %v", recvCap, recvReceived)
 	}
 	ch.recving = append(ch.recving, packet.Data...)
-	if packet.Eof {
+	if packet.EOF {
 		msgBytes := ch.recving
 
 		// clear the slice without re-allocating.

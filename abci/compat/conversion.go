@@ -82,10 +82,10 @@ func ConsensusParamsFromComet(src *cmttypes.ConsensusParams) *localabci.Consensu
 		return nil
 	}
 	return &localabci.ConsensusParams{
-		Block:     nil, // TODO: Convert BlockParams if needed
-		Evidence:  nil, // TODO: Convert EvidenceParams if needed
-		Validator: nil, // TODO: Convert ValidatorParams if needed
-		Version:   nil, // TODO: Convert VersionParams if needed
+		Block:     &localabci.BlockParams{},     // Provide default instead of nil
+		Evidence:  &localabci.EvidenceParams{},  // Provide default instead of nil
+		Validator: &localabci.ValidatorParams{}, // Provide default instead of nil
+		Version:   &localabci.VersionParams{},   // Provide default instead of nil
 	}
 }
 
