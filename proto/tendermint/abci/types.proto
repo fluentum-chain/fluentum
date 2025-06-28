@@ -277,14 +277,14 @@ message TxResult {
 // Validator
 message Validator {
   bytes address = 1;  // The first 20 bytes of SHA256(public key)
-  tendermint.crypto.PublicKey pub_key = 2 [(gogoproto.nullable) = false];
+  bytes pub_key = 2;  // Using bytes instead of tendermint.crypto.PublicKey
   int64 power = 3;  // The voting power
 }
 
 // ValidatorUpdate
 message ValidatorUpdate {
-  tendermint.crypto.PublicKey pub_key = 1 [(gogoproto.nullable) = false];
-  int64                       power   = 2;
+  bytes pub_key = 1;  // Using bytes instead of tendermint.crypto.PublicKey
+  int64 power   = 2;
 }
 
 // VoteInfo
