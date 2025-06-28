@@ -67,8 +67,9 @@ CONFIG_TEMPLATE="config/testnet-config.toml"
 
 print_status "Setting up $CURRENT_NODE at $FLUENTUM_HOME"
 
-# Create node directory
+# Create node directory structure
 mkdir -p "$FLUENTUM_HOME/config"
+mkdir -p "$FLUENTUM_HOME/data"
 
 # Copy config template
 cp "$CONFIG_TEMPLATE" "$FLUENTUM_HOME/config/config.toml"
@@ -82,24 +83,18 @@ sed -i "s/external_address = \"\"/external_address = \"$CURRENT_IP:26656\"/" "$F
 # Update moniker
 sed -i "s/moniker = \"fluentum-testnet-node\"/moniker = \"$CURRENT_NODE\"/" "$FLUENTUM_HOME/config/config.toml"
 
-# Try to initialize the node using Tendermint init command
-print_status "Initializing node using Tendermint init..."
-if fluentumd tendermint init --home "$FLUENTUM_HOME" 2>/dev/null; then
-    print_success "Node initialized successfully with Tendermint init"
+# Try to initialize the node using fluentumd init first
+print_status "Initializing node using fluentumd init..."
+if fluentumd init "$CURRENT_NODE" --chain-id $CHAIN_ID --home "$FLUENTUM_HOME" 2>/dev/null; then
+    print_success "Node initialized successfully with fluentumd init"
 else
-    print_warning "Tendermint init failed, trying fluentumd init..."
+    print_warning "fluentumd init failed, using manual setup..."
     
-    # Try fluentumd init as fallback
-    if fluentumd init "$CURRENT_NODE" --chain-id $CHAIN_ID --home "$FLUENTUM_HOME" 2>/dev/null; then
-        print_success "Node initialized successfully with fluentumd init"
-    else
-        print_error "Both initialization methods failed. Using manual setup..."
-        
-        # Manual setup: Create minimal configuration
-        print_status "Creating minimal node setup manually..."
-        
-        # Create a minimal genesis file
-        cat > "$FLUENTUM_HOME/config/genesis.json" << 'EOF'
+    # Manual setup: Create minimal configuration
+    print_status "Creating minimal node setup manually..."
+    
+    # Create a minimal genesis file
+    cat > "$FLUENTUM_HOME/config/genesis.json" << 'EOF'
 {
   "genesis_time": "2024-01-01T00:00:00Z",
   "chain_id": "fluentum-testnet-1",
@@ -126,12 +121,9 @@ else
 }
 EOF
 
-        # Try to generate node key
-        print_status "Generating node key..."
-        fluentumd gen-node-key --home "$FLUENTUM_HOME" 2>/dev/null || {
-            print_warning "Failed to generate node key, creating manually..."
-            # Create a minimal node key file
-            cat > "$FLUENTUM_HOME/config/node_key.json" << 'EOF'
+    # Create a minimal node key file
+    print_status "Creating node key..."
+    cat > "$FLUENTUM_HOME/config/node_key.json" << 'EOF'
 {
   "priv_key": {
     "type": "tendermint/PrivKeyEd25519",
@@ -139,14 +131,10 @@ EOF
   }
 }
 EOF
-        }
         
-        # Try to generate validator key
-        print_status "Generating validator key..."
-        fluentumd gen-validator-key --home "$FLUENTUM_HOME" 2>/dev/null || {
-            print_warning "Failed to generate validator key, creating manually..."
-            # Create a minimal validator key file
-            cat > "$FLUENTUM_HOME/config/priv_validator_key.json" << 'EOF'
+    # Create a minimal validator key file
+    print_status "Creating validator key..."
+    cat > "$FLUENTUM_HOME/config/priv_validator_key.json" << 'EOF'
 {
   "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
   "pub_key": {
@@ -159,18 +147,17 @@ EOF
   }
 }
 EOF
-            # Create validator state file
-            cat > "$FLUENTUM_HOME/data/priv_validator_state.json" << 'EOF'
+
+    # Create validator state file
+    cat > "$FLUENTUM_HOME/data/priv_validator_state.json" << 'EOF'
 {
   "height": "0",
   "round": 0,
   "step": 0
 }
 EOF
-        }
         
-        print_success "Node setup completed with manual method"
-    fi
+    print_success "Node setup completed with manual method"
 fi
 
 # Show configuration
