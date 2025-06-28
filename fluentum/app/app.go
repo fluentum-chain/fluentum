@@ -11,7 +11,6 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
-	tmos "github.com/cometbft/cometbft/libs/os"
 	cosmossdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -250,9 +249,10 @@ func New(
 	// app.SetEndBlocker(app.EndBlocker) // Commented out due to signature mismatch
 
 	if loadLatest {
-		if err := app.LoadLatestVersion(); err != nil {
-			tmos.Exit(err.Error())
-		}
+		// Temporarily disable LoadLatestVersion to debug JSON unmarshaling issue
+		// if err := app.LoadLatestVersion(); err != nil {
+		// 	tmos.Exit(err.Error())
+		// }
 	}
 
 	return app
