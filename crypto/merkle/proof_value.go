@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
+	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	"github.com/gogo/protobuf/proto"
 )
@@ -38,11 +38,11 @@ func NewValueOp(key []byte, proof *Proof) ValueOp {
 	}
 }
 
-func ValueOpDecoder(pop *cosmosproto.ProofOp) (ProofOperator, error) {
+func ValueOpDecoder(pop *cmtcrypto.ProofOp) (ProofOperator, error) {
 	if pop.Type != ProofOpValue {
 		return nil, fmt.Errorf("unexpected ProofOp.Type; got %v, want %v", pop.Type, ProofOpValue)
 	}
-	var pbop cosmosproto.ValueOp // a bit strange as we'll discard this, but it works.
+	var pbop cmtcrypto.ValueOp // a bit strange as we'll discard this, but it works.
 	err := proto.Unmarshal(pop.Data, &pbop)
 	if err != nil {
 		return nil, fmt.Errorf("decoding ProofOp.Data into ValueOp: %w", err)
@@ -55,8 +55,8 @@ func ValueOpDecoder(pop *cosmosproto.ProofOp) (ProofOperator, error) {
 	return NewValueOp(pop.Key, sp), nil
 }
 
-func (op ValueOp) ProofOp() cosmosproto.ProofOp {
-	pbval := cosmosproto.ValueOp{
+func (op ValueOp) ProofOp() cmtcrypto.ProofOp {
+	pbval := cmtcrypto.ValueOp{
 		Key:   op.key,
 		Proof: op.Proof.ToProto(),
 	}
@@ -64,7 +64,7 @@ func (op ValueOp) ProofOp() cosmosproto.ProofOp {
 	if err != nil {
 		panic(err)
 	}
-	return cosmosproto.ProofOp{
+	return cmtcrypto.ProofOp{
 		Type: ProofOpValue,
 		Key:  op.key,
 		Data: bz,
