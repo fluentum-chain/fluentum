@@ -132,9 +132,18 @@ EOF
 }
 EOF
         
-    # Create a minimal validator key file
-    print_status "Creating validator key..."
-    cat > "$FLUENTUM_HOME/config/priv_validator_key.json" << 'EOF'
+    # Instead of creating invalid key files, let's generate proper ones
+    print_status "Generating proper validator keys..."
+    
+    # Use fluentumd to generate keys properly
+    if fluentumd init "$CURRENT_NODE" --chain-id $CHAIN_ID --home "$FLUENTUM_HOME" --overwrite 2>/dev/null; then
+        print_success "Node initialized successfully with fluentumd init --overwrite"
+    else
+        print_warning "fluentumd init still failed, creating minimal setup..."
+        
+        # Create a minimal validator key file with proper structure
+        print_status "Creating validator key..."
+        cat > "$FLUENTUM_HOME/config/priv_validator_key.json" << 'EOF'
 {
   "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
   "pub_key": {
@@ -148,14 +157,15 @@ EOF
 }
 EOF
 
-    # Create validator state file
-    cat > "$FLUENTUM_HOME/data/priv_validator_state.json" << 'EOF'
+        # Create validator state file with proper structure
+        cat > "$FLUENTUM_HOME/data/priv_validator_state.json" << 'EOF'
 {
-  "height": "0",
+  "height": 0,
   "round": 0,
   "step": 0
 }
 EOF
+    fi
         
     print_success "Node setup completed with manual method"
 fi
