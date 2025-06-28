@@ -42,6 +42,7 @@ import (
 	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/proxy"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 // AppOptions wrapper for map[string]interface{}
@@ -75,8 +76,8 @@ for high throughput and security. It features:
 - Hybrid liquidity routing`,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
-			cmd.SetOut(cmd.OutOrStdout())
-			cmd.SetErr(cmd.ErrOrStderr())
+			cmd.SetOut(os.Stdout)
+			cmd.SetErr(os.Stderr)
 
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
@@ -116,6 +117,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		debug.Cmd(),
+		versionCmd(),
 		// config.Cmd(), // Removed - not available in v0.50.6
 	)
 
@@ -186,6 +188,24 @@ func txCommand() *cobra.Command {
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
+}
+
+// versionCmd returns the version command
+func versionCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print the application binary version information",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Fprintln(os.Stdout, "DEBUG: version command executed")
+			goVersion := version.GoVersion
+			if goVersion == "" {
+				goVersion = "unknown"
+			}
+			fmt.Fprintf(os.Stdout, "Fluentum Core %s\n", version.Version)
+			fmt.Fprintf(os.Stdout, "Go Version: %s\n", goVersion)
+			fmt.Fprintf(os.Stdout, "Tendermint Core: %s\n", version.TMCoreSemVer)
+		},
+	}
 }
 
 type appCreator struct {
@@ -670,13 +690,19 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	// Load or generate private validator
 	privValidator := privval.LoadOrGenFilePV(tmConfig.PrivValidatorKeyFile(), tmConfig.PrivValidatorStateFile())
 
+	// Initialize database
+	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, tmConfig.DBDir())
+	if err != nil {
+		return fmt.Errorf("failed to create database: %w", err)
+	}
+
 	// Wrap appOpts in AppOptions
 	appOpts := appOptions{
 		"home": homeDir,
 	}
 
-	// Create the application instance with CometBFT logger
-	cosmosApp := appCreator.CreateApp(cometLogger, nil, nil, appOpts)
+	// Create the application instance with CometBFT logger and proper database
+	cosmosApp := appCreator.CreateApp(cometLogger, db, nil, appOpts)
 	adapter := &CosmosAppAdapter{App: cosmosApp.(*app.App)}
 
 	// Create the Tendermint node
@@ -716,6 +742,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 }
 
 func main() {
+	fmt.Fprintln(os.Stdout, "DEBUG: entered main function")
 	// Load main config - stub implementation for now
 	cfg := &config.Config{
 		Quantum: &config.QuantumConfig{
