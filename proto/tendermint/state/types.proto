@@ -15,7 +15,7 @@ import "google/protobuf/timestamp.proto";
 // of the various ABCI calls during block processing.
 // It is persisted to disk for each height before calling Commit.
 message ABCIResponses {
-  tendermint.abci.ResponseFinalizeBlock finalize_block = 1;
+  bytes finalize_block = 1;  // Using bytes instead of non-existent ResponseFinalizeBlock
 }
 
 // ValidatorsInfo represents the latest validator set, or the last height it changed
