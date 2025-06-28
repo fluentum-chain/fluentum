@@ -60,19 +60,8 @@ func NewRootCmd() (*cobra.Command, app.EncodingConfig) {
 for high throughput and security.`,
 	}
 
-	// Create a minimal start command
-	startCmd := &cobra.Command{
-		Use:   "start",
-		Short: "Start the Fluentum node",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("DEBUG: Minimal start command called")
-			return nil
-		},
-	}
-
-	// Add minimal flags
-	startCmd.Flags().String("home", app.DefaultNodeHome, "The application home directory")
-
+	// Create a proper start command for the Fluentum node
+	startCmd := createStartCommand(encodingConfig)
 	rootCmd.AddCommand(startCmd)
 
 	return rootCmd, encodingConfig
