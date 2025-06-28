@@ -247,6 +247,9 @@ func New(
 	// app.mm.RegisterInvariants(nil) // Comment out for now - will be called during BeginBlock
 	// app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+
+	// Register interfaces through ModuleBasics
+	ModuleBasics.RegisterInterfaces(app.interfaceRegistry)
 	app.mm.RegisterServices(app.configurator)
 
 	fmt.Println("DEBUG: Mounting stores")
