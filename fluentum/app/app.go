@@ -314,9 +314,20 @@ func (app *App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 // InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
-	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
-		panic(err)
+
+	// Handle case where AppStateBytes might be nil or empty
+	if req.AppStateBytes == nil || len(req.AppStateBytes) == 0 {
+		// Initialize with empty genesis state
+		genesisState = make(GenesisState)
+	} else {
+		// Unmarshal the genesis state
+		if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+			// Log the error and continue with empty state
+			ctx.Logger().Error("Failed to unmarshal genesis state", "error", err)
+			genesisState = make(GenesisState)
+		}
 	}
+
 	app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 	return abci.ResponseInitChain{}
 }
