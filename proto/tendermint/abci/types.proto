@@ -5,7 +5,6 @@ option go_package = "github.com/fluentum-chain/fluentum/proto/tendermint/abci";
 
 // For more information on gogo.proto, see:
 // https://github.com/gogo/protobuf/blob/master/extensions.md
-import "cosmos/base/query/v1beta1/pagination.proto";
 import "tendermint/types/types.proto";
 import "tendermint/types/params.proto";
 import "google/protobuf/timestamp.proto";
