@@ -13,10 +13,7 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/client"
-	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -26,7 +23,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
@@ -78,31 +74,39 @@ for high throughput and security. It features:
 - Cross-chain gas abstraction
 - Hybrid liquidity routing`,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			fmt.Println("DEBUG: PersistentPreRunE called")
+
 			// set the default command outputs
 			cmd.SetOut(os.Stdout)
 			cmd.SetErr(os.Stderr)
 
-			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
-			if err != nil {
-				return err
-			}
+			// Temporarily skip all the complex initialization to isolate the issue
+			/*
+				initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+				if err != nil {
+					return err
+				}
 
-			initClientCtx, err = clientconfig.ReadFromClientConfig(initClientCtx)
-			if err != nil {
-				return err
-			}
+				initClientCtx, err = clientconfig.ReadFromClientConfig(initClientCtx)
+				if err != nil {
+					return err
+				}
 
-			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
-				return err
-			}
+				if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
+					return err
+				}
 
-			// Skip config validation for init command since config doesn't exist yet
-			// Check if this is the init command by looking at the command path
-			if cmd.Name() == "init" || (cmd.Parent() != nil && cmd.Parent().Name() == "fluentumd" && cmd.Name() == "init") {
-				return nil
-			}
+				// Skip config validation for init command since config doesn't exist yet
+				// Check if this is the init command by looking at the command path
+				if cmd.Name() == "init" || (cmd.Parent() != nil && cmd.Parent().Name() == "fluentumd" && cmd.Name() == "init") {
+					return nil
+				}
 
-			return server.InterceptConfigsPreRunHandler(cmd, "", nil, nil)
+				return server.InterceptConfigsPreRunHandler(cmd, "", nil, nil)
+			*/
+
+			fmt.Println("DEBUG: PersistentPreRunE completed successfully")
+			return nil
 		},
 	}
 
@@ -118,29 +122,35 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	// Create address codec for genutil commands
 	addressCodec := app.SimpleAddressCodec{Prefix: cfg.GetBech32AccountAddrPrefix()}
 
-	rootCmd.AddCommand(
-		createInitCommand(), // Custom init command instead of genutilcli.InitCmd
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, nil, addressCodec),
-		genutilcli.MigrateGenesisCmd(nil), // TODO: implement migration map
-		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, addressCodec),
-		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		AddGenesisAccountCmd(app.DefaultNodeHome),
-		debug.Cmd(),
-		versionCmd(),
-		// config.Cmd(), // Removed - not available in v0.50.6
-	)
+	// Temporarily comment out all commands except start to isolate the issue
+	/*
+		rootCmd.AddCommand(
+			createInitCommand(), // Custom init command instead of genutilcli.InitCmd
+			genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, nil, addressCodec),
+			genutilcli.MigrateGenesisCmd(nil), // TODO: implement migration map
+			genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, addressCodec),
+			genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+			AddGenesisAccountCmd(app.DefaultNodeHome),
+			debug.Cmd(),
+			versionCmd(),
+			// config.Cmd(), // Removed - not available in v0.50.6
+		)
+	*/
 
 	// Create a proper start command for the Fluentum node
 	startCmd := createStartCommand(encodingConfig)
 	rootCmd.AddCommand(startCmd)
 
-	// add keybase, auxiliary RPC, query, and tx child commands
-	rootCmd.AddCommand(
-		// rpc.StatusCommand(), // Removed - not available in v0.50.6
-		queryCommand(),
-		txCommand(),
-		keys.Commands(), // Removed home parameter
-	)
+	// Temporarily comment out other commands
+	/*
+		// add keybase, auxiliary RPC, query, and tx child commands
+		rootCmd.AddCommand(
+			// rpc.StatusCommand(), // Removed - not available in v0.50.6
+			queryCommand(),
+			txCommand(),
+			keys.Commands(), // Removed home parameter
+		)
+	*/
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
