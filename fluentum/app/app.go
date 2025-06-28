@@ -46,6 +46,7 @@ import (
 
 	"cosmossdk.io/core/store"
 	cosmossdkstore "cosmossdk.io/core/store"
+	"github.com/cosmos/cosmos-sdk/store/pruning"
 )
 
 const (
@@ -295,8 +296,9 @@ func NewFluentumApp(
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
 
 	// Create base app options
+	pruningOpts := pruning.NewOptions("default")
 	baseAppOptions := []func(*baseapp.BaseApp){
-		baseapp.SetPruning("default"),
+		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
 		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
