@@ -95,6 +95,12 @@ for high throughput and security. It features:
 				return err
 			}
 
+			// Skip config validation for init command since config doesn't exist yet
+			// Check if this is the init command by looking at the command path
+			if cmd.Name() == "init" || (cmd.Parent() != nil && cmd.Parent().Name() == "fluentumd" && cmd.Name() == "init") {
+				return nil
+			}
+
 			return server.InterceptConfigsPreRunHandler(cmd, "", nil, nil)
 		},
 	}
