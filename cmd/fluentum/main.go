@@ -19,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -32,6 +31,7 @@ import (
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	"github.com/fluentum-chain/fluentum/fluentum/app"
@@ -43,7 +43,6 @@ import (
 	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/proxy"
-	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
 	"github.com/fluentum-chain/fluentum/version"
 )
@@ -220,8 +219,8 @@ func (a appCreator) CreateApp(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
-	appOpts types.AppOptions,
-) types.Application {
+	appOpts servertypes.AppOptions,
+) servertypes.Application {
 	return app.NewFluentumApp(
 		logger,
 		db,
@@ -240,8 +239,8 @@ func (a appCreator) ExportApp(
 	height int64,
 	forZeroHeight bool,
 	jailAllowedAddrs []string,
-	appOpts types.AppOptions,
-) (types.ExportedApp, error) {
+	appOpts servertypes.AppOptions,
+) (servertypes.ExportedApp, error) {
 	app := app.NewFluentumApp(
 		logger,
 		db,
@@ -839,10 +838,10 @@ func initializeNode(homeDir, moniker, chainID string) error {
 	if tmos.FileExists(genFile) {
 		fmt.Printf("Found genesis file: %s\n", genFile)
 	} else {
-		genDoc := types.GenesisDoc{
+		genDoc := fluentumtypes.GenesisDoc{
 			ChainID:         chainID,
 			GenesisTime:     tmtime.Now(),
-			ConsensusParams: types.DefaultConsensusParams(),
+			ConsensusParams: fluentumtypes.DefaultConsensusParams(),
 		}
 
 		pubKey, err := pv.GetPubKey()
@@ -850,7 +849,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			return fmt.Errorf("can't get pubkey: %w", err)
 		}
 
-		genDoc.Validators = []types.GenesisValidator{{
+		genDoc.Validators = []fluentumtypes.GenesisValidator{{
 			Address: pubKey.Address(),
 			PubKey:  pubKey,
 			Power:   10,
@@ -869,9 +868,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 		defaultConfig.Moniker = moniker
 		defaultConfig.SetRoot(homeDir)
 
-		if err := defaultConfig.SaveAs(configFile); err != nil {
-			return fmt.Errorf("failed to save config file: %w", err)
-		}
+		config.WriteConfigFile(configFile, defaultConfig)
 		fmt.Printf("Generated config file: %s\n", configFile)
 	}
 
