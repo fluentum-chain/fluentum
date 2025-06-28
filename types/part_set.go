@@ -8,7 +8,7 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
-	"github.com/fluentum-chain/fluentum/crypto/merkle/bits"
+	"github.com/fluentum-chain/fluentum/libs/bits"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
