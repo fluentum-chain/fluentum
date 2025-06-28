@@ -401,6 +401,7 @@ This command starts the Fluentum node with the following features:
 The node will connect to the network and begin participating in consensus.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("DEBUG: Start command RunE function called")
 			return startNode(cmd, encodingConfig)
 		},
 	}
@@ -634,7 +635,10 @@ func (a *CosmosAppAdapter) Echo(ctx context.Context, req *abcitypes.EchoRequest)
 
 // startNode starts the Fluentum node
 func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
+	fmt.Println("DEBUG: startNode function called")
+
 	// Get configuration from flags
+	fmt.Println("DEBUG: Getting configuration from flags")
 	homeDir, _ := cmd.Flags().GetString(flags.FlagHome)
 	chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
 	logLevel, _ := cmd.Flags().GetString("log_level")
@@ -644,6 +648,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	persistentPeers, _ := cmd.Flags().GetString("persistent_peers")
 	testnetMode, _ := cmd.Flags().GetBool("testnet")
 	moniker, _ := cmd.Flags().GetString("moniker")
+	fmt.Println("DEBUG: Configuration flags retrieved")
 
 	// Set default chain ID if not provided
 	if chainID == "" {
@@ -654,9 +659,11 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		}
 	}
 
+	fmt.Println("DEBUG: Creating loggers")
 	// Create logger (use Fluentum logger for node, CometBFT logger for app)
 	fluentumLogger := fluentumlog.NewTMLogger(fluentumlog.NewSyncWriter(os.Stdout)).With("module", "main")
 	cometLogger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).With("module", "main")
+	fmt.Println("DEBUG: Loggers created")
 
 	// Log startup information
 	fluentumLogger.Info("Starting Fluentum node",
@@ -667,12 +674,16 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		"log_level", logLevel,
 	)
 
+	fmt.Println("DEBUG: Creating app creator")
 	// Create app creator
 	appCreator := appCreator{encCfg: encodingConfig}
+	fmt.Println("DEBUG: App creator created")
 
+	fmt.Println("DEBUG: Loading Tendermint configuration")
 	// Load Tendermint configuration
 	tmConfig := config.DefaultConfig()
 	tmConfig.SetRoot(homeDir)
+	fmt.Println("DEBUG: Tendermint configuration loaded")
 
 	// Configure the server
 	tmConfig.Moniker = moniker
@@ -690,14 +701,18 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		fluentumLogger.Info("Configured for testnet mode with faster block times")
 	}
 
+	fmt.Println("DEBUG: Loading node key")
 	// Load or generate node key (use p2p)
 	nodeKey, err := p2p.LoadOrGenNodeKey(tmConfig.NodeKeyFile())
 	if err != nil {
 		return fmt.Errorf("failed to load or generate node key: %w", err)
 	}
+	fmt.Println("DEBUG: Node key loaded")
 
+	fmt.Println("DEBUG: Loading private validator")
 	// Load or generate private validator
 	privValidator := privval.LoadOrGenFilePV(tmConfig.PrivValidatorKeyFile(), tmConfig.PrivValidatorStateFile())
+	fmt.Println("DEBUG: Private validator loaded")
 
 	// Initialize database
 	fluentumLogger.Info("Creating database...")
@@ -978,10 +993,15 @@ func main() {
 
 	fmt.Println("[FeatureLoader] Features loaded and started:", featureLoader.GetFeatureStatus())
 
+	fmt.Println("DEBUG: Creating root command")
 	rootCmd, _ := NewRootCmd()
+	fmt.Println("DEBUG: Root command created")
 
+	fmt.Println("DEBUG: About to execute root command")
 	if err := rootCmd.Execute(); err != nil {
+		fmt.Println("DEBUG: Root command execution failed with error:", err)
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	fmt.Println("DEBUG: Root command executed successfully")
 }
