@@ -1,9 +1,9 @@
 package p2p
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"github.com/fluentum-chain/fluentum/p2p/conn"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
+	"github.com/gogo/protobuf/proto"
 )
 
 type ChannelDescriptor = conn.ChannelDescriptor

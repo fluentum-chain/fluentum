@@ -6,15 +6,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fluentum-chain/fluentum/libs/service"
+	"github.com/fluentum-chain/fluentum/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/fluentum-chain/fluentum/libs/cmap"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
-	"github.com/fluentum-chain/fluentum/libs/service"
-	"github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/p2p/conn"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
 )
 
 type Peer = p2p.Peer
@@ -311,10 +311,17 @@ func (r *Reactor) Receive(chID byte, peer p2p.Peer, msgBytes []byte) {
 	if err != nil {
 		panic(err)
 	}
-	um, err := msg.Unwrap()
-	if err != nil {
-		panic(err)
+
+	// Extract the message based on its type
+	var um proto.Message
+	if pexRequest := msg.GetPexRequest(); pexRequest != nil {
+		um = pexRequest
+	} else if pexAddrs := msg.GetPexAddrs(); pexAddrs != nil {
+		um = pexAddrs
+	} else {
+		panic("unknown message type")
 	}
+
 	r.ReceiveEnvelope(p2p.Envelope{
 		ChannelID: chID,
 		Src:       peer,

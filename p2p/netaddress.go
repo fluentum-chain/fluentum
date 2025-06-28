@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 )
 
 // EmptyNetAddress defines the string representation of an empty NetAddress

@@ -13,7 +13,7 @@ import (
 
 	"github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/libs/protoio"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 

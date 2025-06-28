@@ -15,7 +15,7 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	"github.com/fluentum-chain/fluentum/libs/protoio"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 )
 
 type buffer struct {

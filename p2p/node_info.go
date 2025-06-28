@@ -8,7 +8,7 @@ import (
 
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	tmstrings "github.com/fluentum-chain/fluentum/libs/strings"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/version"
 )
 

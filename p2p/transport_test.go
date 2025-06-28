@@ -13,7 +13,7 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	"github.com/fluentum-chain/fluentum/libs/protoio"
 	"github.com/fluentum-chain/fluentum/p2p/conn"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 )
 
 var defaultNodeName = "host_peer"

@@ -21,7 +21,7 @@ import (
 	"github.com/fluentum-chain/fluentum/libs/service"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	"github.com/fluentum-chain/fluentum/libs/timer"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 )
 
 const (

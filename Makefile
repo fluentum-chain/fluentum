@@ -92,12 +92,20 @@ build-only:
 .PHONY: build-only
 
 install: deps
-	CGO_ENABLED=$(CGO_ENABLED) go install $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./cmd/fluentum
+	@echo "--> Installing Fluentum Core $(VERSION) as fluentumd"
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o build/fluentumd ./cmd/fluentum
+	@mkdir -p $(GOPATH)/bin
+	@cp build/fluentumd $(GOPATH)/bin/
+	@echo "--> Binary installed as fluentumd in $(GOPATH)/bin"
 .PHONY: install
 
 # Install without dependency management
 install-only:
-	CGO_ENABLED=$(CGO_ENABLED) go install $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./cmd/fluentum
+	@echo "--> Installing Fluentum Core $(VERSION) as fluentumd (dependencies assumed to be ready)"
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o build/fluentumd ./cmd/fluentum
+	@mkdir -p $(GOPATH)/bin
+	@cp build/fluentumd $(GOPATH)/bin/
+	@echo "--> Binary installed as fluentumd in $(GOPATH)/bin"
 .PHONY: install-only
 
 ###############################################################################

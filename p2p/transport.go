@@ -8,11 +8,11 @@ import (
 
 	"golang.org/x/net/netutil"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/libs/protoio"
 	"github.com/fluentum-chain/fluentum/p2p/conn"
-	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	tmp2p "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
+	"github.com/gogo/protobuf/proto"
 )
 
 const (

@@ -15,7 +15,7 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	"github.com/fluentum-chain/fluentum/libs/bytes"
 	"github.com/fluentum-chain/fluentum/libs/log"
-	"github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	"github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 
 	"github.com/fluentum-chain/fluentum/config"
 	tmconn "github.com/fluentum-chain/fluentum/p2p/conn"

@@ -24,7 +24,7 @@ import (
 	"github.com/fluentum-chain/fluentum/libs/log"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	"github.com/fluentum-chain/fluentum/p2p/conn"
-	p2pproto "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
+	p2pproto "github.com/fluentum-chain/fluentum/proto/fluentum/p2p"
 )
 
 var cfg *config.P2PConfig
