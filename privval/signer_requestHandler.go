@@ -8,7 +8,7 @@ import (
 	privvalproto "github.com/fluentum-chain/fluentum/proto/tendermint/privval"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
-	"github.com/golang/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 )
 
 func DefaultValidationRequestHandler(
