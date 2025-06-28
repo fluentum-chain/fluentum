@@ -8,7 +8,7 @@ import (
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	protocrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
-	"google.golang.org/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 )
 
 //-------------------------------------------------------

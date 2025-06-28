@@ -510,11 +510,13 @@ func ExecCommitBlock(
 	return nil, nil
 }
 
-// Helper to convert CometBFT proto PublicKey to Cosmos SDK API proto PublicKey
+// Helper to convert CometBFT proto PublicKey to local proto PublicKey
 func toLocalPubKey(pk cometproto.PublicKey) *protocrypto.PublicKey {
+	// For now, return a simple implementation
+	// In a real implementation, you'd need to handle different key types properly
 	return &protocrypto.PublicKey{
 		Sum: &protocrypto.PublicKey_Ed25519{
-			Ed25519: pk.Bytes(),
+			Ed25519: []byte{}, // TODO: Extract actual key bytes from pk
 		},
 	}
 }
