@@ -122,20 +122,20 @@ make build
 make test
 
 # Validate configuration
-./build/fluentum validate-genesis
+./build/fluentumd validate-genesis
 ```
 
 ### Node Management
 ```bash
 # Start node
-./build/fluentum start --home ~/.fluentum
+./build/fluentumd start --home ~/.fluentum
 
 # Show node info
-./build/fluentum show_node_id
-./build/fluentum show_validator
+./build/fluentumd show_node_id
+./build/fluentumd show_validator
 
 # Reset node (dangerous)
-./build/fluentum unsafe-reset-all
+./build/fluentumd unsafe-reset-all
 ```
 
 ### Health Checks
@@ -191,9 +191,9 @@ curl -s http://localhost:26657/net_info | jq '.result.n_peers'
 
 ### Node Won't Start
 1. Check logs: `tail -f ~/.fluentum/logs/tendermint.log`
-2. Validate configuration: `./build/fluentum validate-genesis`
+2. Validate configuration: `./build/fluentumd validate-genesis`
 3. Check permissions on key files
-4. Reset if necessary: `./build/fluentum unsafe-reset-all`
+4. Reset if necessary: `./build/fluentumd unsafe-reset-all`
 
 ### Not Syncing
 1. Check peers: `curl -s http://localhost:26657/net_info`

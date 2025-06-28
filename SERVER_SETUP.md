@@ -170,13 +170,13 @@ docker run -it --rm -v $(pwd):/app -w /app golang:1.24.4-alpine sh -c "apk add -
 ### Check Build Success
 ```bash
 # Verify binary exists
-ls -la build/fluentum
+ls -la build/fluentumd
 
 # Check binary version
-./build/fluentum version
+./build/fluentumd version
 
 # Test basic functionality
-./build/fluentum help
+./build/fluentumd help
 ```
 
 ### Check Dependencies
@@ -281,10 +281,10 @@ make build
 ### Verify Binary Integrity
 ```bash
 # Check binary checksum
-sha256sum build/fluentum
+sha256sum build/fluentumd
 
 # Verify it's not malicious
-file build/fluentum
+file build/fluentumd
 ```
 
 ## Support

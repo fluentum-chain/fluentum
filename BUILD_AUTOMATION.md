@@ -133,8 +133,8 @@ RUN make build
 
 # Final stage
 FROM alpine:latest
-COPY --from=builder /app/build/fluentum /usr/local/bin/
-CMD ["fluentum"]
+COPY --from=builder /app/build/fluentumd /usr/local/bin/
+CMD ["fluentumd"]
 ```
 
 ## Troubleshooting

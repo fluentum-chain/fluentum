@@ -1,5 +1,5 @@
 PACKAGES=$(shell go list ./...)
-OUTPUT?=build/fluentum
+OUTPUT?=build/fluentumd
 
 BUILD_TAGS?=tendermint,badgerdb
 
@@ -322,7 +322,7 @@ contract-tests:
 # Variables
 VERSION := v0.1.0
 BUILD_DIR := build
-BINARY_NAME := fluentum
+BINARY_NAME := fluentumd
 MAIN_PACKAGE := ./cmd/fluentum
 LDFLAGS := -X github.com/kellyadamtan/tendermint/version.Version=$(VERSION)
 

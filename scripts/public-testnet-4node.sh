@@ -13,7 +13,7 @@ for i in $(seq 1 $NODES); do
   mkdir -p "$FLUENTUM_HOME/config"
   cp "$CONFIG_TEMPLATE" "$FLUENTUM_HOME/config/config.toml"
   sed -i 's/backend = "goleveldb"/backend = "pebble"/' "$FLUENTUM_HOME/config/config.toml"
-  ./fluentum init --testnet --chain-id $CHAIN_ID --home "$FLUENTUM_HOME"
+  ./fluentumd init --testnet --chain-id $CHAIN_ID --home "$FLUENTUM_HOME"
   ls -la "$FLUENTUM_HOME"
   ls -la "$FLUENTUM_HOME/config/"
   grep -A 2 -B 2 "backend" "$FLUENTUM_HOME/config/config.toml"
@@ -21,4 +21,4 @@ for i in $(seq 1 $NODES); do
 done
 
 echo "\nAll $NODES nodes configured. To start a node, run:"
-echo "./fluentum start --testnet --home /tmp/fluentum-node1" 
+echo "./fluentumd start --testnet --home /tmp/fluentum-node1" 

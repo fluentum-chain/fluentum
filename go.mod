@@ -8,7 +8,6 @@ replace github.com/tendermint/tendermint-db => github.com/cometbft/cometbft-db v
 
 require (
 	cloud.google.com/go/kms v1.15.7
-	cosmossdk.io/api v0.7.4
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/store v1.1.0
@@ -72,6 +71,7 @@ require (
 	4d63.com/gochecknoglobals v0.2.1 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/iam v1.1.6 // indirect
+	cosmossdk.io/api v0.7.4 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect

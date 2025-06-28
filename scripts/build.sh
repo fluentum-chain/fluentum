@@ -114,12 +114,12 @@ run_tests() {
 show_build_info() {
     print_status "Build Information:"
     echo "  Go version: $(go version)"
-    echo "  Build target: $(pwd)/build/fluentum"
+    echo "  Build target: $(pwd)/build/fluentumd"
     echo "  Build time: $(date)"
     
-    if [ -f "build/fluentum" ]; then
-        echo "  Binary size: $(du -h build/fluentum | cut -f1)"
-        echo "  Binary created: $(ls -la build/fluentum)"
+    if [ -f "build/fluentumd" ]; then
+        echo "  Binary size: $(du -h build/fluentumd | cut -f1)"
+        echo "  Binary created: $(ls -la build/fluentumd)"
     fi
 }
 
