@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"io"
 
+	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
-	"github.com/fluentum-chain/fluentum/libs/bits"
+	"github.com/fluentum-chain/fluentum/crypto/merkle/bits"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"github.com/gogo/protobuf/proto"
 )
 
 var (
@@ -65,10 +67,14 @@ func (part *Part) ToProto() (*tmproto.Part, error) {
 
 	pb := new(tmproto.Part)
 	proof := part.Proof.ToProto()
+	proofBytes, err := proto.Marshal(proof)
+	if err != nil {
+		return nil, err
+	}
 
 	pb.Index = part.Index
 	pb.Bytes = part.Bytes
-	pb.Proof = proof
+	pb.Proof = proofBytes
 
 	return pb, nil
 }
@@ -79,7 +85,13 @@ func PartFromProto(pb *tmproto.Part) (*Part, error) {
 	}
 
 	part := new(Part)
-	proof, err := merkle.ProofFromProto(pb.Proof)
+	var proofProto cmtcrypto.Proof
+	err := proto.Unmarshal(pb.Proof, &proofProto)
+	if err != nil {
+		return nil, err
+	}
+
+	proof, err := merkle.ProofFromProto(&proofProto)
 	if err != nil {
 		return nil, err
 	}

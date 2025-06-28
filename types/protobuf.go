@@ -1,12 +1,14 @@
 package types
 
 import (
+	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	"github.com/fluentum-chain/fluentum/crypto/secp256k1"
 	abci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -85,8 +87,12 @@ func (tm2pb) ValidatorUpdate(val *Validator) abci.ValidatorUpdate {
 	if err != nil {
 		panic(err)
 	}
+	pkBytes, err := proto.Marshal(&pk)
+	if err != nil {
+		panic(err)
+	}
 	return abci.ValidatorUpdate{
-		PubKey: &pk,
+		PubKey: pkBytes,
 		Power:  val.VotingPower,
 	}
 }
@@ -117,8 +123,12 @@ func (tm2pb) NewValidatorUpdate(pubkey crypto.PubKey, power int64) abci.Validato
 	if err != nil {
 		panic(err)
 	}
+	pkBytes, err := proto.Marshal(&pubkeyABCI)
+	if err != nil {
+		panic(err)
+	}
 	return abci.ValidatorUpdate{
-		PubKey: &pubkeyABCI,
+		PubKey: pkBytes,
 		Power:  power,
 	}
 }
@@ -134,7 +144,12 @@ type pb2tm struct{}
 func (pb2tm) ValidatorUpdates(vals []abci.ValidatorUpdate) ([]*Validator, error) {
 	tmVals := make([]*Validator, len(vals))
 	for i, v := range vals {
-		pub, err := cryptoenc.PubKeyFromProto(*v.PubKey)
+		var pkProto cosmosproto.PublicKey
+		err := proto.Unmarshal(v.PubKey, &pkProto)
+		if err != nil {
+			return nil, err
+		}
+		pub, err := cryptoenc.PubKeyFromProto(pkProto)
 		if err != nil {
 			return nil, err
 		}

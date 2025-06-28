@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
@@ -125,20 +126,29 @@ func (tp TxProof) Validate(dataHash []byte) error {
 }
 
 func (tp TxProof) ToProto() tmproto.TxProof {
-
 	pbProof := tp.Proof.ToProto()
+	proofBytes, err := proto.Marshal(pbProof)
+	if err != nil {
+		panic(err)
+	}
 
 	pbtp := tmproto.TxProof{
 		RootHash: tp.RootHash,
 		Data:     tp.Data,
-		Proof:    pbProof,
+		Proof:    proofBytes,
 	}
 
 	return pbtp
 }
 
 func TxProofFromProto(pb tmproto.TxProof) (TxProof, error) {
-	pbProof, err := merkle.ProofFromProto(pb.Proof)
+	var proofProto cmtcrypto.Proof
+	err := proto.Unmarshal(pb.Proof, &proofProto)
+	if err != nil {
+		return TxProof{}, err
+	}
+
+	pbProof, err := merkle.ProofFromProto(&proofProto)
 	if err != nil {
 		return TxProof{}, err
 	}

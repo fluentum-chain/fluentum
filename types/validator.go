@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	ce "github.com/fluentum-chain/fluentum/crypto/encoding"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
@@ -121,8 +122,13 @@ func (v *Validator) Bytes() []byte {
 		panic(err)
 	}
 
+	pkBytes, err := proto.Marshal(&pk)
+	if err != nil {
+		panic(err)
+	}
+
 	pbv := tmproto.SimpleValidator{
-		PubKey:      &pk,
+		PubKey:      pkBytes,
 		VotingPower: v.VotingPower,
 	}
 
@@ -144,9 +150,14 @@ func (v *Validator) ToProto() (*tmproto.Validator, error) {
 		return nil, err
 	}
 
+	pkBytes, err := proto.Marshal(&pk)
+	if err != nil {
+		return nil, err
+	}
+
 	vp := tmproto.Validator{
 		Address:          v.Address,
-		PubKey:           &pk,
+		PubKey:           pkBytes,
 		VotingPower:      v.VotingPower,
 		ProposerPriority: v.ProposerPriority,
 	}
@@ -161,7 +172,13 @@ func ValidatorFromProto(vp *tmproto.Validator) (*Validator, error) {
 		return nil, errors.New("nil validator")
 	}
 
-	pk, err := ce.PubKeyFromProto(*vp.PubKey)
+	var pkProto cosmosproto.PublicKey
+	err := proto.Unmarshal(vp.PubKey, &pkProto)
+	if err != nil {
+		return nil, err
+	}
+
+	pk, err := ce.PubKeyFromProto(pkProto)
 	if err != nil {
 		return nil, err
 	}
