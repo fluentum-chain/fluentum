@@ -15,7 +15,6 @@ echo "Generating protobuf files from $(pwd)..."
 mkdir -p proto/tendermint/abci
 mkdir -p proto/tendermint/crypto
 mkdir -p proto/tendermint/types
-mkdir -p proto/tendermint/p2p
 mkdir -p proto/tendermint/state
 mkdir -p proto/tendermint/version
 mkdir -p proto/tendermint/rpc/grpc
@@ -59,16 +58,7 @@ protoc \
     proto/tendermint/types/canonical.proto \
     proto/tendermint/types/evidence.proto
 
-# Generate other proto files
-protoc \
-    --proto_path=proto \
-    --proto_path=third_party/proto \
-    --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    proto/tendermint/p2p/types.proto \
-    proto/tendermint/p2p/pex.proto \
-    proto/tendermint/p2p/conn.proto
-
+# Generate other proto files (excluding p2p which is now handled by fluentum protobuf)
 protoc \
     --proto_path=proto \
     --proto_path=third_party/proto \
