@@ -700,10 +700,12 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	privValidator := privval.LoadOrGenFilePV(tmConfig.PrivValidatorKeyFile(), tmConfig.PrivValidatorStateFile())
 
 	// Initialize database
+	fluentumLogger.Info("Creating database...")
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, tmConfig.DBDir())
 	if err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}
+	fluentumLogger.Info("Database created successfully")
 
 	// Wrap appOpts in AppOptions
 	appOpts := appOptions{
@@ -711,10 +713,15 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	}
 
 	// Create the application instance with CometBFT logger and proper database
+	fluentumLogger.Info("Creating Cosmos application...")
 	cosmosApp := appCreator.CreateApp(cometLogger, db, nil, appOpts)
+	fluentumLogger.Info("Cosmos application created successfully")
+
 	adapter := &CosmosAppAdapter{App: cosmosApp.(*app.App)}
+	fluentumLogger.Info("Adapter created successfully")
 
 	// Create the Tendermint node
+	fluentumLogger.Info("Creating Tendermint node...")
 	n, err := node.NewNode(tmConfig,
 		privValidator,
 		nodeKey,
@@ -741,6 +748,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to create node: %w", err)
 	}
+	fluentumLogger.Info("Tendermint node created successfully")
 
 	// Start the node
 	fluentumLogger.Info("Starting Tendermint node...")

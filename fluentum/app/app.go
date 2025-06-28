@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 
@@ -123,9 +124,13 @@ func New(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
+	fmt.Println("DEBUG: Starting app.New()")
+
 	appCodec := encodingConfig.Marshaler
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
+
+	fmt.Println("DEBUG: Creating compatible logger and DB")
 
 	// Create a compatible logger and DB for the newer Cosmos SDK
 	// For now, we'll use type assertions to work around the interface differences
@@ -148,17 +153,20 @@ func New(
 		cosmosDB = cosmossdkdb.NewMemDB()
 	}
 
+	fmt.Println("DEBUG: Creating BaseApp")
 	bApp := baseapp.NewBaseApp(appName, cosmosLogger, cosmosDB, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
+	fmt.Println("DEBUG: Creating store keys")
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, paramstypes.StoreKey, fluentumtypes.StoreKey,
 	)
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := storetypes.NewMemoryStoreKeys()
 
+	fmt.Println("DEBUG: Creating app instance")
 	app := &App{
 		BaseApp:           bApp,
 		cdc:               cdc,
@@ -170,6 +178,7 @@ func New(
 		memKeys:           memKeys,
 	}
 
+	fmt.Println("DEBUG: Initializing params keeper")
 	app.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
@@ -181,6 +190,7 @@ func New(
 	var accountStore cosmossdkstore.KVStoreService
 	var bankStore cosmossdkstore.KVStoreService
 
+	fmt.Println("DEBUG: Creating store service adapters")
 	// Create proper store service adapters for Cosmos SDK v0.50.6
 	// These adapters bridge the old KVStore interface to the new KVStoreService interface
 	accountStore = NewKVStoreServiceAdapter(keys[authtypes.StoreKey])
@@ -189,16 +199,19 @@ func New(
 	// Create address codec - using a simple implementation
 	addressCodec := SimpleAddressCodec{Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix()}
 
+	fmt.Println("DEBUG: Creating account keeper")
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, accountStore, authtypes.ProtoBaseAccount, maccPerms,
 		addressCodec, authtypes.NewModuleAddress(authtypes.ModuleName).String(), "fluentum",
 	)
 
+	fmt.Println("DEBUG: Creating bank keeper")
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, bankStore, app.AccountKeeper, app.BlockedModuleAccountAddrs(), authtypes.NewModuleAddress(authtypes.ModuleName).String(),
 		cosmosLogger,
 	)
 
+	fmt.Println("DEBUG: Creating Fluentum keeper")
 	// Create Fluentum Keeper with correct parameters
 	app.FluentumKeeper = *fluentumkeeper.NewKeeper(
 		appCodec, keys[fluentumtypes.StoreKey], keys[fluentumtypes.MemStoreKey], app.GetSubspace(fluentumtypes.ModuleName),
@@ -208,6 +221,7 @@ func New(
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 
+	fmt.Println("DEBUG: Creating module manager")
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.AccountKeeper, nil, nil, encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
@@ -235,6 +249,7 @@ func New(
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
 
+	fmt.Println("DEBUG: Mounting stores")
 	// initialize stores
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
@@ -248,13 +263,16 @@ func New(
 	})
 	// app.SetEndBlocker(app.EndBlocker) // Commented out due to signature mismatch
 
+	fmt.Println("DEBUG: About to call LoadLatestVersion")
 	if loadLatest {
 		// Temporarily disable LoadLatestVersion to debug JSON unmarshaling issue
 		// if err := app.LoadLatestVersion(); err != nil {
 		// 	tmos.Exit(err.Error())
 		// }
+		fmt.Println("DEBUG: LoadLatestVersion skipped")
 	}
 
+	fmt.Println("DEBUG: App.New() completed successfully")
 	return app
 }
 
