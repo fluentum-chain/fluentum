@@ -5,7 +5,6 @@ option go_package = "github.com/fluentum-chain/fluentum/proto/tendermint/types";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-import "tendermint/crypto/proof.proto";
 import "tendermint/version/types.proto";
 import "tendermint/types/validator.proto";
 
@@ -43,7 +42,7 @@ message PartSetHeader {
 message Part {
   uint32                  index = 1;
   bytes                   bytes = 2;
-  tendermint.crypto.Proof proof = 3 [(gogoproto.nullable) = false];
+  bytes                   proof = 3;
 }
 
 // BlockID
@@ -153,5 +152,5 @@ message BlockMeta {
 message TxProof {
   bytes                   root_hash = 1;
   bytes                   data      = 2;
-  tendermint.crypto.Proof proof     = 3;
+  bytes                   proof     = 3;
 }
