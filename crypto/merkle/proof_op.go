@@ -102,7 +102,7 @@ func (prt *ProofRuntime) Decode(pop *cmtcrypto.ProofOp) (ProofOperator, error) {
 func (prt *ProofRuntime) DecodeProof(proof *cmtcrypto.ProofOps) (ProofOperators, error) {
 	poz := make(ProofOperators, 0, len(proof.Ops))
 	for _, pop := range proof.Ops {
-		operator, err := prt.Decode(pop)
+		operator, err := prt.Decode(&pop)
 		if err != nil {
 			return nil, fmt.Errorf("decoding a proof operator: %w", err)
 		}
