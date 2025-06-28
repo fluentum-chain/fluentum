@@ -97,7 +97,7 @@ func (a *ABCIAdapter) Query(ctx context.Context, req *cmtabci.RequestQuery) (*cm
 		Index:     resp.Index,
 		Key:       resp.Key,
 		Value:     resp.Value,
-		ProofOps:  convertProofOpsFromCometBFT(resp.ProofOps),
+		ProofOps:  convertProofOps(resp.ProofOps),
 		Height:    resp.Height,
 		Codespace: resp.Codespace,
 	}, nil
@@ -279,22 +279,12 @@ func convertEventAttributes(attrs []types.EventAttribute) []cmtabci.EventAttribu
 	return result
 }
 
-func convertProofOps(ops *types.ProofOps) *cmtcrypto.ProofOps {
+func convertProofOps(ops *cmtcrypto.ProofOps) *cmtcrypto.ProofOps {
 	if ops == nil {
 		return nil
 	}
-	// Convert from local ProofOps to CometBFT ProofOps
-	cometOps := &cmtcrypto.ProofOps{
-		Ops: make([]cmtcrypto.ProofOp, len(ops.Ops)),
-	}
-	for i, op := range ops.Ops {
-		cometOps.Ops[i] = cmtcrypto.ProofOp{
-			Type: op.Type_,
-			Key:  op.Key,
-			Data: op.Data,
-		}
-	}
-	return cometOps
+	// Since ops is already the correct type, just return it
+	return ops
 }
 
 func convertProofOpsFromCometBFT(ops *cmtcrypto.ProofOps) *cmtcrypto.ProofOps {

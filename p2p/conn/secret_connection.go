@@ -21,13 +21,13 @@ import (
 	"golang.org/x/crypto/hkdf"
 	"golang.org/x/crypto/nacl/box"
 
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	"github.com/fluentum-chain/fluentum/libs/async"
 	"github.com/fluentum-chain/fluentum/libs/protoio"
 	tmsync "github.com/fluentum-chain/fluentum/libs/sync"
+	protocrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 // 4 + 1024 == 1028 total frame size
@@ -53,7 +53,7 @@ var (
 
 // Custom AuthSigMessage struct to match the protobuf definition
 type authSigMessageProto struct {
-	PubKey *cosmosproto.PublicKey `protobuf:"bytes,1,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
+	PubKey *protocrypto.PublicKey `protobuf:"bytes,1,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
 	Sig    []byte                 `protobuf:"bytes,2,opt,name=sig,proto3" json:"sig,omitempty"`
 }
 

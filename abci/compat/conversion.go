@@ -1,7 +1,6 @@
 package compat
 
 import (
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	cmcrypto "github.com/cometbft/cometbft/crypto"
 	cmcryptoed25519 "github.com/cometbft/cometbft/crypto/ed25519"
@@ -9,12 +8,13 @@ import (
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cmttypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	localabci "github.com/fluentum-chain/fluentum/abci/types"
-	protocrbcto"github.com/fluentum-chain/fluentum/proto/tendermint/acrcito
-	prototpees"github.com/fluentum-chain/fluentum/proto/tendermint/tteses
+	protoabci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
+	protocrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
+	prototypes "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
-// ToCmPublicKey converts a Cosmos SDK API proto PublicKey to the upstream CometBFT crypto PublicKey.
-func ToCmPublicKey(pk *cosmosproto.PublicKey) cmcrypto.PubKey {
+// ToCmPublicKey converts a local proto PublicKey to the upstream CometBFT crypto PublicKey.
+func ToCmPublicKey(pk *protocrypto.PublicKey) cmcrypto.PubKey {
 	if pk == nil {
 		return nil
 	}
@@ -31,16 +31,16 @@ func ToCmPublicKey(pk *cosmosproto.PublicKey) cmcrypto.PubKey {
 	return nil
 }
 
-// ToLocalPublicKey converts an upstream CometBFT crypto PublicKey to the Cosmos SDK API proto PublicKey.
-func ToLocalPublicKey(pk cmcrypto.PubKey) *cosmosproto.PublicKey {
+// ToLocalPublicKey converts an upstream CometBFT crypto PublicKey to the local proto PublicKey.
+func ToLocalPublicKey(pk cmcrypto.PubKey) *protocrypto.PublicKey {
 	if pk == nil {
-		return &cosmosproto.PublicKey{}
+		return &protocrypto.PublicKey{}
 	}
 
 	// For now, we'll return a simple implementation
 	// In a real implementation, you'd need to handle different key types properly
-	return &cosmosproto.PublicKey{
-		Sum: &cosmosproto.PublicKey_Ed25519{Ed25519: pk.Bytes()},
+	return &protocrypto.PublicKey{
+		Sum: &protocrypto.PublicKey_Ed25519{Ed25519: pk.Bytes()},
 	}
 }
 
