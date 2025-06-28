@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
-	tmcrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 const (
@@ -116,11 +116,11 @@ func (sp *Proof) ValidateBasic() error {
 	return nil
 }
 
-func (sp *Proof) ToProto() *tmcrypto.Proof {
+func (sp *Proof) ToProto() *cosmosproto.Proof {
 	if sp == nil {
 		return nil
 	}
-	pb := new(tmcrypto.Proof)
+	pb := new(cosmosproto.Proof)
 
 	pb.Total = sp.Total
 	pb.Index = sp.Index
@@ -130,7 +130,7 @@ func (sp *Proof) ToProto() *tmcrypto.Proof {
 	return pb
 }
 
-func ProofFromProto(pb *tmcrypto.Proof) (*Proof, error) {
+func ProofFromProto(pb *cosmosproto.Proof) (*Proof, error) {
 	if pb == nil {
 		return nil, errors.New("nil proof")
 	}

@@ -5,9 +5,8 @@ option go_package = "github.com/fluentum-chain/fluentum/proto/tendermint/abci";
 
 // For more information on gogo.proto, see:
 // https://github.com/gogo/protobuf/blob/master/extensions.md
-import "tendermint/crypto/proof.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "tendermint/types/types.proto";
-import "tendermint/crypto/keys.proto";
 import "tendermint/types/params.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
@@ -28,39 +27,6 @@ message Request {
     RequestInitChain          init_chain           = 5;
     RequestQuery              query                = 6;
     RequestCommit             commit               = 7;
-    RequestCheckTx            check_tx             = 8;
-    RequestListSnapshots      list_snapshots       = 12;
-    RequestOfferSnapshot      offer_snapshot       = 13;
-    RequestLoadSnapshotChunk  load_snapshot_chunk  = 14;
-syntax = "proto3";
-package tendermint.abci;
-
-option go_package = "github.com/fluentum-chain/fluentum/proto/tendermint/abci";
-
-// For more information on gogo.proto, see:
-// https://github.com/gogo/protobuf/blob/master/extensions.md
-import "tendermint/crypto/proof.proto";
-import "tendermint/types/types.proto";
-import "tendermint/crypto/keys.proto";
-import "tendermint/types/params.proto";
-import "google/protobuf/timestamp.proto";
-import "gogoproto/gogo.proto";
-
-// This file is copied from http://github.com/tendermint/abci
-// NOTE: When using custom types, mind the warnings.
-// https://github.com/gogo/protobuf/blob/master/custom_types.md#warnings-and-issues
-
-//----------------------------------------
-// Request types
-
-message Request {
-  oneof value {
-    RequestEcho               echo                 = 1;
-    RequestFlush              flush                = 2;
-    RequestInfo               info                 = 3;
-    RequestSetOption          set_option           = 4;
-    RequestInitChain          init_chain           = 5;
-    RequestQuery              query                = 6;
     RequestCheckTx            check_tx             = 8;
     RequestListSnapshots      list_snapshots       = 12;
     RequestOfferSnapshot      offer_snapshot       = 13;
@@ -194,7 +160,7 @@ message ResponseQuery {
   int64                      index     = 5;
   bytes                      key       = 6;
   bytes                      value     = 7;
-  tendermint.crypto.ProofOps proof_ops = 8;
+  bytes                      proof_ops = 8;  // Using bytes instead of tendermint.crypto.ProofOps
   int64                      height    = 9;
   string                     codespace = 10;
 }

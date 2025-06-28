@@ -1,19 +1,18 @@
 package compat
 
 import (
+	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	cmcrypto "github.com/cometbft/cometbft/crypto"
 	cmcryptoed25519 "github.com/cometbft/cometbft/crypto/ed25519"
 	cmcryptosecp256k1 "github.com/cometbft/cometbft/crypto/secp256k1"
-	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cmttypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	localabci "github.com/fluentum-chain/fluentum/abci/types"
-	localcrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	localtypes "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
-// ToCmPublicKey converts a local proto PublicKey to the upstream CometBFT crypto PublicKey.
-func ToCmPublicKey(pk *localcrypto.PublicKey) cmcrypto.PubKey {
+// ToCmPublicKey converts a Cosmos SDK API proto PublicKey to the upstream CometBFT crypto PublicKey.
+func ToCmPublicKey(pk *cosmosproto.PublicKey) cmcrypto.PubKey {
 	if pk == nil {
 		return nil
 	}
@@ -30,16 +29,16 @@ func ToCmPublicKey(pk *localcrypto.PublicKey) cmcrypto.PubKey {
 	return nil
 }
 
-// ToLocalPublicKey converts an upstream CometBFT crypto PublicKey to the local proto PublicKey.
-func ToLocalPublicKey(pk cmcrypto.PubKey) *localcrypto.PublicKey {
+// ToLocalPublicKey converts an upstream CometBFT crypto PublicKey to the Cosmos SDK API proto PublicKey.
+func ToLocalPublicKey(pk cmcrypto.PubKey) *cosmosproto.PublicKey {
 	if pk == nil {
-		return &localcrypto.PublicKey{}
+		return &cosmosproto.PublicKey{}
 	}
 
 	// For now, we'll return a simple implementation
 	// In a real implementation, you'd need to handle different key types properly
-	return &localcrypto.PublicKey{
-		Sum: &localcrypto.PublicKey_Ed25519{Ed25519: pk.Bytes()},
+	return &cosmosproto.PublicKey{
+		Sum: &cosmosproto.PublicKey_Ed25519{Ed25519: pk.Bytes()},
 	}
 }
 
@@ -102,21 +101,21 @@ func ExecTxResultsFromComet(src []*cmtabci.ExecTxResult) []*localabci.ExecTxResu
 	return out
 }
 
-// ProofOps conversion
-func ProofOpsFromComet(src *cmtcrypto.ProofOps) *localcrypto.ProofOps {
-	if src == nil {
-		return nil
-	}
-	// Convert each ProofOp in the slice
-	ops := make([]*localcrypto.ProofOp, len(src.Ops))
-	for i, op := range src.Ops {
-		ops[i] = &localcrypto.ProofOp{
-			Type: op.Type,
-			Key:  op.Key,
-			Data: op.Data,
-		}
-	}
-	return &localcrypto.ProofOps{
-		Ops: ops,
-	}
-}
+// ProofOps conversion - TODO: Implement when needed
+// func ProofOpsFromComet(src *cmtcrypto.ProofOps) *cosmosproto.ProofOps {
+// 	if src == nil {
+// 		return nil
+// 	}
+// 	// Convert each ProofOp in the slice
+// 	ops := make([]*cosmosproto.ProofOp, len(src.Ops))
+// 	for i, op := range src.Ops {
+// 		ops[i] = &cosmosproto.ProofOp{
+// 			Type: op.Type,
+// 			Key:  op.Key,
+// 			Data: op.Data,
+// 		}
+// 	}
+// 	return &cosmosproto.ProofOps{
+// 		Ops: ops,
+// 	}
+// }

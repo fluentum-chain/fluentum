@@ -22,7 +22,6 @@ import (
 	"github.com/fluentum-chain/fluentum/abci/server"
 	servertest "github.com/fluentum-chain/fluentum/abci/tests/server"
 	"github.com/fluentum-chain/fluentum/abci/version"
-	"github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 // client is a global variable so it can be reused by the console
@@ -98,7 +97,7 @@ type queryResponse struct {
 	Key      []byte
 	Value    []byte
 	Height   int64
-	ProofOps *crypto.ProofOps
+	ProofOps interface{} // Using interface{} to avoid protobuf import conflicts
 }
 
 func Execute() error {

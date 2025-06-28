@@ -3,10 +3,10 @@ package types
 import (
 	"context"
 
+	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	cometbftabci "github.com/cometbft/cometbft/abci/types"
 	cometbftcrypto "github.com/cometbft/cometbft/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
-	cryptoproto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
@@ -91,8 +91,8 @@ type ExtendedCommitInfo = cometbftabci.ExtendedCommitInfo
 type Misbehavior = cometbftabci.Misbehavior
 
 // Proof types
-type ProofOp = cryptoproto.ProofOp
-type ProofOps = cryptoproto.ProofOps
+type ProofOp = cosmosproto.ProofOp
+type ProofOps = cosmosproto.ProofOps
 
 // CheckTx types
 type CheckTxType = cometbftabci.CheckTxType

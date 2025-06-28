@@ -7,8 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	tmcrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 const ProofOpDomino = "test:domino"

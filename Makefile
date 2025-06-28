@@ -427,9 +427,7 @@ lint:
 .PHONY: proto
 proto:
 	@echo "Generating protobuf files..."
-	@protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/**/*.proto
+	@for /r proto %%f in (*.proto) do @protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative "%%f"
 
 # Help target
 .PHONY: help

@@ -3,11 +3,11 @@ package encoding
 import (
 	"fmt"
 
+	pc "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	"github.com/fluentum-chain/fluentum/crypto/secp256k1"
 	"github.com/fluentum-chain/fluentum/libs/json"
-	pc "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 )
 
 func init() {
