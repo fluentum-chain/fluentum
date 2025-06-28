@@ -226,6 +226,19 @@ show_next_steps() {
     echo "- Check sync: curl http://localhost:26657/status | jq '.result.sync_info.catching_up'"
 }
 
+# Function to fix config file line endings
+fix_config_line_endings() {
+    print_status "Fixing config file line endings..."
+    
+    if [ -f "config/config.toml" ]; then
+        # Convert Windows line endings to Unix line endings
+        dos2unix config/config.toml 2>/dev/null || sed -i 's/\r$//' config/config.toml
+        print_success "Config file line endings fixed"
+    else
+        print_warning "Config file not found, will be created during initialization"
+    fi
+}
+
 # Main deployment function
 main() {
     echo "=========================================="
@@ -252,6 +265,7 @@ main() {
         1)
             build_binary
             install_binary
+            fix_config_line_endings
             initialize_node
             configure_node
             create_service
