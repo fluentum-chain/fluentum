@@ -43,6 +43,7 @@ import (
 	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/proxy"
+	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
 	"github.com/fluentum-chain/fluentum/version"
 )
@@ -718,7 +719,21 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		privValidator,
 		nodeKey,
 		proxy.NewLocalClientCreator(adapter),
-		node.DefaultGenesisDocProviderFunc(tmConfig),
+		func() (*types.GenesisDoc, error) {
+			// Custom genesis provider that handles JSON properly
+			genFile := tmConfig.GenesisFile()
+			genDocBytes, err := os.ReadFile(genFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read genesis file: %w", err)
+			}
+
+			var genDoc types.GenesisDoc
+			if err := json.Unmarshal(genDocBytes, &genDoc); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal genesis: %w", err)
+			}
+
+			return &genDoc, nil
+		},
 		node.DefaultDBProvider,
 		node.DefaultMetricsProvider(tmConfig.Instrumentation),
 		fluentumLogger,
@@ -844,13 +859,12 @@ func initializeNode(homeDir, moniker, chainID string) error {
 	if tmos.FileExists(genFile) {
 		fmt.Printf("Found genesis file: %s\n", genFile)
 	} else {
-		// Create a simple genesis file using JSON
+		// Create a basic genesis structure
 		pubKey, err := pv.GetPubKey()
 		if err != nil {
 			return fmt.Errorf("can't get pubkey: %w", err)
 		}
 
-		// Create a basic genesis structure
 		genesis := map[string]interface{}{
 			"genesis_time":   tmtime.Now().Format(time.RFC3339),
 			"chain_id":       chainID,
