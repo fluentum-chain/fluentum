@@ -406,22 +406,12 @@ The node will connect to the network and begin participating in consensus.
 		},
 	}
 
-	// Add flags for configuration
+	// Add minimal flags for configuration - simplified to avoid parsing issues
 	cmd.Flags().String(flags.FlagHome, app.DefaultNodeHome, "The application home directory")
 	cmd.Flags().String(flags.FlagChainID, "", "The network chain ID")
 	cmd.Flags().String("log_level", "info", "Log level (debug, info, warn, error)")
-	cmd.Flags().Bool("api", true, "Enable the API server")
-	cmd.Flags().String("api.address", "tcp://0.0.0.0:1317", "The API server listen address")
-	cmd.Flags().Bool("grpc", true, "Enable the gRPC server")
-	cmd.Flags().String("grpc.address", "0.0.0.0:9090", "The gRPC server listen address")
-	cmd.Flags().Bool("grpc-web", true, "Enable the gRPC-Web server")
-	cmd.Flags().String("grpc-web.address", "0.0.0.0:9091", "The gRPC-Web server listen address")
-	cmd.Flags().String("rpc.address", "tcp://0.0.0.0:26657", "The RPC server listen address")
-	cmd.Flags().String("p2p.address", "tcp://0.0.0.0:26656", "The P2P server listen address")
-	cmd.Flags().String("seeds", "", "Comma-separated list of seed nodes")
-	cmd.Flags().String("persistent_peers", "", "Comma-separated list of persistent peers")
-	cmd.Flags().Bool("testnet", false, "Run in testnet mode with faster block times")
 	cmd.Flags().String("moniker", "fluentum-node", "Node moniker")
+	cmd.Flags().Bool("testnet", false, "Run in testnet mode with faster block times")
 
 	return cmd
 }
@@ -642,12 +632,8 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	homeDir, _ := cmd.Flags().GetString(flags.FlagHome)
 	chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
 	logLevel, _ := cmd.Flags().GetString("log_level")
-	rpcAddress, _ := cmd.Flags().GetString("rpc.address")
-	p2pAddress, _ := cmd.Flags().GetString("p2p.address")
-	seeds, _ := cmd.Flags().GetString("seeds")
-	persistentPeers, _ := cmd.Flags().GetString("persistent_peers")
-	testnetMode, _ := cmd.Flags().GetBool("testnet")
 	moniker, _ := cmd.Flags().GetString("moniker")
+	testnetMode, _ := cmd.Flags().GetBool("testnet")
 	fmt.Println("DEBUG: Configuration flags retrieved")
 
 	// Set default chain ID if not provided
@@ -687,10 +673,6 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 
 	// Configure the server
 	tmConfig.Moniker = moniker
-	tmConfig.RPC.ListenAddress = rpcAddress
-	tmConfig.P2P.ListenAddress = p2pAddress
-	tmConfig.P2P.Seeds = seeds
-	tmConfig.P2P.PersistentPeers = persistentPeers
 
 	// Configure consensus for testnet mode
 	if testnetMode {
