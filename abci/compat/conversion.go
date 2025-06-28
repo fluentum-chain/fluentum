@@ -8,7 +8,6 @@ import (
 	cmcryptosecp256k1 "github.com/cometbft/cometbft/crypto/secp256k1"
 	cmttypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	localabci "github.com/fluentum-chain/fluentum/abci/types"
-	localtypes "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
 // ToCmPublicKey converts a Cosmos SDK API proto PublicKey to the upstream CometBFT crypto PublicKey.
@@ -77,11 +76,11 @@ func CheckTxResponseFromComet(src *cmtabci.ResponseCheckTx) *localabci.CheckTxRe
 }
 
 // ConsensusParams conversion
-func ConsensusParamsFromComet(src *cmttypes.ConsensusParams) *localtypes.ConsensusParams {
+func ConsensusParamsFromComet(src *cmttypes.ConsensusParams) *localabci.ConsensusParams {
 	if src == nil {
 		return nil
 	}
-	return &localtypes.ConsensusParams{
+	return &localabci.ConsensusParams{
 		Block:     nil, // TODO: Convert BlockParams if needed
 		Evidence:  nil, // TODO: Convert EvidenceParams if needed
 		Validator: nil, // TODO: Convert ValidatorParams if needed
@@ -101,21 +100,21 @@ func ExecTxResultsFromComet(src []*cmtabci.ExecTxResult) []*localabci.ExecTxResu
 	return out
 }
 
-// ProofOps conversion - TODO: Implement when needed
-// func ProofOpsFromComet(src *cmtcrypto.ProofOps) *cosmosproto.ProofOps {
-// 	if src == nil {
-// 		return nil
-// 	}
-// 	// Convert each ProofOp in the slice
-// 	ops := make([]*cosmosproto.ProofOp, len(src.Ops))
-// 	for i, op := range src.Ops {
-// 		ops[i] = &cosmosproto.ProofOp{
-// 			Type: op.Type,
-// 			Key:  op.Key,
-// 			Data: op.Data,
-// 		}
-// 	}
-// 	return &cosmosproto.ProofOps{
-// 		Ops: ops,
-// 	}
-// }
+// ProofOps conversion
+func ProofOpsFromComet(src *cmcrypto.ProofOps) *localabci.ProofOps {
+	if src == nil {
+		return nil
+	}
+	// Convert from CometBFT ProofOps to local ProofOps
+	ops := make([]*localabci.ProofOp, len(src.Ops))
+	for i, op := range src.Ops {
+		ops[i] = &localabci.ProofOp{
+			Type: op.Type,
+			Key:  op.Key,
+			Data: op.Data,
+		}
+	}
+	return &localabci.ProofOps{
+		Ops: ops,
+	}
+}

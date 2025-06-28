@@ -82,7 +82,7 @@ func (sc *SignerClient) GetPubKey() (crypto.PubKey, error) {
 		return nil, &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
 	}
 
-	pk, err := cryptoenc.PubKeyFromProto(*resp.PubKey)
+	pk, err := cryptoenc.PubKeyFromProto(resp.PubKey)
 	if err != nil {
 		return nil, err
 	}

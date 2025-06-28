@@ -3,7 +3,6 @@ package privval
 import (
 	"fmt"
 
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
 	privvalproto "github.com/fluentum-chain/fluentum/proto/tendermint/privval"
@@ -25,7 +24,7 @@ func DefaultValidationRequestHandler(
 	case *privvalproto.Message_PubKeyRequest:
 		if r.PubKeyRequest.GetChainId() != chainID {
 			res = mustWrapMsg(&privvalproto.PubKeyResponse{
-				PubKey: &cosmosproto.PublicKey{}, Error: &privvalproto.RemoteSignerError{
+				PubKey: []byte{}, Error: &privvalproto.RemoteSignerError{
 					Code: 0, Description: "unable to provide pubkey"}})
 			return res, fmt.Errorf("want chainID: %s, got chainID: %s", r.PubKeyRequest.GetChainId(), chainID)
 		}
@@ -42,9 +41,9 @@ func DefaultValidationRequestHandler(
 
 		if err != nil {
 			res = mustWrapMsg(&privvalproto.PubKeyResponse{
-				PubKey: &cosmosproto.PublicKey{}, Error: &privvalproto.RemoteSignerError{Code: 0, Description: err.Error()}})
+				PubKey: []byte{}, Error: &privvalproto.RemoteSignerError{Code: 0, Description: err.Error()}})
 		} else {
-			res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: &pk, Error: nil})
+			res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: pk, Error: nil})
 		}
 
 	case *privvalproto.Message_SignVoteRequest:
