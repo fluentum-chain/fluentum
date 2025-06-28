@@ -63,7 +63,7 @@ var (
 		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		params.AppModuleBasic{},
-		fluentum.AppModuleBasic{},
+		// fluentum.AppModuleBasic{}, // Temporarily commented out to debug init issue
 	)
 
 	// module account permissions
