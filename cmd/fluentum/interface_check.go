@@ -17,6 +17,7 @@ func verifyBasicFunctionality() {
 }
 
 // This function is never called but ensures compile-time checking
-func init() {
-	verifyBasicFunctionality()
-}
+// Commented out to prevent duplicate interface registration
+// func init() {
+// 	verifyBasicFunctionality()
+// }
