@@ -32,8 +32,11 @@ for node_name in "${!NODE_CONFIGS[@]}"; do
   # Update external_address with the specific IP
   sed -i "s/external_address = \"\"/external_address = \"$ip_address:26656\"/" "$FLUENTUM_HOME/config/config.toml"
   
-  # Initialize the node
-  ./fluentumd init --testnet --chain-id $CHAIN_ID --home "$FLUENTUM_HOME"
+  # Update moniker
+  sed -i "s/moniker = \"fluentum-testnet-node\"/moniker = \"$node_name\"/" "$FLUENTUM_HOME/config/config.toml"
+  
+  # Initialize the node (without --testnet flag)
+  fluentumd init "$node_name" --chain-id $CHAIN_ID --home "$FLUENTUM_HOME"
   
   # Show configuration
   ls -la "$FLUENTUM_HOME"
@@ -52,7 +55,7 @@ for node_name in "${!NODE_CONFIGS[@]}"; do
 done
 
 echo -e "\nTo start a specific node, run:"
-echo "./fluentumd start --testnet --home /tmp/fluentum-node1"
-echo "./fluentumd start --testnet --home /tmp/fluentum-node3"
-echo "./fluentumd start --testnet --home /tmp/fluentum-node4"
-echo "./fluentumd start --testnet --home /tmp/fluentum-node5" 
+echo "fluentumd start --home /tmp/fluentum-node1"
+echo "fluentumd start --home /tmp/fluentum-node3"
+echo "fluentumd start --home /tmp/fluentum-node4"
+echo "fluentumd start --home /tmp/fluentum-node5" 
