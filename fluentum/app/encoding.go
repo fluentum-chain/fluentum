@@ -4,7 +4,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
@@ -18,12 +17,10 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // RegisterInterfaces registers the x/auth interfaces types with the interface registry
+// Note: This is now handled by the module system automatically
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&fluentumtypes.MsgCreateFluentum{},
-		&fluentumtypes.MsgUpdateFluentum{},
-		&fluentumtypes.MsgDeleteFluentum{},
-	)
+	// Interface registration is now handled by the module system
+	// No need to register here as it will be done automatically
 }
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -51,7 +48,8 @@ func MakeEncodingConfig() EncodingConfig {
 	}
 
 	RegisterLegacyAminoCodec(encodingConfig.Amino)
-	RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	// RegisterInterfaces is now handled by the module system
+	// RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	return encodingConfig
 }
