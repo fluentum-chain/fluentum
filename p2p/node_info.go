@@ -230,21 +230,21 @@ func (info DefaultNodeInfo) HasChannel(chID byte) bool {
 func (info DefaultNodeInfo) ToProto() *tmp2p.DefaultNodeInfo {
 
 	dni := new(tmp2p.DefaultNodeInfo)
-	dni.ProtocolVersion = &tmp2p.ProtocolVersion{
+	dni.ProtocolVersion = tmp2p.ProtocolVersion{
 		P2P:   info.ProtocolVersion.P2P,
 		Block: info.ProtocolVersion.Block,
 		App:   info.ProtocolVersion.App,
 	}
 
-	dni.DefaultNodeId = string(info.DefaultNodeID)
+	dni.DefaultNodeID = string(info.DefaultNodeID)
 	dni.ListenAddr = info.ListenAddr
 	dni.Network = info.Network
 	dni.Version = info.Version
 	dni.Channels = info.Channels
 	dni.Moniker = info.Moniker
-	dni.Other = &tmp2p.DefaultNodeInfoOther{
+	dni.Other = tmp2p.DefaultNodeInfoOther{
 		TxIndex:    info.Other.TxIndex,
-		RpcAddress: info.Other.RPCAddress,
+		RPCAddress: info.Other.RPCAddress,
 	}
 
 	return dni
@@ -260,7 +260,7 @@ func DefaultNodeInfoFromToProto(pb *tmp2p.DefaultNodeInfo) (DefaultNodeInfo, err
 			Block: pb.ProtocolVersion.Block,
 			App:   pb.ProtocolVersion.App,
 		},
-		DefaultNodeID: ID(pb.DefaultNodeId),
+		DefaultNodeID: ID(pb.DefaultNodeID),
 		ListenAddr:    pb.ListenAddr,
 		Network:       pb.Network,
 		Version:       pb.Version,
@@ -268,7 +268,7 @@ func DefaultNodeInfoFromToProto(pb *tmp2p.DefaultNodeInfo) (DefaultNodeInfo, err
 		Moniker:       pb.Moniker,
 		Other: DefaultNodeInfoOther{
 			TxIndex:    pb.Other.TxIndex,
-			RPCAddress: pb.Other.RpcAddress,
+			RPCAddress: pb.Other.RPCAddress,
 		},
 	}
 

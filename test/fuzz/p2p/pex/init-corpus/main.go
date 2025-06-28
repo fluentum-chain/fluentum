@@ -11,7 +11,7 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/ed25519"
 	"github.com/fluentum-chain/fluentum/p2p"
 	tmp2p "github.com/fluentum-chain/fluentum/proto/tendermint/p2p"
-	"google.golang.org/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 )
 
 func main() {
@@ -62,13 +62,9 @@ func initCorpus(rootDir string) {
 		addrs = append(addrs, ipv6a)
 
 		addrsProto := p2p.NetAddressesToProto(addrs)
-		addrsProtoPtrs := make([]*tmp2p.NetAddress, len(addrsProto))
-		for i := range addrsProto {
-			addrsProtoPtrs[i] = &addrsProto[i]
-		}
 		msg := tmp2p.Message{
 			Sum: &tmp2p.Message_PexAddrs{
-				PexAddrs: &tmp2p.PexAddrs{Addrs: addrsProtoPtrs},
+				PexAddrs: &tmp2p.PexAddrs{Addrs: addrsProto},
 			},
 		}
 		bz, err := proto.Marshal(&msg)

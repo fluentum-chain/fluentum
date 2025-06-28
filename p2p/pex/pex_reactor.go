@@ -283,7 +283,7 @@ func (r *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 		// Convert []*NetAddress to []NetAddress
 		netAddrs := make([]tmp2p.NetAddress, len(msg.Addrs))
 		for i, addr := range msg.Addrs {
-			netAddrs[i] = *addr
+			netAddrs[i] = addr
 		}
 		addrs, err := p2p.NetAddressesFromProto(netAddrs)
 		if err != nil {
@@ -426,15 +426,11 @@ func (r *Reactor) ReceiveAddrs(addrs []*p2p.NetAddress, src Peer) error {
 
 // SendAddrs sends addrs to the peer.
 func (r *Reactor) SendAddrs(p Peer, netAddrs []*p2p.NetAddress) {
-	// Convert []NetAddress to []*NetAddress
+	// Convert []NetAddress to []NetAddress (no need for pointers)
 	protoAddrs := p2p.NetAddressesToProto(netAddrs)
-	ptrAddrs := make([]*tmp2p.NetAddress, len(protoAddrs))
-	for i := range protoAddrs {
-		ptrAddrs[i] = &protoAddrs[i]
-	}
 	e := p2p.Envelope{
 		ChannelID: PexChannel,
-		Message:   &tmp2p.PexAddrs{Addrs: ptrAddrs},
+		Message:   &tmp2p.PexAddrs{Addrs: protoAddrs},
 	}
 	p2p.SendEnvelopeShim(p, e, r.Logger) //nolint: staticcheck
 }

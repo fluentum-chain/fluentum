@@ -289,7 +289,7 @@ func convertProofOps(ops *types.ProofOps) *cmtcrypto.ProofOps {
 	}
 	for i, op := range ops.Ops {
 		cometOps.Ops[i] = cmtcrypto.ProofOp{
-			Type: op.Type,
+			Type: op.Type_,
 			Key:  op.Key,
 			Data: op.Data,
 		}

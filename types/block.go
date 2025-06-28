@@ -28,9 +28,9 @@ import (
 
 // Type aliases for backward compatibility
 const (
-	PrevoteType   = tmproto.SignedMsgType_SIGNED_MSG_TYPE_PREVOTE
-	PrecommitType = tmproto.SignedMsgType_SIGNED_MSG_TYPE_PRECOMMIT
-	ProposalType  = tmproto.SignedMsgType_SIGNED_MSG_TYPE_PROPOSAL
+	PrevoteType   = tmproto.PrevoteType
+	PrecommitType = tmproto.PrecommitType
+	ProposalType  = tmproto.ProposalType
 )
 
 const (
@@ -239,16 +239,17 @@ func (b *Block) ToProto() (*tmproto.Block, error) {
 
 	pb := new(tmproto.Block)
 
-	pb.Header = b.Header.ToProto()
+	headerProto := b.Header.ToProto()
+	pb.Header = headerProto
 	dataProto := b.Data.ToProto()
-	pb.Data = &dataProto
+	pb.Data = dataProto
 
 	if b.Evidence.Evidence != nil {
 		protoEvidence, err := b.Evidence.ToProto()
 		if err != nil {
 			return nil, err
 		}
-		pb.Evidence = protoEvidence
+		pb.Evidence = *protoEvidence
 	}
 
 	if b.LastCommit != nil {
@@ -534,18 +535,18 @@ func (h *Header) StringIndented(indent string) string {
 }
 
 // ToProto converts Header to protobuf
-func (h *Header) ToProto() *tmproto.Header {
+func (h *Header) ToProto() tmproto.Header {
 	if h == nil {
-		return nil
+		return tmproto.Header{}
 	}
 
 	lastBlockID := h.LastBlockID.ToProto()
-	return &tmproto.Header{
-		Version:            &h.Version,
-		ChainId:            h.ChainID,
+	return tmproto.Header{
+		Version:            h.Version,
+		ChainID:            h.ChainID,
 		Height:             h.Height,
-		Time:               timestamppb.New(h.Time),
-		LastBlockId:        &lastBlockID,
+		Time:               h.Time,
+		LastBlockId:        lastBlockID,
 		ValidatorsHash:     h.ValidatorsHash,
 		NextValidatorsHash: h.NextValidatorsHash,
 		ConsensusHash:      h.ConsensusHash,
@@ -560,22 +561,18 @@ func (h *Header) ToProto() *tmproto.Header {
 
 // FromProto sets a protobuf Header to the given pointer.
 // It returns an error if the header is invalid.
-func HeaderFromProto(ph *tmproto.Header) (Header, error) {
-	if ph == nil {
-		return Header{}, errors.New("nil Header")
-	}
-
+func HeaderFromProto(ph tmproto.Header) (Header, error) {
 	h := new(Header)
 
-	bi, err := BlockIDFromProto(ph.LastBlockId)
+	bi, err := BlockIDFromProto(&ph.LastBlockId)
 	if err != nil {
 		return Header{}, err
 	}
 
-	h.Version = *ph.Version
-	h.ChainID = ph.ChainId
+	h.Version = ph.Version
+	h.ChainID = ph.ChainID
 	h.Height = ph.Height
-	h.Time = ph.Time.AsTime()
+	h.Time = ph.Time
 	h.LastBlockID = *bi
 	h.ValidatorsHash = ph.ValidatorsHash
 	h.NextValidatorsHash = ph.NextValidatorsHash

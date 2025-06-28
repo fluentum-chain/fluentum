@@ -9,6 +9,8 @@ import (
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cmttypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	localabci "github.com/fluentum-chain/fluentum/abci/types"
+	protoabci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
+	prototypes "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 )
 
 // ToCmPublicKey converts a Cosmos SDK API proto PublicKey to the upstream CometBFT crypto PublicKey.
@@ -77,15 +79,15 @@ func CheckTxResponseFromComet(src *cmtabci.ResponseCheckTx) *localabci.CheckTxRe
 }
 
 // ConsensusParams conversion
-func ConsensusParamsFromComet(src *cmttypes.ConsensusParams) *localabci.ConsensusParams {
+func ConsensusParamsFromComet(src *cmttypes.ConsensusParams) *protoabci.ConsensusParams {
 	if src == nil {
 		return nil
 	}
-	return &localabci.ConsensusParams{
-		Block:     &localabci.BlockParams{},     // Provide default instead of nil
-		Evidence:  &localabci.EvidenceParams{},  // Provide default instead of nil
-		Validator: &localabci.ValidatorParams{}, // Provide default instead of nil
-		Version:   &localabci.VersionParams{},   // Provide default instead of nil
+	return &protoabci.ConsensusParams{
+		Block:     &protoabci.BlockParams{},      // Use abci package types
+		Evidence:  &prototypes.EvidenceParams{},  // Use types1 alias
+		Validator: &prototypes.ValidatorParams{}, // Use types1 alias
+		Version:   &prototypes.VersionParams{},   // Use types1 alias
 	}
 }
 

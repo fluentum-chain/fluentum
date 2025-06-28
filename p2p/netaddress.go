@@ -138,15 +138,15 @@ func NewNetAddressIPPort(ip net.IP, port uint16) *NetAddress {
 
 // NetAddressFromProto converts a Protobuf NetAddress into a native struct.
 func NetAddressFromProto(pb tmp2p.NetAddress) (*NetAddress, error) {
-	ip := net.ParseIP(pb.Ip)
+	ip := net.ParseIP(pb.IP)
 	if ip == nil {
-		return nil, fmt.Errorf("invalid IP address %v", pb.Ip)
+		return nil, fmt.Errorf("invalid IP address %v", pb.IP)
 	}
 	if pb.Port >= 1<<16 {
 		return nil, fmt.Errorf("invalid port number %v", pb.Port)
 	}
 	return &NetAddress{
-		ID:   ID(pb.Id),
+		ID:   ID(pb.ID),
 		IP:   ip,
 		Port: uint16(pb.Port),
 	}, nil
@@ -179,8 +179,8 @@ func NetAddressesToProto(nas []*NetAddress) []tmp2p.NetAddress {
 // ToProto converts a NetAddress to Protobuf.
 func (na *NetAddress) ToProto() tmp2p.NetAddress {
 	return tmp2p.NetAddress{
-		Id:   string(na.ID),
-		Ip:   na.IP.String(),
+		ID:   string(na.ID),
+		IP:   na.IP.String(),
 		Port: uint32(na.Port),
 	}
 }
