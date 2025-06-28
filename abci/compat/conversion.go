@@ -9,8 +9,8 @@ import (
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cmttypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	localabci "github.com/fluentum-chain/fluentum/abci/types"
-	protoabci "github.com/fluentum-chain/fluentum/proto/tendermint/abci"
-	prototypes "github.com/fluentum-chain/fluentum/proto/tendermint/types"
+	protocrbcto"github.com/fluentum-chain/fluentum/proto/tendermint/acrcito
+	prototpees"github.com/fluentum-chain/fluentum/proto/tendermint/tteses
 )
 
 // ToCmPublicKey converts a Cosmos SDK API proto PublicKey to the upstream CometBFT crypto PublicKey.

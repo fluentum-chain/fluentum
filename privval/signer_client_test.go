@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/fluentum-chain/fluentum/crypto"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 	tmrand "github.com/fluentum-chain/fluentum/libs/rand"
+	protocrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	privvalproto "github.com/fluentum-chain/fluentum/proto/tendermint/privval"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
@@ -397,11 +397,11 @@ func brokenHandler(privVal types.PrivValidator, request privvalproto.Message,
 	switch r := request.Sum.(type) {
 	// This is broken and will answer most requests with a pubkey response
 	case *privvalproto.Message_PubKeyRequest:
-		res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: &cosmosproto.PublicKey{}, Error: nil})
+		res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: &protocrypto.PublicKey{}, Error: nil})
 	case *privvalproto.Message_SignVoteRequest:
-		res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: &cosmosproto.PublicKey{}, Error: nil})
+		res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: &protocrypto.PublicKey{}, Error: nil})
 	case *privvalproto.Message_SignProposalRequest:
-		res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: &cosmosproto.PublicKey{}, Error: nil})
+		res = mustWrapMsg(&privvalproto.PubKeyResponse{PubKey: &protocrypto.PublicKey{}, Error: nil})
 	case *privvalproto.Message_PingRequest:
 		err, res = nil, mustWrapMsg(&privvalproto.PingResponse{})
 	default:

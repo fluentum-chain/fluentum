@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	cosmosproto "cosmossdk.io/api/tendermint/crypto"
 	"github.com/fluentum-chain/fluentum/crypto"
 	cryptoenc "github.com/fluentum-chain/fluentum/crypto/encoding"
+	protocrypto "github.com/fluentum-chain/fluentum/proto/tendermint/crypto"
 	privvalproto "github.com/fluentum-chain/fluentum/proto/tendermint/privval"
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/types"
@@ -84,8 +84,8 @@ func (sc *SignerClient) GetPubKey() (crypto.PubKey, error) {
 		return nil, &RemoteSignerError{Code: int(resp.Error.Code), Description: resp.Error.Description}
 	}
 
-	// Convert []byte to cosmosproto.PublicKey
-	var pubKeyProto cosmosproto.PublicKey
+	// Convert []byte to protocrypto.PublicKey
+	var pubKeyProto protocrypto.PublicKey
 	if err := proto.Unmarshal(resp.PubKey, &pubKeyProto); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal public key: %w", err)
 	}
