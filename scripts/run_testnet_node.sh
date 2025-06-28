@@ -70,8 +70,8 @@ setup_node() {
     # Update external_address with the specific IP
     sed -i "s/external_address = \"\"/external_address = \"$NODE_IP:26656\"/" "$FLUENTUM_HOME/config/config.toml"
     
-    # Initialize the node
-    fluentumd init --testnet --chain-id $CHAIN_ID --home "$FLUENTUM_HOME"
+    # Initialize the node (without --testnet flag)
+    fluentumd init "$NODE_NAME" --chain-id $CHAIN_ID --home "$FLUENTUM_HOME"
     
     print_success "Node setup complete"
 }
@@ -114,7 +114,7 @@ After=network.target
 Type=simple
 User=$USER
 WorkingDirectory=$HOME
-ExecStart=/usr/local/bin/fluentumd start --testnet --home $FLUENTUM_HOME
+ExecStart=/usr/local/bin/fluentumd start --home $FLUENTUM_HOME
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=4096
@@ -173,7 +173,7 @@ show_next_steps() {
     echo "- Check sync: curl http://localhost:26657/status | jq '.result.sync_info.catching_up'"
     echo ""
     echo "Manual start command:"
-    echo "fluentumd start --testnet --home $FLUENTUM_HOME"
+    echo "fluentumd start --home $FLUENTUM_HOME"
 }
 
 # Main function
