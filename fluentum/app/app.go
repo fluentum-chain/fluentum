@@ -44,7 +44,6 @@ import (
 	fluentumkeeper "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/keeper"
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
 
-	"cosmossdk.io/core/pruning"
 	"cosmossdk.io/core/store"
 	cosmossdkstore "cosmossdk.io/core/store"
 )
@@ -296,11 +295,8 @@ func NewFluentumApp(
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
 
 	// Create base app options
-	// Use default pruning options instead of trying to get them from flags
-	pruningOpts := pruning.NewPruningOptions(pruning.DefaultKeepRecent, pruning.DefaultKeepEvery, pruning.DefaultInterval)
-
 	baseAppOptions := []func(*baseapp.BaseApp){
-		baseapp.SetPruning(pruningOpts),
+		baseapp.SetPruning("default"),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
 		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
