@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"os"
 
 	cosmossdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -53,7 +54,7 @@ const (
 
 var (
 	// DefaultNodeHome default home directories for the application daemon
-	DefaultNodeHome string
+	DefaultNodeHome = os.ExpandEnv("$HOME/.fluentum")
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
