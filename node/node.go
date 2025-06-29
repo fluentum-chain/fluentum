@@ -812,6 +812,7 @@ func NewNode(config *cfg.Config,
 		if err != nil {
 			return nil, fmt.Errorf("cannot load state: %w", err)
 		}
+		fmt.Printf("[DEBUG] After stateStore.Load(): state.ConsensusParams.Block.MaxBytes=%d\n", state.ConsensusParams.Block.MaxBytes)
 	}
 
 	// Determine whether we should do fast sync. This must happen after the handshake, since the
