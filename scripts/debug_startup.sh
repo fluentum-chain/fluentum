@@ -30,12 +30,34 @@ echo "=========================================="
 echo ""
 
 # Check if fluentumd binary exists
-if [ ! -f "./build/fluentumd" ]; then
-    print_error "fluentumd binary not found at ./build/fluentumd"
+FLUENTUMD_BINARY=""
+
+# Check multiple possible locations
+if [ -f "./build/fluentumd" ]; then
+    FLUENTUMD_BINARY="./build/fluentumd"
+elif [ -f "../build/fluentumd" ]; then
+    FLUENTUMD_BINARY="../build/fluentumd"
+elif command -v fluentumd &> /dev/null; then
+    FLUENTUMD_BINARY="fluentumd"
+elif [ -f "/usr/local/bin/fluentumd" ]; then
+    FLUENTUMD_BINARY="/usr/local/bin/fluentumd"
+else
+    print_error "fluentumd binary not found. Checked:"
+    echo "  - ./build/fluentumd"
+    echo "  - ../build/fluentumd"
+    echo "  - fluentumd (in PATH)"
+    echo "  - /usr/local/bin/fluentumd"
+    echo ""
+    print_status "Current directory: $(pwd)"
+    print_status "Available files in current directory:"
+    ls -la
+    echo ""
+    print_status "Available files in parent directory:"
+    ls -la ../
     exit 1
 fi
 
-print_success "Found fluentumd binary: ./build/fluentumd"
+print_success "Found fluentumd binary: $FLUENTUMD_BINARY"
 
 # Check home directory
 HOME_DIR="/opt/fluentum"
@@ -61,15 +83,15 @@ print_success "Found config files"
 
 # Test fluentumd help
 print_status "Testing fluentumd help..."
-./build/fluentumd --help | head -20
+$FLUENTUMD_BINARY --help | head -20
 
 # Test fluentumd start help
 print_status "Testing fluentumd start help..."
-./build/fluentumd start --help | head -20
+$FLUENTUMD_BINARY start --help | head -20
 
 # Test the exact command from systemd
 print_status "Testing the exact systemd command..."
-CMD="./build/fluentumd start --home $HOME_DIR --moniker fluentum-node1 --chain-id fluentum-testnet-1 --testnet --log_level info"
+CMD="$FLUENTUMD_BINARY start --home $HOME_DIR --moniker fluentum-node1 --chain-id fluentum-testnet-1 --testnet --log_level info"
 
 echo "Command: $CMD"
 echo ""
@@ -80,13 +102,13 @@ $CMD 2>&1 || {
     print_error "Command failed with exit code $?"
     echo ""
     print_status "Let's try without --testnet flag..."
-    CMD2="./build/fluentumd start --home $HOME_DIR --moniker fluentum-node1 --chain-id fluentum-testnet-1 --log_level info"
+    CMD2="$FLUENTUMD_BINARY start --home $HOME_DIR --moniker fluentum-node1 --chain-id fluentum-testnet-1 --log_level info"
     echo "Command: $CMD2"
     $CMD2 2>&1 || {
         print_error "Command without --testnet also failed with exit code $?"
         echo ""
         print_status "Let's try with minimal arguments..."
-        CMD3="./build/fluentumd start --home $HOME_DIR"
+        CMD3="$FLUENTUMD_BINARY start --home $HOME_DIR"
         echo "Command: $CMD3"
         $CMD3 2>&1 || {
             print_error "Minimal command also failed with exit code $?"
