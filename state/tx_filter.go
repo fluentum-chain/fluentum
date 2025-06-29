@@ -8,9 +8,13 @@ import (
 // TxPreCheck returns a function to filter transactions before processing.
 // The function limits the size of a transaction to the block's maximum data size.
 func TxPreCheck(state State) mempl.PreCheckFunc {
+	var validatorCount int
+	if state.Validators != nil {
+		validatorCount = state.Validators.Size()
+	}
 	maxDataBytes := types.MaxDataBytesNoEvidence(
 		state.ConsensusParams.Block.MaxBytes,
-		state.Validators.Size(),
+		validatorCount,
 	)
 	return mempl.PreCheckMaxBytes(maxDataBytes)
 }
