@@ -1,6 +1,8 @@
 package state
 
 import (
+	"fmt"
+
 	mempl "github.com/fluentum-chain/fluentum/mempool"
 	"github.com/fluentum-chain/fluentum/types"
 )
@@ -12,6 +14,7 @@ func TxPreCheck(state State) mempl.PreCheckFunc {
 	if state.Validators != nil {
 		validatorCount = state.Validators.Size()
 	}
+	fmt.Printf("[DEBUG] TxPreCheck: state.ConsensusParams.Block.MaxBytes=%d, validatorCount=%d\n", state.ConsensusParams.Block.MaxBytes, validatorCount)
 	maxDataBytes := types.MaxDataBytesNoEvidence(
 		state.ConsensusParams.Block.MaxBytes,
 		validatorCount,
