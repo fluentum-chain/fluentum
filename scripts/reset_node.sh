@@ -14,21 +14,35 @@ if [ -d "/opt/fluentum" ]; then
     sudo cp -r /opt/fluentum /opt/fluentum.backup.$(date +%Y%m%d_%H%M%S) || echo "Backup failed, continuing..."
 fi
 
-# Remove existing data
-echo "Removing existing node data..."
+# Remove ALL existing data completely
+echo "Removing ALL existing node data..."
 sudo rm -rf /opt/fluentum/data
 sudo rm -rf /opt/fluentum/config/priv_validator_state.json
 sudo rm -rf /opt/fluentum/config/priv_validator_key.json
+sudo rm -rf /opt/fluentum/config/node_key.json
+sudo rm -rf /opt/fluentum/config/genesis.json
 
-# Reinitialize the node
-echo "Reinitializing the node..."
+# Also remove any application database files
+echo "Removing application database files..."
+sudo rm -rf /opt/fluentum/data/application.db
+sudo rm -rf /opt/fluentum/data/blockstore.db
+sudo rm -rf /opt/fluentum/data/state.db
+sudo rm -rf /opt/fluentum/data/tx_index.db
+sudo rm -rf /opt/fluentum/data/evidence.db
+sudo rm -rf /opt/fluentum/data/application
+sudo rm -rf /opt/fluentum/data/blockstore
+sudo rm -rf /opt/fluentum/data/state
+sudo rm -rf /opt/fluentum/data/tx_index
+sudo rm -rf /opt/fluentum/data/evidence
+
+# Recreate directories
+echo "Recreating directories..."
+sudo mkdir -p /opt/fluentum/data
+sudo mkdir -p /opt/fluentum/config
+
+# Reinitialize the node completely
+echo "Reinitializing the node completely..."
 fluentumd init fluentum-node1 --home /opt/fluentum --chain-id fluentum-testnet-1
-
-# Generate genesis file if it doesn't exist
-if [ ! -f "/opt/fluentum/config/genesis.json" ]; then
-    echo "Generating genesis file..."
-    fluentumd init-genesis --home /opt/fluentum --chain-id fluentum-testnet-1
-fi
 
 # Set proper permissions
 echo "Setting proper permissions..."
