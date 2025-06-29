@@ -813,6 +813,26 @@ func NewNode(config *cfg.Config,
 			return nil, fmt.Errorf("cannot load state: %w", err)
 		}
 		fmt.Printf("[DEBUG] After stateStore.Load(): state.ConsensusParams.Block.MaxBytes=%d\n", state.ConsensusParams.Block.MaxBytes)
+
+		// If the state has zero values after loading, it means the handshake didn't save the state properly.
+		// In this case, we need to save the genesis state to the database.
+		if state.ConsensusParams.Block.MaxBytes == 0 {
+			fmt.Printf("[DEBUG] State has zero values after handshake, saving genesis state to database\n")
+			// Create a fresh state from genesis
+			genesisState, err := sm.MakeGenesisState(genDoc)
+			if err != nil {
+				return nil, fmt.Errorf("cannot make genesis state: %w", err)
+			}
+			// Set the app version from the handshake
+			genesisState.Version.Consensus.App = state.Version.Consensus.App
+			// Save the genesis state to the database
+			if err := stateStore.Save(genesisState); err != nil {
+				return nil, fmt.Errorf("cannot save genesis state: %w", err)
+			}
+			// Use the genesis state
+			state = genesisState
+			fmt.Printf("[DEBUG] After saving genesis state: state.ConsensusParams.Block.MaxBytes=%d\n", state.ConsensusParams.Block.MaxBytes)
+		}
 	}
 
 	// Determine whether we should do fast sync. This must happen after the handshake, since the
