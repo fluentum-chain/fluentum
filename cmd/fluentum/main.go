@@ -912,18 +912,18 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			return fmt.Errorf("failed to marshal genesis file: %w", err)
 		}
 
-		// Fix numeric fields to be integers instead of strings
-		// Note: initial_height should remain as a string according to the error message
+		// Fix numeric fields to be strings instead of integers
+		// Note: All numeric fields in consensus_params should be strings according to the error messages
 		genDocStr := string(genDocBytes)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": "22020096"`, `"max_bytes": 22020096`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_gas": "-1"`, `"max_gas": -1`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_num_blocks": "100000"`, `"max_age_num_blocks": 100000`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_duration": "172800000000000"`, `"max_age_duration": 172800000000000`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": "1048576"`, `"max_bytes": 1048576`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"power": "10"`, `"power": 10`)
 
-		// Convert initial_height to string format
+		// Convert all numeric fields to string format
 		genDocStr = strings.ReplaceAll(genDocStr, `"initial_height": 1`, `"initial_height": "1"`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": 22020096`, `"max_bytes": "22020096"`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_gas": -1`, `"max_gas": "-1"`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_num_blocks": 100000`, `"max_age_num_blocks": "100000"`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_duration": 172800000000000`, `"max_age_duration": "172800000000000"`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": 1048576`, `"max_bytes": "1048576"`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"power": 10`, `"power": "10"`)
 
 		if err := tmos.WriteFile(genFile, []byte(genDocStr), 0o644); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
