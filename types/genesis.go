@@ -35,6 +35,49 @@ type GenesisValidator struct {
 	Name    string        `json:"name"`
 }
 
+// UnmarshalJSON implements custom unmarshaling for GenesisValidator
+// to handle power as either a string or integer
+func (gv *GenesisValidator) UnmarshalJSON(data []byte) error {
+	// Create a temporary struct to unmarshal into
+	type tempValidator struct {
+		Address string          `json:"address"`
+		PubKey  crypto.PubKey   `json:"pub_key"`
+		Power   json.RawMessage `json:"power"` // Use RawMessage to handle both string and int
+		Name    string          `json:"name"`
+	}
+
+	var temp tempValidator
+	if err := tmjson.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	// Convert power from string or int to int64
+	var power int64
+	if len(temp.Power) > 0 {
+		// Try to unmarshal as string first
+		var powerStr string
+		if err := tmjson.Unmarshal(temp.Power, &powerStr); err == nil {
+			// Parse string to int64
+			if _, err := fmt.Sscanf(powerStr, "%d", &power); err != nil {
+				return fmt.Errorf("invalid power value: %s", powerStr)
+			}
+		} else {
+			// Try to unmarshal as int64 directly
+			if err := tmjson.Unmarshal(temp.Power, &power); err != nil {
+				return fmt.Errorf("power must be a string or integer, got: %s", string(temp.Power))
+			}
+		}
+	}
+
+	// Set the fields
+	gv.Address = Address(temp.Address)
+	gv.PubKey = temp.PubKey
+	gv.Power = power
+	gv.Name = temp.Name
+
+	return nil
+}
+
 // GenesisDoc defines the initial conditions for a tendermint blockchain, in particular its validator set.
 type GenesisDoc struct {
 	GenesisTime     time.Time                `json:"genesis_time"`
