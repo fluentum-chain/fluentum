@@ -693,49 +693,6 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 				return nil, fmt.Errorf("failed to unmarshal genesis: %w", err)
 			}
 
-			// Create genesis document using the proper types
-			genDoc = types.GenesisDoc{
-				GenesisTime:   tmtime.Now(),
-				ChainID:       chainID,
-				InitialHeight: 1,
-				ConsensusParams: &tmproto.ConsensusParams{
-					Block: tmproto.BlockParams{
-						MaxBytes:   22020096,
-						MaxGas:     -1,
-						TimeIotaMs: 1000,
-					},
-					Evidence: tmproto.EvidenceParams{
-						MaxAgeNumBlocks: 100000,
-						MaxAgeDuration:  time.Duration(172800000000000), // 48 hours in nanoseconds
-						MaxBytes:        1048576,
-					},
-					Validator: tmproto.ValidatorParams{
-						PubKeyTypes: []string{"ed25519"},
-					},
-					Version: tmproto.VersionParams{
-						AppVersion: 0,
-					},
-				},
-				Validators: []types.GenesisValidator{{
-					Address: genDoc.Validators[0].PubKey.Address(),
-					PubKey:  genDoc.Validators[0].PubKey,
-					Power:   10,
-				}},
-				AppHash:  tmbytes.HexBytes("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"),
-				AppState: json.RawMessage("{}"),
-			}
-
-			// Save the genesis file using tmjson for proper crypto type handling
-			genDocBytes, err = tmjson.MarshalIndent(genDoc, "", "  ")
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal genesis file: %w", err)
-			}
-
-			if err := tmos.WriteFile(genFile, genDocBytes, 0o644); err != nil {
-				return nil, fmt.Errorf("failed to save genesis file: %w", err)
-			}
-			fmt.Printf("Generated genesis file: %s\n", genFile)
-
 			return &genDoc, nil
 		},
 		node.DefaultDBProvider,
