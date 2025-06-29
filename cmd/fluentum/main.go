@@ -26,8 +26,6 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
-	"encoding/base64"
-
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
@@ -36,6 +34,7 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	tmos "github.com/fluentum-chain/fluentum/libs/os"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
@@ -849,48 +848,23 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			return fmt.Errorf("can't get pubkey: %w", err)
 		}
 
-		genesis := map[string]interface{}{
-			"genesis_time":   tmtime.Now().Format(time.RFC3339),
-			"chain_id":       chainID,
-			"initial_height": 1,
-			"consensus_params": map[string]interface{}{
-				"block": map[string]interface{}{
-					"max_bytes":    22020096,
-					"max_gas":      -1,
-					"time_iota_ms": 1000,
-				},
-				"evidence": map[string]interface{}{
-					"max_age_num_blocks": 100000,
-					"max_age_duration":   172800000000000,
-					"max_bytes":          1048576,
-				},
-				"validator": map[string]interface{}{
-					"pub_key_types": []string{"ed25519"},
-				},
-				"version": map[string]interface{}{},
-			},
-			"validators": []map[string]interface{}{
-				{
-					"address": pubKey.Address().String(),
-					"pub_key": map[string]interface{}{
-						"type":  "tendermint/PubKeyEd25519",
-						"value": base64.StdEncoding.EncodeToString(pubKey.Bytes()),
-					},
-					"power": 10,
-				},
-			},
-			"app_hash":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
-			"app_state": map[string]interface{}{},
+		// Create genesis document using the proper types
+		genDoc := types.GenesisDoc{
+			GenesisTime:     tmtime.Now(),
+			ChainID:         chainID,
+			InitialHeight:   1,
+			ConsensusParams: types.DefaultConsensusParams(),
+			Validators: []types.GenesisValidator{{
+				Address: pubKey.Address(),
+				PubKey:  pubKey,
+				Power:   10,
+			}},
+			AppHash:  tmbytes.HexBytes("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"),
+			AppState: json.RawMessage("{}"),
 		}
 
-		// Marshal to JSON
-		genesisJSON, err := json.MarshalIndent(genesis, "", "  ")
-		if err != nil {
-			return fmt.Errorf("failed to marshal genesis: %w", err)
-		}
-
-		// Write to file
-		if err := os.WriteFile(genFile, genesisJSON, 0644); err != nil {
+		// Save the genesis file
+		if err := genDoc.SaveAs(genFile); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
 		}
 		fmt.Printf("Generated genesis file: %s\n", genFile)
