@@ -884,13 +884,12 @@ func initializeNode(homeDir, moniker, chainID string) error {
 		}
 
 		// Save the genesis file using tmjson for proper crypto type handling
-		// but we need to handle int64 fields separately to avoid string conversion
 		genDocBytes, err := tmjson.MarshalIndent(genDoc, "", "  ")
 		if err != nil {
 			return fmt.Errorf("failed to marshal genesis file: %w", err)
 		}
 
-		// Fix the int64 fields that were converted to strings
+		// Fix the int64 fields that were converted to strings by tmjson
 		genDocStr := string(genDocBytes)
 		genDocStr = strings.ReplaceAll(genDocStr, `"initial_height": "1"`, `"initial_height": 1`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": "22020096"`, `"max_bytes": 22020096`)
