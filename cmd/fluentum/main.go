@@ -882,7 +882,11 @@ func initializeNode(homeDir, moniker, chainID string) error {
 		}
 
 		// Save the genesis file
-		if err := genDoc.SaveAs(genFile); err != nil {
+		genDocBytes, err := json.MarshalIndent(genDoc, "", "  ")
+		if err != nil {
+			return fmt.Errorf("failed to marshal genesis file: %w", err)
+		}
+		if err := tmos.WriteFile(genFile, genDocBytes, 0o644); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
 		}
 		fmt.Printf("Generated genesis file: %s\n", genFile)
