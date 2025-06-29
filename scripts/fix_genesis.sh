@@ -47,6 +47,12 @@ print_success "Created backup: $BACKUP_FILE"
 # Fix the genesis file
 print_status "Fixing genesis file..."
 
+# Show current content before fixing
+print_status "Current genesis file content:"
+echo "----------------------------------------"
+cat "$GENESIS_FILE"
+echo "----------------------------------------"
+
 # Use sed to fix all numeric fields (remove quotes)
 sed -i 's/"max_age_duration": "172800000000000"/"max_age_duration": 172800000000000/' "$GENESIS_FILE"
 sed -i 's/"max_bytes": "22020096"/"max_bytes": 22020096/' "$GENESIS_FILE"
@@ -56,14 +62,22 @@ sed -i 's/"max_age_num_blocks": "100000"/"max_age_num_blocks": 100000/' "$GENESI
 sed -i 's/"max_bytes": "1048576"/"max_bytes": 1048576/' "$GENESIS_FILE"
 sed -i 's/"initial_height": "1"/"initial_height": 1/' "$GENESIS_FILE"
 
-# Also fix any other potential numeric fields that might be strings
+# Fix validator power field
+sed -i 's/"power": "\([0-9]*\)"/"power": \1/g' "$GENESIS_FILE"
+
+# Also fix any other potential numeric fields that might be strings (comprehensive approach)
 sed -i 's/"max_bytes": "\([0-9]*\)"/"max_bytes": \1/g' "$GENESIS_FILE"
 sed -i 's/"max_gas": "\(-?[0-9]*\)"/"max_gas": \1/g' "$GENESIS_FILE"
 sed -i 's/"time_iota_ms": "\([0-9]*\)"/"time_iota_ms": \1/g' "$GENESIS_FILE"
 sed -i 's/"max_age_num_blocks": "\([0-9]*\)"/"max_age_num_blocks": \1/g' "$GENESIS_FILE"
 sed -i 's/"initial_height": "\([0-9]*\)"/"initial_height": \1/g' "$GENESIS_FILE"
+sed -i 's/"power": "\([0-9]*\)"/"power": \1/g' "$GENESIS_FILE"
 
-print_success "Genesis file fixed!"
+# Show fixed content
+print_status "Fixed genesis file content:"
+echo "----------------------------------------"
+cat "$GENESIS_FILE"
+echo "----------------------------------------"
 
 # Validate the JSON
 if jq empty "$GENESIS_FILE" 2>/dev/null; then
@@ -72,12 +86,6 @@ else
     print_error "Genesis file is not valid JSON"
     exit 1
 fi
-
-# Show the fixed content
-print_status "Fixed genesis file content:"
-echo "----------------------------------------"
-jq '.consensus_params.evidence' "$GENESIS_FILE"
-echo "----------------------------------------"
 
 # Stop the service if it's running
 if systemctl is-active --quiet fluentum-testnet.service; then
