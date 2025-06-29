@@ -41,6 +41,7 @@ import (
 	"github.com/fluentum-chain/fluentum/node"
 	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/proxy"
 	sm "github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/types"
@@ -850,10 +851,27 @@ func initializeNode(homeDir, moniker, chainID string) error {
 
 		// Create genesis document using the proper types
 		genDoc := types.GenesisDoc{
-			GenesisTime:     tmtime.Now(),
-			ChainID:         chainID,
-			InitialHeight:   1,
-			ConsensusParams: types.DefaultConsensusParams(),
+			GenesisTime:   tmtime.Now(),
+			ChainID:       chainID,
+			InitialHeight: 1,
+			ConsensusParams: &tmproto.ConsensusParams{
+				Block: &tmproto.BlockParams{
+					MaxBytes:   22020096,
+					MaxGas:     -1,
+					TimeIotaMs: 1000,
+				},
+				Evidence: &tmproto.EvidenceParams{
+					MaxAgeNumBlocks: 100000,
+					MaxAgeDuration:  time.Duration(172800000000000), // 48 hours in nanoseconds
+					MaxBytes:        1048576,
+				},
+				Validator: &tmproto.ValidatorParams{
+					PubKeyTypes: []string{"ed25519"},
+				},
+				Version: &tmproto.VersionParams{
+					AppVersion: 0,
+				},
+			},
 			Validators: []types.GenesisValidator{{
 				Address: pubKey.Address(),
 				PubKey:  pubKey,
