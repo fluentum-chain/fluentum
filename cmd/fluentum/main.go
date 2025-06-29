@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -35,6 +36,7 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/core"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
+	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	tmos "github.com/fluentum-chain/fluentum/libs/os"
 	mempl "github.com/fluentum-chain/fluentum/mempool"
@@ -881,12 +883,26 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			AppState: json.RawMessage("{}"),
 		}
 
-		// Save the genesis file
-		genDocBytes, err := json.MarshalIndent(genDoc, "", "  ")
+		// Save the genesis file using tmjson for proper crypto type handling
+		// but we need to handle int64 fields separately to avoid string conversion
+		genDocBytes, err := tmjson.MarshalIndent(genDoc, "", "  ")
 		if err != nil {
 			return fmt.Errorf("failed to marshal genesis file: %w", err)
 		}
-		if err := tmos.WriteFile(genFile, genDocBytes, 0o644); err != nil {
+
+		// Fix the int64 fields that were converted to strings
+		genDocStr := string(genDocBytes)
+		genDocStr = strings.ReplaceAll(genDocStr, `"initial_height": "1"`, `"initial_height": 1`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": "22020096"`, `"max_bytes": 22020096`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_gas": "-1"`, `"max_gas": -1`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"time_iota_ms": "1000"`, `"time_iota_ms": 1000`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_num_blocks": "100000"`, `"max_age_num_blocks": 100000`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_duration": "172800000000000"`, `"max_age_duration": 172800000000000`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": "1048576"`, `"max_bytes": 1048576`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"power": "10"`, `"power": 10`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"app_version": "0"`, `"app_version": 0`)
+
+		if err := tmos.WriteFile(genFile, []byte(genDocStr), 0o644); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
 		}
 		fmt.Printf("Generated genesis file: %s\n", genFile)
