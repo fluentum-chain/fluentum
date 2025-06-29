@@ -68,6 +68,10 @@ if (Test-Path $configPath) {
 chain_id = "$ChainId"
 moniker = "$Moniker"
 
+# Database backend: goleveldb (compatible with Tendermint)
+db_backend = "goleveldb"
+db_dir = "data"
+
 [p2p]
 laddr = "tcp://0.0.0.0:26656"
 

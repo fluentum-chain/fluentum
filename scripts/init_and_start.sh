@@ -75,6 +75,10 @@ else
 chain_id = "$CHAIN_ID"
 moniker = "$MONIKER"
 
+# Database backend: goleveldb (compatible with Tendermint)
+db_backend = "goleveldb"
+db_dir = "data"
+
 [p2p]
 laddr = "tcp://0.0.0.0:26656"
 

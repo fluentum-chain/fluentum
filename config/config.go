@@ -249,7 +249,7 @@ func DefaultBaseConfig() BaseConfig {
 		LogFormat:          LogFormatPlain,
 		FastSyncMode:       true,
 		FilterPeers:        false,
-		DBBackend:          "pebble",
+		DBBackend:          "goleveldb",
 		DBPath:             "data",
 	}
 }
