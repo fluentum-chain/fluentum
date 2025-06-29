@@ -194,7 +194,7 @@ if [ ! -f "$TESTNET_HOME/config/genesis.json" ]; then
     },
     "evidence": {
       "max_age_num_blocks": 100000,
-      "max_age_duration": "172800000000000",
+      "max_age_duration": 172800000000000,
       "max_bytes": 1048576
     },
     "validator": {
