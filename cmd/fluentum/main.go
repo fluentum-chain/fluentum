@@ -884,8 +884,9 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			InitialHeight: 1,
 			ConsensusParams: &tmproto.ConsensusParams{
 				Block: tmproto.BlockParams{
-					MaxBytes: 22020096,
-					MaxGas:   -1,
+					MaxBytes:   22020096,
+					MaxGas:     -1,
+					TimeIotaMs: 10,
 				},
 				Evidence: tmproto.EvidenceParams{
 					MaxAgeNumBlocks: 100000,
@@ -920,6 +921,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 		genDocStr = strings.ReplaceAll(genDocStr, `"initial_height": 1`, `"initial_height": "1"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": 22020096`, `"max_bytes": "22020096"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_gas": -1`, `"max_gas": "-1"`)
+		genDocStr = strings.ReplaceAll(genDocStr, `"time_iota_ms": 10`, `"time_iota_ms": "10"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_num_blocks": 100000`, `"max_age_num_blocks": "100000"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_duration": 172800000000000`, `"max_age_duration": "172800000000000"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": 1048576`, `"max_bytes": "1048576"`)
