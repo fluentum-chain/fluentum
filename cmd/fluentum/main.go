@@ -917,7 +917,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 		// Note: All numeric fields in consensus_params should be strings according to the error messages
 		genDocStr := string(genDocBytes)
 
-		// Convert all numeric fields to string format
+		// Convert all numeric fields to string format, except 'power' which must remain an integer
 		genDocStr = strings.ReplaceAll(genDocStr, `"initial_height": 1`, `"initial_height": "1"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": 22020096`, `"max_bytes": "22020096"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_gas": -1`, `"max_gas": "-1"`)
@@ -925,7 +925,6 @@ func initializeNode(homeDir, moniker, chainID string) error {
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_num_blocks": 100000`, `"max_age_num_blocks": "100000"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_duration": 172800000000000`, `"max_age_duration": "172800000000000"`)
 		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": 1048576`, `"max_bytes": "1048576"`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"power": 10`, `"power": "10"`)
 
 		if err := tmos.WriteFile(genFile, []byte(genDocStr), 0o644); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
