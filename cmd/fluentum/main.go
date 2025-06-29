@@ -60,9 +60,14 @@ func NewRootCmd() (*cobra.Command, app.EncodingConfig) {
 for high throughput and security.`,
 	}
 
-	// Create a proper start command for the Fluentum node
+	// Create commands for the Fluentum node
 	startCmd := createStartCommand(encodingConfig)
+	initCmd := createInitCommand()
+	versionCmd := versionCmd()
+
 	rootCmd.AddCommand(startCmd)
+	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(versionCmd)
 
 	return rootCmd, encodingConfig
 }
@@ -571,6 +576,23 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		} else {
 			chainID = "fluentum-mainnet-1"
 		}
+	}
+
+	// Ensure home directory exists
+	if err := os.MkdirAll(homeDir, 0755); err != nil {
+		return fmt.Errorf("failed to create home directory: %w", err)
+	}
+
+	// Ensure config directory exists
+	configDir := filepath.Join(homeDir, "config")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Ensure data directory exists
+	dataDir := filepath.Join(homeDir, "data")
+	if err := os.MkdirAll(dataDir, 0755); err != nil {
+		return fmt.Errorf("failed to create data directory: %w", err)
 	}
 
 	fmt.Println("DEBUG: Creating loggers")

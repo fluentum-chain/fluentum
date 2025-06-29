@@ -9,7 +9,7 @@ check_compatibility = true
 
 # Quantum Signing Feature Configuration
 [features.quantum_signing]
-enabled = true
+enabled = false
 # CRYSTALS-Dilithium mode (1, 3, or 5)
 dilithium_mode = 3
 # Enable quantum-resistant block headers
@@ -21,7 +21,7 @@ max_latency_ms = 50
 
 # State Sync Feature Configuration
 [features.state_sync]
-enabled = false
+enabled = true
 # Enable fast state synchronization
 fast_sync = true
 # State sync chunk size
@@ -33,7 +33,7 @@ timeout_seconds = 30
 
 # ZK Rollup Feature Configuration
 [features.zk_rollup]
-enabled = false
+enabled = true
 # Enable zero-knowledge proof generation
 enable_proofs = true
 # ZK proof verification

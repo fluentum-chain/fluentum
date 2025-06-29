@@ -142,8 +142,8 @@ EOF
         print_warning "fluentumd init still failed, creating minimal setup..."
         
         # Create a minimal validator key file with proper structure
-        print_status "Creating validator key..."
-        cat > "$FLUENTUM_HOME/config/priv_validator_key.json" << 'EOF'
+    print_status "Creating validator key..."
+    cat > "$FLUENTUM_HOME/config/priv_validator_key.json" << 'EOF'
 {
   "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
   "pub_key": {
@@ -158,7 +158,7 @@ EOF
 EOF
 
         # Create validator state file with proper structure
-        cat > "$FLUENTUM_HOME/data/priv_validator_state.json" << 'EOF'
+    cat > "$FLUENTUM_HOME/data/priv_validator_state.json" << 'EOF'
 {
   "height": 0,
   "round": 0,
