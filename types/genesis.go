@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"encoding/hex"
+
 	"github.com/fluentum-chain/fluentum/crypto"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
@@ -70,7 +72,11 @@ func (gv *GenesisValidator) UnmarshalJSON(data []byte) error {
 	}
 
 	// Set the fields - convert address string to Address type
-	gv.Address = Address(temp.Address)
+	addrBytes, err := hex.DecodeString(temp.Address)
+	if err != nil {
+		return fmt.Errorf("invalid address format: %s", temp.Address)
+	}
+	gv.Address = Address(addrBytes)
 	gv.PubKey = temp.PubKey
 	gv.Power = power
 	gv.Name = temp.Name
