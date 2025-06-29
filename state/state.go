@@ -322,15 +322,19 @@ func MakeGenesisState(genDoc *types.GenesisDoc) (State, error) {
 
 	var validatorSet, nextValidatorSet *types.ValidatorSet
 	if genDoc.Validators == nil {
+		fmt.Printf("[DEBUG] GenesisDoc.Validators is nil\n")
 		validatorSet = types.NewValidatorSet(nil)
 		nextValidatorSet = types.NewValidatorSet(nil)
 	} else {
+		fmt.Printf("[DEBUG] GenesisDoc.Validators has %d validators\n", len(genDoc.Validators))
 		validators := make([]*types.Validator, len(genDoc.Validators))
 		for i, val := range genDoc.Validators {
+			fmt.Printf("[DEBUG] Creating validator %d: address=%X, power=%d\n", i, val.Address, val.Power)
 			validators[i] = types.NewValidator(val.PubKey, val.Power)
 		}
 		validatorSet = types.NewValidatorSet(validators)
 		nextValidatorSet = types.NewValidatorSet(validators).CopyIncrementProposerPriority(1)
+		fmt.Printf("[DEBUG] Created ValidatorSet with %d validators\n", validatorSet.Size())
 	}
 
 	return State{
