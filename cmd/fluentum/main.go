@@ -855,20 +855,20 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			ChainID:       chainID,
 			InitialHeight: 1,
 			ConsensusParams: &tmproto.ConsensusParams{
-				Block: &tmproto.BlockParams{
+				Block: tmproto.BlockParams{
 					MaxBytes:   22020096,
 					MaxGas:     -1,
 					TimeIotaMs: 1000,
 				},
-				Evidence: &tmproto.EvidenceParams{
+				Evidence: tmproto.EvidenceParams{
 					MaxAgeNumBlocks: 100000,
 					MaxAgeDuration:  time.Duration(172800000000000), // 48 hours in nanoseconds
 					MaxBytes:        1048576,
 				},
-				Validator: &tmproto.ValidatorParams{
+				Validator: tmproto.ValidatorParams{
 					PubKeyTypes: []string{"ed25519"},
 				},
-				Version: &tmproto.VersionParams{
+				Version: tmproto.VersionParams{
 					AppVersion: 0,
 				},
 			},
