@@ -32,6 +32,7 @@ import (
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	cs "github.com/fluentum-chain/fluentum/consensus"
+	_ "github.com/fluentum-chain/fluentum/crypto/ed25519" // Import to register types
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
@@ -689,7 +690,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 			}
 
 			var genDoc types.GenesisDoc
-			if err := json.Unmarshal(genDocBytes, &genDoc); err != nil {
+			if err := tmjson.Unmarshal(genDocBytes, &genDoc); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal genesis: %w", err)
 			}
 
