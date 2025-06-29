@@ -26,6 +26,8 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
+	"encoding/base64"
+
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
@@ -872,7 +874,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 					"address": pubKey.Address().String(),
 					"pub_key": map[string]interface{}{
 						"type":  "tendermint/PubKeyEd25519",
-						"value": pubKey.Bytes(),
+						"value": base64.StdEncoding.EncodeToString(pubKey.Bytes()),
 					},
 					"power": 10,
 				},
