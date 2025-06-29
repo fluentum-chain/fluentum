@@ -32,21 +32,21 @@ echo ""
 # Check if fluentumd binary exists
 FLUENTUMD_BINARY=""
 
-# Check multiple possible locations
-if [ -f "./build/fluentumd" ]; then
-    FLUENTUMD_BINARY="./build/fluentumd"
-elif [ -f "../build/fluentumd" ]; then
-    FLUENTUMD_BINARY="../build/fluentumd"
-elif command -v fluentumd &> /dev/null; then
+# Check multiple possible locations (check PATH first)
+if command -v fluentumd &> /dev/null; then
     FLUENTUMD_BINARY="fluentumd"
 elif [ -f "/usr/local/bin/fluentumd" ]; then
     FLUENTUMD_BINARY="/usr/local/bin/fluentumd"
+elif [ -f "./build/fluentumd" ]; then
+    FLUENTUMD_BINARY="./build/fluentumd"
+elif [ -f "../build/fluentumd" ]; then
+    FLUENTUMD_BINARY="../build/fluentumd"
 else
     print_error "fluentumd binary not found. Checked:"
-    echo "  - ./build/fluentumd"
-    echo "  - ../build/fluentumd"
     echo "  - fluentumd (in PATH)"
     echo "  - /usr/local/bin/fluentumd"
+    echo "  - ./build/fluentumd"
+    echo "  - ../build/fluentumd"
     echo ""
     print_status "Current directory: $(pwd)"
     print_status "Available files in current directory:"
