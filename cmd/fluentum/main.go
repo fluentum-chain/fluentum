@@ -859,7 +859,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 				},
 				"evidence": map[string]interface{}{
 					"max_age_num_blocks": 100000,
-					"max_age_duration":   "172800000000000",
+					"max_age_duration":   172800000000000,
 					"max_bytes":          1048576,
 				},
 				"validator": map[string]interface{}{
