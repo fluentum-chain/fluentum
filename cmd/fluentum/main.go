@@ -35,7 +35,6 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	tmos "github.com/fluentum-chain/fluentum/libs/os"
@@ -896,7 +895,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 				PubKey:  pubKey,
 				Power:   10,
 			}},
-			AppHash:  tmbytes.HexBytes("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"),
+			AppHash:  []byte{}, // Empty AppHash for initial genesis
 			AppState: json.RawMessage("{}"),
 		}
 
