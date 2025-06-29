@@ -348,7 +348,7 @@ func doHandshake(
 }
 
 func logNodeStartupInfo(state sm.State, pubKey crypto.PubKey, logger, consensusLogger log.Logger) {
-	// Log the version info.
+	// Log version info
 	logger.Info("Version info",
 		"tendermint_version", version.TMCoreSemVer,
 		"block", version.BlockProtocol,
@@ -361,6 +361,12 @@ func logNodeStartupInfo(state sm.State, pubKey crypto.PubKey, logger, consensusL
 			"software", version.BlockProtocol,
 			"state", state.Version.Consensus.Block,
 		)
+	}
+
+	// Log whether this node is a validator or an observer
+	if state.Validators == nil {
+		consensusLogger.Info("This node is not a validator (no validators in state)", "addr", pubKey.Address(), "pubKey", pubKey)
+		return
 	}
 
 	addr := pubKey.Address()
