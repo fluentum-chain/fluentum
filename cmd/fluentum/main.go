@@ -30,15 +30,18 @@ import (
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
+	cs "github.com/fluentum-chain/fluentum/consensus"
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
 	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	tmos "github.com/fluentum-chain/fluentum/libs/os"
+	mempl "github.com/fluentum-chain/fluentum/mempool"
 	"github.com/fluentum-chain/fluentum/node"
 	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/proxy"
+	sm "github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
 	"github.com/fluentum-chain/fluentum/version"
@@ -689,7 +692,10 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 			return &genDoc, nil
 		},
 		node.DefaultDBProvider,
-		node.DefaultMetricsProvider(tmConfig.Instrumentation),
+		// Use a simple metrics provider that returns no-op metrics
+		func(chainID string) (*cs.Metrics, *p2p.Metrics, *mempl.Metrics, *sm.Metrics) {
+			return cs.NopMetrics(), p2p.NopMetrics(), mempl.NopMetrics(), sm.NopMetrics()
+		},
 		fluentumLogger,
 	)
 	if err != nil {
