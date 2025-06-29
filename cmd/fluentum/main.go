@@ -826,14 +826,14 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			"initial_height": "1",
 			"consensus_params": map[string]interface{}{
 				"block": map[string]interface{}{
-					"max_bytes":    "22020096",
-					"max_gas":      "-1",
-					"time_iota_ms": "1000",
+					"max_bytes":    22020096,
+					"max_gas":      -1,
+					"time_iota_ms": 1000,
 				},
 				"evidence": map[string]interface{}{
-					"max_age_num_blocks": "100000",
+					"max_age_num_blocks": 100000,
 					"max_age_duration":   "172800000000000",
-					"max_bytes":          "1048576",
+					"max_bytes":          1048576,
 				},
 				"validator": map[string]interface{}{
 					"pub_key_types": []string{"ed25519"},
