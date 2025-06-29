@@ -40,7 +40,7 @@ type GenesisValidator struct {
 func (gv *GenesisValidator) UnmarshalJSON(data []byte) error {
 	// Create a temporary struct to unmarshal into
 	type tempValidator struct {
-		Address Address         `json:"address"` // Use Address type directly for proper hex decoding
+		Address string          `json:"address"` // Use string to avoid circular dependency
 		PubKey  crypto.PubKey   `json:"pub_key"`
 		Power   json.RawMessage `json:"power"` // Use RawMessage to handle both string and int
 		Name    string          `json:"name"`
@@ -69,8 +69,8 @@ func (gv *GenesisValidator) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-	// Set the fields - Address is already properly decoded as hex bytes
-	gv.Address = temp.Address
+	// Set the fields - convert address string to Address type
+	gv.Address = Address(temp.Address)
 	gv.PubKey = temp.PubKey
 	gv.Power = power
 	gv.Name = temp.Name
