@@ -755,17 +755,29 @@ func createInitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init [moniker]",
 		Short: "Initialize Fluentum node",
-		Long: `Initialize a new Fluentum node with the following files:
-- Private validator key
-- Node key
-- Genesis file
-- Configuration files`,
+		Long: `Initialize a new Fluentum node with the specified moniker.
+
+This command will:
+- Create the necessary directories
+- Generate private validator and node keys
+- Create a genesis file
+- Create a default config.toml file
+
+Example:
+  fluentumd init my-node --home /opt/fluentum
+`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			moniker := args[0]
 
 			// Get home directory from flags
 			homeDir, err := cmd.Flags().GetString(flags.FlagHome)
+			if err != nil {
+				return err
+			}
+
+			// Get testnet flag
+			testnetMode, err := cmd.Flags().GetBool("testnet")
 			if err != nil {
 				return err
 			}
@@ -778,7 +790,11 @@ func createInitCommand() *cobra.Command {
 
 			// Use default chain ID if not provided
 			if chainID == "" {
-				chainID = "fluentum-testnet-1"
+				if testnetMode {
+					chainID = "fluentum-testnet-1"
+				} else {
+					chainID = "fluentum-mainnet-1"
+				}
 			}
 
 			return initializeNode(homeDir, moniker, chainID)
@@ -792,6 +808,7 @@ func createInitCommand() *cobra.Command {
 	cmd.Flags().Int("initial-height", 1, "Specify the initial block height at genesis")
 	cmd.Flags().BoolP("overwrite", "o", false, "Overwrite the genesis.json file")
 	cmd.Flags().Bool("recover", false, "Provide seed phrase to recover existing key instead of creating")
+	cmd.Flags().Bool("testnet", false, "Initialize for testnet mode")
 
 	return cmd
 }
