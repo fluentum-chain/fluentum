@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
@@ -880,21 +881,21 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			GenesisTime:   tmtime.Now(),
 			ChainID:       chainID,
 			InitialHeight: 1,
-			ConsensusParams: &types.ConsensusParams{
-				Block: types.BlockParams{
+			ConsensusParams: &tmproto.ConsensusParams{
+				Block: tmproto.BlockParams{
 					MaxBytes:   22020096,
 					MaxGas:     -1,
 					TimeIotaMs: 1000,
 				},
-				Evidence: types.EvidenceParams{
+				Evidence: tmproto.EvidenceParams{
 					MaxAgeNumBlocks: 100000,
 					MaxAgeDuration:  time.Duration(172800000000000), // 48 hours in nanoseconds
 					MaxBytes:        1048576,
 				},
-				Validator: types.ValidatorParams{
+				Validator: tmproto.ValidatorParams{
 					PubKeyTypes: []string{"ed25519"},
 				},
-				Version: types.VersionParams{
+				Version: tmproto.VersionParams{
 					AppVersion: 0,
 				},
 			},
