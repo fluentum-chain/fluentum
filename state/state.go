@@ -320,6 +320,9 @@ func MakeGenesisState(genDoc *types.GenesisDoc) (State, error) {
 		return State{}, fmt.Errorf("error in genesis file: %v", err)
 	}
 
+	fmt.Printf("[DEBUG] GenesisDoc.ConsensusParams: %+v\n", genDoc.ConsensusParams)
+	fmt.Printf("[DEBUG] GenesisDoc.ConsensusParams.Block.MaxBytes: %d\n", genDoc.ConsensusParams.Block.MaxBytes)
+
 	var validatorSet, nextValidatorSet *types.ValidatorSet
 	if genDoc.Validators == nil {
 		fmt.Printf("[DEBUG] GenesisDoc.Validators is nil\n")
