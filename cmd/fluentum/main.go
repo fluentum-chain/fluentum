@@ -371,12 +371,21 @@ func (a *CosmosAppAdapter) Info(ctx context.Context, req *abcitypes.InfoRequest)
 	if err != nil {
 		return nil, err
 	}
+
+	// If this is the initial state (height 0), return empty AppHash
+	var lastBlockAppHash []byte
+	if resp.LastBlockHeight == 0 {
+		lastBlockAppHash = []byte{}
+	} else {
+		lastBlockAppHash = resp.LastBlockAppHash
+	}
+
 	return &abcitypes.InfoResponse{
 		Data:             resp.Data,
 		Version:          resp.Version,
 		AppVersion:       resp.AppVersion,
 		LastBlockHeight:  resp.LastBlockHeight,
-		LastBlockAppHash: resp.LastBlockAppHash,
+		LastBlockAppHash: lastBlockAppHash,
 	}, nil
 }
 
