@@ -373,6 +373,12 @@ func logNodeStartupInfo(state sm.State, pubKey crypto.PubKey, logger, consensusL
 }
 
 func onlyValidatorIsUs(state sm.State, pubKey crypto.PubKey) bool {
+	fmt.Printf("[DEBUG] onlyValidatorIsUs: state.Validators=%v\n", state.Validators)
+	if state.Validators == nil {
+		fmt.Printf("[DEBUG] onlyValidatorIsUs: state.Validators is nil!\n")
+		return false
+	}
+	fmt.Printf("[DEBUG] onlyValidatorIsUs: state.Validators.Size()=%d\n", state.Validators.Size())
 	if state.Validators.Size() > 1 {
 		return false
 	}
