@@ -889,7 +889,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 				},
 				Evidence: tmproto.EvidenceParams{
 					MaxAgeNumBlocks: 100000,
-					MaxAgeDuration:  time.Duration(172800000000000), // 48 hours in nanoseconds
+					MaxAgeDuration:  time.Duration(172800000000000),
 					MaxBytes:        1048576,
 				},
 				Validator: tmproto.ValidatorParams{
@@ -904,7 +904,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 				PubKey:  pubKey,
 				Power:   10,
 			}},
-			AppHash:  []byte{}, // Empty AppHash for initial genesis
+			AppHash:  []byte{},
 			AppState: json.RawMessage("{}"),
 		}
 
