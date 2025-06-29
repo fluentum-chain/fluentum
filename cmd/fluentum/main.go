@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -890,19 +889,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			return fmt.Errorf("failed to marshal genesis file: %w", err)
 		}
 
-		// Fix the int64 fields that were converted to strings by tmjson
-		genDocStr := string(genDocBytes)
-		genDocStr = strings.ReplaceAll(genDocStr, `"initial_height": "1"`, `"initial_height": 1`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": "22020096"`, `"max_bytes": 22020096`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_gas": "-1"`, `"max_gas": -1`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"time_iota_ms": "1000"`, `"time_iota_ms": 1000`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_num_blocks": "100000"`, `"max_age_num_blocks": 100000`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_age_duration": "172800000000000"`, `"max_age_duration": 172800000000000`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"max_bytes": "1048576"`, `"max_bytes": 1048576`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"power": "10"`, `"power": 10`)
-		genDocStr = strings.ReplaceAll(genDocStr, `"app_version": "0"`, `"app_version": 0`)
-
-		if err := tmos.WriteFile(genFile, []byte(genDocStr), 0o644); err != nil {
+		if err := tmos.WriteFile(genFile, genDocBytes, 0o644); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
 		}
 		fmt.Printf("Generated genesis file: %s\n", genFile)
