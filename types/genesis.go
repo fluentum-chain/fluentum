@@ -42,14 +42,15 @@ type GenesisValidator struct {
 func (gv *GenesisValidator) UnmarshalJSON(data []byte) error {
 	// Create a temporary struct to unmarshal into
 	type tempValidator struct {
-		Address string          `json:"address"` // Use string to avoid circular dependency
+		Address string          `json:"address"`
 		PubKey  crypto.PubKey   `json:"pub_key"`
-		Power   json.RawMessage `json:"power"` // Use RawMessage to handle both string and int
+		Power   json.RawMessage `json:"power"`
 		Name    string          `json:"name"`
 	}
 
 	var temp tempValidator
 	if err := tmjson.Unmarshal(data, &temp); err != nil {
+		fmt.Printf("[DEBUG] Failed to unmarshal validator: %v\n", err)
 		return err
 	}
 
@@ -59,13 +60,13 @@ func (gv *GenesisValidator) UnmarshalJSON(data []byte) error {
 		// Try to unmarshal as string first
 		var powerStr string
 		if err := tmjson.Unmarshal(temp.Power, &powerStr); err == nil {
-			// Parse string to int64
 			if _, err := fmt.Sscanf(powerStr, "%d", &power); err != nil {
+				fmt.Printf("[DEBUG] Invalid power value: %s\n", powerStr)
 				return fmt.Errorf("invalid power value: %s", powerStr)
 			}
 		} else {
-			// Try to unmarshal as int64 directly
 			if err := tmjson.Unmarshal(temp.Power, &power); err != nil {
+				fmt.Printf("[DEBUG] Power must be a string or integer, got: %s\n", string(temp.Power))
 				return fmt.Errorf("power must be a string or integer, got: %s", string(temp.Power))
 			}
 		}
@@ -74,12 +75,19 @@ func (gv *GenesisValidator) UnmarshalJSON(data []byte) error {
 	// Set the fields - convert address string to Address type
 	addrBytes, err := hex.DecodeString(temp.Address)
 	if err != nil {
+		fmt.Printf("[DEBUG] Invalid address format: %s\n", temp.Address)
 		return fmt.Errorf("invalid address format: %s", temp.Address)
 	}
 	gv.Address = Address(addrBytes)
 	gv.PubKey = temp.PubKey
 	gv.Power = power
 	gv.Name = temp.Name
+
+	fmt.Printf("[DEBUG] Parsed validator: address=%X, pub_key=%#v, power=%d\n", gv.Address, gv.PubKey, gv.Power)
+	if gv.PubKey == nil {
+		fmt.Printf("[DEBUG] PubKey is nil for validator address=%X\n", gv.Address)
+		return fmt.Errorf("pub_key is nil for validator")
+	}
 
 	return nil
 }
