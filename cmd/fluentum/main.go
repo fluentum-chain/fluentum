@@ -27,7 +27,6 @@ import (
 	"github.com/spf13/cobra"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
@@ -43,6 +42,7 @@ import (
 	"github.com/fluentum-chain/fluentum/node"
 	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
+	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/proxy"
 	sm "github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/types"
@@ -883,9 +883,8 @@ func initializeNode(homeDir, moniker, chainID string) error {
 			InitialHeight: 1,
 			ConsensusParams: &tmproto.ConsensusParams{
 				Block: tmproto.BlockParams{
-					MaxBytes:   22020096,
-					MaxGas:     -1,
-					TimeIotaMs: 1000,
+					MaxBytes: 22020096,
+					MaxGas:   -1,
 				},
 				Evidence: tmproto.EvidenceParams{
 					MaxAgeNumBlocks: 100000,
@@ -895,9 +894,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 				Validator: tmproto.ValidatorParams{
 					PubKeyTypes: []string{"ed25519"},
 				},
-				Version: tmproto.VersionParams{
-					AppVersion: 0,
-				},
+				Version: tmproto.VersionParams{},
 			},
 			Validators: []types.GenesisValidator{{
 				Address: pubKey.Address(),
