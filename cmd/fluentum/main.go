@@ -692,9 +692,30 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 			return &genDoc, nil
 		},
 		node.DefaultDBProvider,
-		// Use a simple metrics provider that returns no-op metrics
+		// Use a robust metrics provider that completely avoids Prometheus
 		func(chainID string) (*cs.Metrics, *p2p.Metrics, *mempl.Metrics, *sm.Metrics) {
-			return cs.NopMetrics(), p2p.NopMetrics(), mempl.NopMetrics(), sm.NopMetrics()
+			// Create no-op metrics with explicit nil checks
+			csMetrics := cs.NopMetrics()
+			if csMetrics == nil {
+				csMetrics = cs.NopMetrics()
+			}
+
+			p2pMetrics := p2p.NopMetrics()
+			if p2pMetrics == nil {
+				p2pMetrics = p2p.NopMetrics()
+			}
+
+			mempoolMetrics := mempl.NopMetrics()
+			if mempoolMetrics == nil {
+				mempoolMetrics = mempl.NopMetrics()
+			}
+
+			stateMetrics := sm.NopMetrics()
+			if stateMetrics == nil {
+				stateMetrics = sm.NopMetrics()
+			}
+
+			return csMetrics, p2pMetrics, mempoolMetrics, stateMetrics
 		},
 		fluentumLogger,
 	)

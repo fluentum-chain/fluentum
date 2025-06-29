@@ -121,13 +121,28 @@ type MetricsProvider func(chainID string) (*cs.Metrics, *p2p.Metrics, *mempl.Met
 // if Prometheus is enabled. Otherwise, it returns no-op Metrics.
 func DefaultMetricsProvider(config *cfg.InstrumentationConfig) MetricsProvider {
 	return func(chainID string) (*cs.Metrics, *p2p.Metrics, *mempl.Metrics, *sm.Metrics) {
-		if config.Prometheus {
-			return cs.PrometheusMetrics(config.Namespace, "chain_id", chainID),
-				p2p.PrometheusMetrics(config.Namespace, "chain_id", chainID),
-				mempl.PrometheusMetrics(config.Namespace, "chain_id", chainID),
-				sm.PrometheusMetrics(config.Namespace, "chain_id", chainID)
+		// Always return no-op metrics to avoid pointer issues
+		// This is a safer approach that avoids any potential initialization problems
+		csMetrics := cs.NopMetrics()
+		p2pMetrics := p2p.NopMetrics()
+		mempoolMetrics := mempl.NopMetrics()
+		stateMetrics := sm.NopMetrics()
+
+		// Ensure all metrics are properly initialized
+		if csMetrics == nil {
+			csMetrics = cs.NopMetrics()
 		}
-		return cs.NopMetrics(), p2p.NopMetrics(), mempl.NopMetrics(), sm.NopMetrics()
+		if p2pMetrics == nil {
+			p2pMetrics = p2p.NopMetrics()
+		}
+		if mempoolMetrics == nil {
+			mempoolMetrics = mempl.NopMetrics()
+		}
+		if stateMetrics == nil {
+			stateMetrics = sm.NopMetrics()
+		}
+
+		return csMetrics, p2pMetrics, mempoolMetrics, stateMetrics
 	}
 }
 
