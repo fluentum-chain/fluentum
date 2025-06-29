@@ -850,7 +850,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 		genesis := map[string]interface{}{
 			"genesis_time":   tmtime.Now().Format(time.RFC3339),
 			"chain_id":       chainID,
-			"initial_height": "1",
+			"initial_height": 1,
 			"consensus_params": map[string]interface{}{
 				"block": map[string]interface{}{
 					"max_bytes":    22020096,
@@ -874,7 +874,7 @@ func initializeNode(homeDir, moniker, chainID string) error {
 						"type":  "tendermint/PubKeyEd25519",
 						"value": pubKey.Bytes(),
 					},
-					"power": "10",
+					"power": 10,
 				},
 			},
 			"app_hash":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
