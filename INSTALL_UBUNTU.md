@@ -4,7 +4,13 @@ This guide will help you install Fluentum Core on Ubuntu systems.
 
 ## Prerequisites
 
-- Ubuntu 20.04 LTS or later
+### System Requirements
+- **OS**: Ubuntu 20.04+ (recommended)
+- **Go Version**: 1.24.4+ (required)
+- **Compatibility**: Cosmos SDK v0.50.6, CometBFT v0.38.6
+- **Memory**: 8GB+ RAM
+- **Storage**: 100GB+ SSD (recommended)
+
 - Non-root user with sudo privileges
 - Internet connection
 
@@ -188,18 +194,18 @@ The installation uses **PebbleDB** by default for optimal performance.
 
 ## Dependency Management
 
-### Current Pinned Versions (Go 1.20)
+### Current Pinned Versions (Go 1.24.4+)
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
-| **CometBFT** | v0.37.2 | Consensus engine |
-| **Cosmos SDK** | v0.47.12 | Application framework |
-| **gRPC** | v1.59.0 | RPC communication |
-| **cosmossdk.io/store** | v1.0.2 | State management |
+| **CometBFT** | v0.38.6 | Consensus engine |
+| **Cosmos SDK** | v0.50.6 | Application framework |
+| **gRPC** | v1.73.0 | RPC communication |
+| **cosmossdk.io/store** | v1.1.0 | State management |
 
-### Upgrading Dependencies (Go 1.22+)
+### Upgrading Dependencies
 
-If using Go 1.22+, dependencies will automatically upgrade:
+The project is currently configured for Go 1.24.4+ compatibility:
 
 ```bash
 # Update to latest compatible versions
@@ -208,6 +214,17 @@ go mod tidy
 # Rebuild with new dependencies
 make build
 ```
+
+**Note:** The project requires Go 1.24.4+ for compatibility with CometBFT v0.38.6 and Cosmos SDK v0.50.6.
+
+## Dependency Versions
+
+| Component | Version | Purpose |
+|-----------|---------|---------|
+| **Go** | 1.24.4+ | Programming language |
+| **CometBFT** | v0.38.6 | Consensus engine |
+| **Cosmos SDK** | v0.50.6 | Application framework |
+| **cometbft-db** | v0.9.1 | Database backend |
 
 ## Troubleshooting
 

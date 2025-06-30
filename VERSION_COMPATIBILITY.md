@@ -279,3 +279,130 @@ go mod tidy
 **✅ Version compatibility guide updated!**
 
 The project supports both Go 1.20.x (recommended) and Go 1.22+ configurations. Choose the appropriate version based on your deployment requirements. 
+
+## Current Versions
+
+- **Go**: 1.24.4
+- **CometBFT**: v0.38.6
+- **Cosmos SDK**: v0.50.6
+- **cometbft-db**: v0.9.1
+- **gRPC**: v1.73.0
+
+## go.mod Configuration
+
+```go
+module github.com/fluentum-chain/fluentum
+
+go 1.24.4
+
+replace github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.38.6
+
+replace github.com/tendermint/tendermint-db => github.com/cometbft/cometbft-db v1.0.4
+
+require (
+    github.com/cometbft/cometbft v0.38.6
+    github.com/cometbft/cometbft-db v0.9.1
+    github.com/cosmos/cosmos-sdk v0.50.6
+    // ... other dependencies
+)
+```
+
+## Compatibility Matrix
+
+| Component | Version | Go Requirement | Status |
+|-----------|---------|----------------|--------|
+| **CometBFT** | v0.38.6 | 1.24+ | ✅ Required |
+| **Cosmos SDK** | v0.50.6 | 1.24+ | ✅ Required |
+| **cometbft-db** | v0.9.1 | 1.24+ | ✅ Required |
+| **gRPC** | v1.73.0 | 1.24+ | ✅ Required |
+
+## Migration Notes
+
+### From Tendermint Core
+
+```bash
+# Ensure Go 1.24.4+ is installed
+go version
+
+# Update go.mod with correct versions
+go mod edit -go=1.24.4
+go get github.com/cometbft/cometbft@v0.38.6
+go get github.com/cosmos/cosmos-sdk@v0.50.6
+
+# Update dependencies
+go mod tidy
+```
+
+### From Older CometBFT Versions
+
+```bash
+# Upgrade to v0.38.6
+go get github.com/cometbft/cometbft@v0.38.6
+
+# Ensure Cosmos SDK compatibility
+go get github.com/cosmos/cosmos-sdk@v0.50.6
+
+# Update all dependencies
+go mod tidy
+```
+
+## Important Notes
+
+1. **Go Version**: The project requires Go 1.24.4+ for compatibility with CometBFT v0.38.6 and Cosmos SDK v0.50.6.
+
+2. **ABCI++**: All ABCI interfaces now use ABCI++ (FinalizeBlock instead of BeginBlock/EndBlock/DeliverTx).
+
+3. **Database**: Uses cometbft-db v0.9.1 with support for PebbleDB, LevelDB, and RocksDB.
+
+4. **Configuration**: Update config.toml to use CometBFT v0.38.6 settings.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Go Version Mismatch**
+   ```bash
+   # Error: go.mod requires Go 1.24.4
+   # Solution: Install Go 1.24.4+
+   wget https://go.dev/dl/go1.24.4.linux-amd64.tar.gz
+   sudo tar -C /usr/local -xzf go1.24.4.linux-amd64.tar.gz
+   ```
+
+2. **Dependency Conflicts**
+   ```bash
+   # Clean and rebuild
+   go clean -modcache
+   go mod tidy
+   go mod download
+   ```
+
+3. **CometBFT Migration Issues**
+   ```bash
+   # Use confix for configuration migration
+   go install github.com/cometbft/confix@latest
+   confix migrate --home ~/.cometbft --target-version v0.38.6
+   ```
+
+## Version History
+
+| Date | Go | CometBFT | Cosmos SDK | Notes |
+|------|----|----------|------------|-------|
+| 2025-06-30 | 1.24.4 | v0.38.6 | v0.50.6 | Current stable |
+| 2024-12-01 | 1.20.x | v0.37.2 | v0.47.12 | Previous version |
+| 2024-06-01 | 1.19.x | v0.34.x | v0.45.x | Legacy version |
+
+## Future Upgrades
+
+When upgrading to newer versions:
+
+1. **Check Compatibility**: Ensure all components are compatible
+2. **Test Thoroughly**: Run full test suite
+3. **Update Documentation**: Update all version references
+4. **Migration Scripts**: Update migration scripts if needed
+
+## Support
+
+For version compatibility issues:
+- Check [CometBFT Documentation](https://docs.cometbft.com/)
+- Check [Cosmos SDK Documentation](https://docs.cosmos.network/)
+- Open an issue in the repository 

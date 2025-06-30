@@ -1,44 +1,39 @@
 # 🚀 Fluentum Quick Deployment Guide
 
-## �� Prerequisites
+## Overview
+
+This guide provides a quick deployment path for Fluentum Core nodes.
+
+### Key Information
+- **Go Version**: 1.24.4+ (required)
+- **Compatibility:** Cosmos SDK v0.50.6, CometBFT v0.38.6
+- **Database:** cometbft-db v0.9.1
+- **Network:** fluentum-testnet-1
+
+##  Prerequisites
 
 ### Go Version Requirements
 
-**⚠️ Important:** Fluentum Core supports two Go version configurations:
+**⚠️ Important:** Fluentum Core requires Go 1.24.4+:
 
-#### Option 1: Go 1.20.x (Recommended for Cosmos SDK v0.47.x)
-- **Compatibility:** Cosmos SDK v0.47.12, CometBFT v0.37.2
-- **Dependencies:** Pinned for Go 1.20 compatibility
+- **Go Version**: 1.24.4+ (required)
+- **Compatibility:** Cosmos SDK v0.50.6, CometBFT v0.38.6
+- **Dependencies:** Pinned for Go 1.24.4 compatibility
 - **Status:** ✅ Stable and tested
-
-#### Option 2: Go 1.22+ (For newer dependencies)
-- **Compatibility:** Latest Cosmos SDK and CometBFT versions
-- **Dependencies:** Auto-upgraded to latest compatible versions
-- **Status:** ✅ Supported but may require dependency updates
 
 ### 1. Install Go
 
-**For Go 1.20.x (Recommended):**
+**Install Go 1.24.4+ (Required):**
 ```bash
-wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.24.4.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.24.4.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
 source ~/.bashrc
 go version
-# Expected: go version go1.20.14 linux/amd64
+# Expected: go version go1.24.4 linux/amd64
 ```
 
-**For Go 1.22+ (Newer dependencies):**
-```bash
-wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
-echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
-source ~/.bashrc
-go version
-# Expected: go version go1.22.0 linux/amd64
-```
-
-**Note:** If using Go 1.22+, run `go mod tidy` after installation to upgrade dependencies to compatible versions.
+**Note:** The project requires Go 1.24.4+ for compatibility with CometBFT v0.38.6 and Cosmos SDK v0.50.6.
 
 ### 2. System Requirements
 
@@ -326,21 +321,32 @@ sudo systemctl start fluentum
 
 ## 🔧 Dependency Management
 
-### Current Dependency Versions (Go 1.20)
-- CometBFT: v0.37.2
-- Cosmos SDK: v0.47.12
-- cometbft-db: v0.8.0
+### Current Dependency Versions (Go 1.24.4+)
+- CometBFT: v0.38.6
+- Cosmos SDK: v0.50.6
+- cometbft-db: v0.9.1
+- gRPC: v1.73.0
 
-### Upgrading Dependencies (Go 1.22+)
-If using Go 1.22+, run:
+### Upgrading Dependencies
+The project is currently configured for Go 1.24.4+ compatibility. To update dependencies:
 ```bash
 go mod tidy
 make build
 ```
-This will upgrade to the latest compatible dependencies (e.g., CometBFT v0.38+, Cosmos SDK v0.50+).
+
+**Note:** The project requires Go 1.24.4+ for compatibility with CometBFT v0.38.6 and Cosmos SDK v0.50.6.
 
 ---
 
 **🎉 Your Fluentum node is now deployed to mainnet!**
 
 Monitor the node closely for the first 24 hours and ensure all systems are functioning correctly. 
+
+## Version Requirements
+
+| Component | Version | Notes |
+|-----------|---------|-------|
+| Go | 1.24.4+ | Required |
+| CometBFT | v0.38.6 | Consensus engine |
+| Cosmos SDK | v0.50.6 | Application framework |
+| cometbft-db | v0.9.1 | Database backend | 

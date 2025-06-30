@@ -1,11 +1,11 @@
 # Fluentum Core
 
-[![Go Version](https://img.shields.io/badge/Go-1.20%2B-blue.svg)](https://golang.org/)
+[![Go Version](https://img.shields.io/badge/Go-1.24%2B-blue.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![Commits](https://img.shields.io/badge/Commits-8,761+-orange.svg)](https://github.com/fluentum-chain/fluentum/commits/main)
 [![Code Size](https://img.shields.io/badge/Size-~150MB-lightgrey.svg)](https://github.com/fluentum-chain/fluentum)
-[![CometBFT](https://img.shields.io/badge/CometBFT-v0.37.2-blue.svg)](https://cometbft.com/)
-[![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.47.12-green.svg)](https://cosmos.network/)
+[![CometBFT](https://img.shields.io/badge/CometBFT-v0.38.6-blue.svg)](https://cometbft.com/)
+[![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.50.6-green.svg)](https://cosmos.network/)
 [![Mainnet Ready](https://img.shields.io/badge/Mainnet-Ready-brightgreen.svg)](FINAL_CHECKLIST.md)
 
 > **⚠️ NOTICE: This codebase is now fully migrated to CometBFT v0.38+ and ABCI 2.0 (ABCI++).**
@@ -20,7 +20,7 @@
 
 ## 🚀 Overview
 
-Fluentum Core is a production-ready blockchain platform that combines **Delegated Proof of Stake (DPoS)** with **Zero-Knowledge Rollups (ZK-Rollups)** for unprecedented performance and security. Built on **CometBFT v0.37.2** consensus with quantum-resistant cryptography and cross-chain capabilities.
+Fluentum Core is a production-ready blockchain platform that combines **Delegated Proof of Stake (DPoS)** with **Zero-Knowledge Rollups (ZK-Rollups)** for unprecedented performance and security. Built on **CometBFT v0.38.6** consensus with quantum-resistant cryptography and cross-chain capabilities.
 
 ### Key Differentiators
 
@@ -34,13 +34,13 @@ Fluentum Core is a production-ready blockchain platform that combines **Delegate
 
 ## 🔄 Migration to CometBFT
 
-This project has been successfully migrated from Tendermint Core to **CometBFT v0.37.2** with **Cosmos SDK v0.47.12**. 
+This project has been successfully migrated from Tendermint Core to **CometBFT v0.38.6** with **Cosmos SDK v0.50.6**. 
 
 ### Key Migration Changes
 
-- ✅ **CometBFT v0.37.2**: Drop-in replacement for Tendermint v0.34+ (Go 1.20 compatible)
-- ✅ **Cosmos SDK v0.47.12**: Compatible SDK version for CometBFT v0.37.2
-- ✅ **cometbft-db v0.8.0**: Compatible database backend
+- ✅ **CometBFT v0.38.6**: Drop-in replacement for Tendermint v0.34+ (Go 1.24 compatible)
+- ✅ **Cosmos SDK v0.50.6**: Compatible SDK version for CometBFT v0.38.6
+- ✅ **cometbft-db v0.9.1**: Compatible database backend
 - ✅ **ABCI++ Support**: `PrepareProposal`, `ProcessProposal`, `ExtendVote`, `VerifyVoteExtension`
 - ✅ **Proposer-Based Timestamps (PBTS)**: Enhanced timestamp handling
 - ✅ **Nop Mempool**: Application-managed transaction handling
@@ -59,7 +59,7 @@ chmod +x scripts/migrate-config.sh
 
 # Manual migration
 go install github.com/cometbft/confix@latest
-confix migrate --home ~/.cometbft --target-version v0.37.2
+confix migrate --home ~/.cometbft --target-version v0.38.6
 ```
 
 For detailed migration instructions, see [Migration Guide](#migration-guide) below.
@@ -75,9 +75,9 @@ For detailed migration instructions, see [Migration Guide](#migration-guide) bel
 | **Directories** | 319 |
 | **Git Commits** | 8,761+ |
 | **Languages** | Go (82.2%), Solidity (2.6%), TeX (6.7%) |
-| **CometBFT Version** | v0.37.2 |
-| **Cosmos SDK Version** | v0.47.12 |
-| **cometbft-db Version** | v0.8.0 |
+| **CometBFT Version** | v0.38.6 |
+| **Cosmos SDK Version** | v0.50.6 |
+| **cometbft-db Version** | v0.9.1 |
 
 ### Architecture Components
 
@@ -100,32 +100,23 @@ fluentum/
 
 **⚠️ Important: Go Version Requirements**
 
-The project currently supports two Go version configurations:
+The project currently supports Go 1.24.4+:
 
-#### Option 1: Go 1.20.x (Recommended for Cosmos SDK v0.47.x)
 ```bash
 # Verify Go version
 go version
-# Expected: go version go1.20.x linux/amd64
+# Expected: go version go1.24.4 linux/amd64
 
-# Install Go 1.20.14
-wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+# Install Go 1.24.4
+wget https://go.dev/dl/go1.24.4.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.24.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 ```
 
-#### Option 2: Go 1.22+ (For newer dependencies)
-```bash
-# Install Go 1.22+ for newer dependency features
-wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
-```
-
-**Note**: If using Go 1.22+, run `go mod tidy` after installation to upgrade dependencies to compatible versions.
+**Note**: The project requires Go 1.24.4+ for compatibility with CometBFT v0.38.6 and Cosmos SDK v0.50.6.
 
 ### System Requirements
-- **Go**: 1.20.14+ (see version options above)
+- **Go**: 1.24.4+ (required)
 - **Git**: Latest version
 - **System**: Ubuntu 20.04+ (recommended) or Windows/macOS
 
@@ -185,22 +176,21 @@ The project uses pinned dependency versions for optimal compatibility:
 
 | Dependency | Version | Go Compatibility |
 |------------|---------|------------------|
-| **CometBFT** | v0.37.2 | Go 1.20+ |
-| **Cosmos SDK** | v0.47.12 | Go 1.20+ |
-| **gRPC** | v1.59.0 | Go 1.20+ |
-| **golang.org/x/exp** | v0.0.0-20231110203233-9a3e6036ecaa | Go 1.20+ |
-| **golang.org/x/sys** | v0.15.0 | Go 1.20+ |
-| **cosmossdk.io/log** | v1.3.1 | Go 1.20+ |
-| **cosmossdk.io/store** | v1.0.2 | Go 1.20+ |
+| **CometBFT** | v0.38.6 | Go 1.24+ |
+| **Cosmos SDK** | v0.50.6 | Go 1.24+ |
+| **gRPC** | v1.73.0 | Go 1.24+ |
+| **golang.org/x/exp** | v0.0.0-20231110203233-9a3e6036ecaa | Go 1.24+ |
+| **golang.org/x/sys** | v0.15.0 | Go 1.24+ |
+| **cosmossdk.io/log** | v1.3.1 | Go 1.24+ |
+| **cosmossdk.io/store** | v1.1.0 | Go 1.24+ |
 
 ### Upgrading Dependencies
 
-To use newer dependencies with Go 1.22+:
+The project is currently configured for Go 1.24.4+ compatibility. To use newer dependencies:
 
 ```bash
-# 1. Upgrade Go to 1.22+
-wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
+# 1. Ensure Go 1.24.4+ is installed
+go version
 
 # 2. Update dependencies
 go mod tidy
@@ -209,7 +199,7 @@ go mod tidy
 make build
 ```
 
-**Note**: Newer dependencies may require Go 1.22+ for features like `cmp`, `maps`, `slices`, and `math/rand/v2` packages.
+**Note**: The project requires Go 1.24.4+ for compatibility with CometBFT v0.38.6 and Cosmos SDK v0.50.6.
 
 ## 🚀 Mainnet Deployment
 
@@ -271,7 +261,7 @@ export CMTHOME="$HOME/.cometbft"
 export TMHOME="$HOME/.tendermint"
 
 # 3. Migrate configuration
-confix migrate --home $CMTHOME --target-version v0.37.2
+confix migrate --home $CMTHOME --target-version v0.38.6
 
 # 4. Update dependencies
 go mod tidy
@@ -371,7 +361,7 @@ The application implements all ABCI++ methods for enhanced functionality:
 
 | Component | Description | Status |
 |-----------|-------------|--------|
-| **Consensus Engine** | CometBFT v0.37.2 + Hybrid DPoS | ✅ Production |
+| **Consensus Engine** | CometBFT v0.38.6 + Hybrid DPoS | ✅ Production |
 | **Quantum Crypto** | Dilithium signatures | ✅ Implemented |
 | **Cross-Chain Bridge** | EVM/SVM interoperability | 🔄 Development |
 | **Privacy Layer** | ZK-proof integration | 🔄 Development |
@@ -381,9 +371,9 @@ The application implements all ABCI++ methods for enhanced functionality:
 
 ### Technology Stack
 
-- **Consensus**: CometBFT v0.37.2 + Custom DPoS
-- **Application Framework**: Cosmos SDK v0.47.12
-- **Database**: cometbft-db v0.8.0
+- **Consensus**: CometBFT v0.38.6 + Custom DPoS
+- **Application Framework**: Cosmos SDK v0.50.6
+- **Database**: cometbft-db v0.9.1
 - **Cryptography**: Dilithium, Ed25519, Secp256k1
 - **Smart Contracts**: Solidity (EVM) + Rust (SVM)
 - **Networking**: P2P with libp2p
@@ -497,14 +487,14 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 ## 📋 System Requirements
 
 ### Development Environment
-- **Go**: 1.20.14+ (see [Go Version Requirements](#prerequisites) above)
+- **Go**: 1.24.4+ (required)
 - **Git**: Latest version
 - **Make**: Build system
 - **Docker**: For containerized development (optional)
 
 ### Production Server
 - **OS**: Ubuntu 20.04+ / CentOS 8+ / RHEL 8+
-- **Go**: 1.20.14+ (recommended) or 1.22+ (for newer dependencies)
+- **Go**: 1.24.4+ (required)
 - **Memory**: 8GB+ RAM
 - **Storage**: 100GB+ SSD (recommended)
 - **Network**: Stable internet connection
@@ -513,10 +503,10 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 | Go Version | CometBFT | Cosmos SDK | gRPC | Status |
 |------------|----------|------------|------|--------|
-| **1.20.x** | v0.37.2 | v0.47.12 | v1.59.0 | ✅ Recommended |
-| **1.22+** | v0.38+ | v0.50+ | v1.71+ | ✅ Supported |
+| **1.24.x** | v0.38.6 | v0.50.6 | v1.73.0 | ✅ Required |
+| **1.25+** | v0.38+ | v0.50+ | v1.73+ | ✅ Supported |
 
-**Note**: The project is currently configured for Go 1.20 compatibility. To use newer dependencies, upgrade Go and run `go mod tidy`.
+**Note**: The project requires Go 1.24.4+ for compatibility with CometBFT v0.38.6 and Cosmos SDK v0.50.6.
 
 ## 🧬 Quantum Migration Path
 
