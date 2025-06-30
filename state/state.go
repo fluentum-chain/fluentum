@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/gogo/protobuf/proto"
 
 	tmstate "github.com/fluentum-chain/fluentum/proto/tendermint/state"
@@ -175,6 +176,39 @@ func (state *State) ToProto() (*tmstate.State, error) {
 	return sm, nil
 }
 
+// GenesisDocProvider returns a GenesisDoc.
+// This is a type alias to avoid circular imports.
+type GenesisDocProvider func() (*types.GenesisDoc, error)
+
+func LoadStateFromDBOrGenesisDocProvider(
+	stateDB dbm.DB,
+	genesisDocProvider GenesisDocProvider,
+) (State, *types.GenesisDoc, error) {
+	stateBytes, err := stateDB.Get(stateKey)
+	if err != nil {
+		return State{}, nil, fmt.Errorf("error getting state from database: %w", err)
+	}
+	if len(stateBytes) > 0 {
+		state, err := FromBytes(stateBytes)
+		if err != nil {
+			return State{}, nil, fmt.Errorf("error loading state: %w", err)
+		}
+		fmt.Printf("[DEBUG] LoadStateFromDBOrGenesisDocProvider: loaded state.ConsensusParams.Block.MaxBytes=%d\n", state.ConsensusParams.Block.MaxBytes)
+		return *state, nil, nil
+	}
+
+	genDoc, err := genesisDocProvider()
+	if err != nil {
+		return State{}, nil, fmt.Errorf("error loading genesis doc: %w", err)
+	}
+	state, err := MakeGenesisState(genDoc)
+	if err != nil {
+		return State{}, nil, fmt.Errorf("error making genesis state: %w", err)
+	}
+	fmt.Printf("[DEBUG] LoadStateFromDBOrGenesisDocProvider: genesis state.ConsensusParams.Block.MaxBytes=%d\n", state.ConsensusParams.Block.MaxBytes)
+	return state, genDoc, nil
+}
+
 // FromProto takes a state proto message & returns the local state type
 func FromProto(pb *tmstate.State) (*State, error) { //nolint:golint
 	if pb == nil {
@@ -224,6 +258,17 @@ func FromProto(pb *tmstate.State) (*State, error) { //nolint:golint
 	state.AppHash = pb.AppHash
 
 	return state, nil
+}
+
+// FromBytes converts a byte slice to a State struct
+func FromBytes(stateBytes []byte) (*State, error) {
+	var pb tmstate.State
+	err := proto.Unmarshal(stateBytes, &pb)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling state: %w", err)
+	}
+
+	return FromProto(&pb)
 }
 
 //------------------------------------------------------------------------

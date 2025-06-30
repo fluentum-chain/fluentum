@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	cmabci "github.com/cometbft/cometbft/abci/types"
+	fluentumabci "github.com/fluentum-chain/fluentum/abci/types"
 	tmjson "github.com/fluentum-chain/fluentum/libs/json"
 	tmpubsub "github.com/fluentum-chain/fluentum/libs/pubsub"
 	tmquery "github.com/fluentum-chain/fluentum/libs/pubsub/query"
@@ -71,9 +71,9 @@ type EventDataNewBlock struct {
 type EventDataNewBlockHeader struct {
 	Header Header `json:"header"`
 
-	NumTxs              int64                         `json:"num_txs"` // Number of txs in a block
-	Events              []*abci.Event                 `json:"events"`
-	ResultFinalizeBlock *cmabci.ResponseFinalizeBlock `json:"result_finalize_block,omitempty"`
+	NumTxs              int64                               `json:"num_txs"` // Number of txs in a block
+	Events              []*abci.Event                       `json:"events"`
+	ResultFinalizeBlock *fluentumabci.FinalizeBlockResponse `json:"result_finalize_block,omitempty"`
 }
 
 type EventDataNewEvidence struct {
