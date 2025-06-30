@@ -49,6 +49,7 @@ import (
 	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
 	"github.com/fluentum-chain/fluentum/version"
+	"github.com/spf13/viper"
 )
 
 // AppOptions wrapper for map[string]interface{}
@@ -632,9 +633,26 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	fmt.Println("DEBUG: App creator created")
 
 	fmt.Println("DEBUG: Loading Tendermint configuration")
-	// Load Tendermint configuration
+	// Load Tendermint configuration from file
 	tmConfig := config.DefaultConfig()
 	tmConfig.SetRoot(homeDir)
+
+	// Use viper to load configuration from file
+	viper.SetConfigName("config")
+	viper.SetConfigType("toml")
+	viper.AddConfigPath(configDir)
+
+	if err := viper.ReadInConfig(); err == nil {
+		// Configuration file found, unmarshal it
+		if err := viper.Unmarshal(tmConfig); err != nil {
+			fluentumLogger.Error("Failed to unmarshal config file, using defaults", "error", err)
+		} else {
+			fluentumLogger.Info("Configuration loaded from file", "file", viper.ConfigFileUsed())
+		}
+	} else {
+		fluentumLogger.Info("No config file found, using default configuration")
+	}
+
 	fmt.Println("DEBUG: Tendermint configuration loaded")
 
 	// Configure the server
