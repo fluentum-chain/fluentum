@@ -980,6 +980,16 @@ func apiKeyAuthMiddleware(next http.Handler) http.Handler {
 }
 
 func statsHandler(w http.ResponseWriter, r *http.Request) {
+	// Add CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	stats := map[string]interface{}{
 		"block_height":        8423197,
 		"transactions_24h":    284200,
