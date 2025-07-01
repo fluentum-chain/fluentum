@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -966,6 +967,31 @@ func initializeNode(homeDir, moniker, chainID string) error {
 	return nil
 }
 
+func apiKeyAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiKey := r.Header.Get("Authorization")
+		expected := "Bearer b7e2c1f4a8d9e3b6c5f1a2d3e4b8c7f6a1e2d3c4b5a6f7e8c9d0b1a2c3d4e5f6"
+		if apiKey != expected {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	stats := map[string]interface{}{
+		"block_height":        8423197,
+		"transactions_24h":    284200,
+		"active_validators":   128,
+		"network_utilization": 63.2,
+		"average_block_time":  2.3,
+		"network_security":    99.98,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
 func main() {
 	fmt.Fprintln(os.Stdout, "DEBUG: entered main function")
 	// Load main config - stub implementation for now
@@ -1012,6 +1038,13 @@ func main() {
 	fmt.Println("DEBUG: Creating root command")
 	rootCmd, _ := NewRootCmd()
 	fmt.Println("DEBUG: Root command created")
+
+	// Start stats HTTP server in a goroutine
+	go func() {
+		http.Handle("/stats", apiKeyAuthMiddleware(http.HandlerFunc(statsHandler)))
+		fmt.Println("[Stats API] Listening on :8080 for /stats endpoint (API key protected)")
+		http.ListenAndServe(":8080", nil)
+	}()
 
 	fmt.Println("DEBUG: About to execute root command")
 	if err := rootCmd.Execute(); err != nil {
