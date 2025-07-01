@@ -251,9 +251,9 @@ CONFIG_FILE="$TESTNET_HOME/config/config.toml"
 # Get all server IPs and P2P ports
 declare -A SERVERS=(
     ["fluentum-node1"]="34.44.129.207:26656"
-    ["fluentum-node2"]="34.44.82.114:26657"
-    ["fluentum-node3"]="34.68.180.153:26658"
-    ["fluentum-node4"]="34.72.252.153:26659"
+    ["fluentum-node2"]="34.44.82.114:26656"
+    ["fluentum-node3"]="34.68.180.153:26656"
+    ["fluentum-node4"]="34.72.252.153:26656"
 )
 
 # Build persistent peers string (exclude current node)

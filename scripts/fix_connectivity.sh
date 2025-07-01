@@ -42,16 +42,16 @@ declare -A SERVERS=(
 # Port configurations
 declare -A RPC_PORTS=(
     ["fluentum-node1"]="26657"
-    ["fluentum-node2"]="26658"
-    ["fluentum-node3"]="26659"
-    ["fluentum-node4"]="26660"
+    ["fluentum-node2"]="26657"
+    ["fluentum-node3"]="26657"
+    ["fluentum-node4"]="26657"
 )
 
 declare -A P2P_PORTS=(
     ["fluentum-node1"]="26656"
-    ["fluentum-node2"]="26657"
-    ["fluentum-node3"]="26658"
-    ["fluentum-node4"]="26659"
+    ["fluentum-node2"]="26656"
+    ["fluentum-node3"]="26656"
+    ["fluentum-node4"]="26656"
 )
 
 echo "=========================================="

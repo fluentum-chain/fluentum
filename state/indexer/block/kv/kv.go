@@ -35,6 +35,10 @@ func New(store dbm.DB) *BlockerIndexer {
 // Has returns true if the given height has been indexed. An error is returned
 // upon database query failure.
 func (idx *BlockerIndexer) Has(height int64) (bool, error) {
+	if idx.store == nil {
+		return false, fmt.Errorf("block indexer store is nil - indexer may not be properly initialized")
+	}
+
 	key, err := heightKey(height)
 	if err != nil {
 		return false, fmt.Errorf("failed to create block height index key: %w", err)
@@ -50,6 +54,10 @@ func (idx *BlockerIndexer) Has(height int64) (bool, error) {
 // BeginBlock events: encode(eventType.eventAttr|eventValue|height|begin_block) => encode(height)
 // EndBlock events: encode(eventType.eventAttr|eventValue|height|end_block) => encode(height)
 func (idx *BlockerIndexer) Index(bh types.EventDataNewBlockHeader) error {
+	if idx.store == nil {
+		return fmt.Errorf("block indexer store is nil - indexer may not be properly initialized")
+	}
+
 	batch := idx.store.NewBatch()
 	defer batch.Close()
 
@@ -85,6 +93,11 @@ func (idx *BlockerIndexer) Index(bh types.EventDataNewBlockHeader) error {
 // if the height is indexed, that height alone will be returned. An error and
 // nil slice is returned. Otherwise, a non-nil slice and nil error is returned.
 func (idx *BlockerIndexer) Search(ctx context.Context, q *query.Query) ([]int64, error) {
+	// Add nil check to prevent panic
+	if idx.store == nil {
+		return nil, fmt.Errorf("block indexer store is nil - indexer may not be properly initialized")
+	}
+
 	results := make([]int64, 0)
 	select {
 	case <-ctx.Done():
@@ -226,6 +239,11 @@ func (idx *BlockerIndexer) matchRange(
 	firstRun bool,
 ) (map[string][]byte, error) {
 
+	// Add nil check to prevent panic
+	if idx.store == nil {
+		return nil, fmt.Errorf("block indexer store is nil - indexer may not be properly initialized")
+	}
+
 	// A previous match was attempted but resulted in no matches, so we return
 	// no matches (assuming AND operand).
 	if !firstRun && len(filteredHeights) == 0 {
@@ -333,6 +351,11 @@ func (idx *BlockerIndexer) match(
 	filteredHeights map[string][]byte,
 	firstRun bool,
 ) (map[string][]byte, error) {
+
+	// Add nil check to prevent panic
+	if idx.store == nil {
+		return nil, fmt.Errorf("block indexer store is nil - indexer may not be properly initialized")
+	}
 
 	// A previous match was attempted but resulted in no matches, so we return
 	// no matches (assuming AND operand).
