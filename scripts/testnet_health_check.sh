@@ -32,11 +32,13 @@ print_error() {
 TESTNET_CHAIN_ID="fluentum-testnet-1"
 
 # Server configurations
+# Use standard ports for all nodes
+# Format: ["node_name"]="<ip>:26657"
 declare -A SERVERS=(
     ["fluentum-node1"]="34.44.129.207:26657"
-    ["fluentum-node2"]="34.44.82.114:26658"
-    ["fluentum-node3"]="34.68.180.153:26659"
-    ["fluentum-node4"]="34.72.252.153:26660"
+    ["fluentum-node2"]="34.44.82.114:26657"
+    ["fluentum-node3"]="34.68.180.153:26657"
+    ["fluentum-node4"]="34.72.252.153:26657"
 )
 
 # Function to check node health
@@ -130,13 +132,20 @@ check_network_connectivity() {
     for node_name in "${!SERVERS[@]}"; do
         local endpoint=${SERVERS[$node_name]}
         local ip=$(echo "$endpoint" | cut -d: -f1)
-        local port=$(echo "$endpoint" | cut -d: -f2)
+        local rpc_port=26657
+        local p2p_port=26656
         
-        # Test TCP connectivity
-        if timeout 5 bash -c "</dev/tcp/$ip/$port" 2>/dev/null; then
-            print_success "TCP connection to $node_name ($ip:$port) successful"
+        # Test TCP connectivity for RPC
+        if timeout 5 bash -c "</dev/tcp/$ip/$rpc_port" 2>/dev/null; then
+            print_success "TCP connection to $node_name ($ip:$rpc_port) successful"
         else
-            print_error "TCP connection to $node_name ($ip:$port) failed"
+            print_error "TCP connection to $node_name ($ip:$rpc_port) failed"
+        fi
+        # Test TCP connectivity for P2P
+        if timeout 5 bash -c "</dev/tcp/$ip/$p2p_port" 2>/dev/null; then
+            print_success "TCP connection to $node_name ($ip:$p2p_port) successful (P2P)"
+        else
+            print_error "TCP connection to $node_name ($ip:$p2p_port) failed (P2P)"
         fi
     done
     
