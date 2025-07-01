@@ -54,9 +54,9 @@ if [[ ! ${SERVERS[$NODE_NAME]+_} ]]; then
 fi
 
 SERVER_IP=${SERVERS[$NODE_NAME]}
-P2P_PORT=$((26656 + $NODE_INDEX - 1))
-RPC_PORT=$((26657 + $NODE_INDEX - 1))
-API_PORT=$((1317 + $NODE_INDEX - 1))
+P2P_PORT=26656
+RPC_PORT=26657
+API_PORT=1317
 
 print_status "Setting up Fluentum Testnet Node"
 echo "Node Name: $NODE_NAME"
