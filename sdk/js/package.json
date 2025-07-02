@@ -1,0 +1,28 @@
+{
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "proto:gen": "npx ts-proto --outDir src/proto --input proto/fluentum/**/*.proto --input proto/cosmos/**/*.proto",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.10",
+    "jest": "^30.0.3",
+    "ts-jest": "^29.4.0",
+    "ts-proto": "^2.7.5",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@cosmjs/crypto": "^0.33.1",
+    "@cosmjs/proto-signing": "^0.33.1",
+    "@cosmjs/stargate": "^0.33.1",
+    "@cosmjs/tendermint-rpc": "^0.33.1",
+    "grpc-web": "^1.5.0"
+  }
+}
