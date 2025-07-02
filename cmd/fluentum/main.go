@@ -88,23 +88,6 @@ func init() {
 	prometheus.MustRegister(networkLatency)
 }
 
-// Helper to initialize blockStore and stateStore using the running node's config
-func initMetricsStores(tmConfig *config.Config) {
-	// BlockStore
-	db, err := dbm.NewDB("blockstore", dbm.GoLevelDBBackend, tmConfig.DBDir())
-	if err != nil {
-		panic(fmt.Errorf("failed to open blockstore DB: %w", err))
-	}
-	metricsBlockStore = store.NewBlockStore(db)
-
-	// StateStore
-	stateDB, err := dbm.NewDB("state", dbm.GoLevelDBBackend, tmConfig.DBDir())
-	if err != nil {
-		panic(fmt.Errorf("failed to open state DB: %w", err))
-	}
-	metricsStateStore = sm.NewStore(stateDB, sm.StoreOptions{DiscardABCIResponses: false})
-}
-
 func getFluentumBlockHeightReal(bs *store.BlockStore) int64 {
 	if bs == nil {
 		return 0
@@ -123,7 +106,6 @@ func getFluentumTransactionsTotalReal(bs *store.BlockStore) int64 {
 	if bs == nil {
 		return 0
 	}
-	// Cache logic can be kept, but for simplicity, recalculate every time
 	base := bs.Base()
 	height := bs.Height()
 	total := int64(0)
@@ -136,16 +118,9 @@ func getFluentumTransactionsTotalReal(bs *store.BlockStore) int64 {
 	return total
 }
 
-func getFluentumValidatorCountReal(bs *store.BlockStore, ss sm.Store) int64 {
-	if ss == nil || bs == nil {
-		return 0
-	}
-	height := bs.Height()
-	vals, err := ss.LoadValidators(height)
-	if err != nil || vals == nil {
-		return 0
-	}
-	return int64(vals.Size())
+func getFluentumValidatorCountReal(bs *store.BlockStore) int64 {
+	// Can't get validator count without stateStore, so return 0 or placeholder
+	return 0
 }
 
 func getFluentumNetworkLatencyReal(bs *store.BlockStore) float64 {
@@ -885,16 +860,18 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	fluentumLogger.Info("Fluentum node is running. Press Ctrl+C to exit.")
 	select {}
 
-	// Start Prometheus metrics goroutine with live stores
-	go func(bs *store.BlockStore, ss sm.Store) {
+	// Start Prometheus metrics goroutine with live blockStore only
+	go func(bs *store.BlockStore) {
 		for {
 			blockHeight.Set(float64(getFluentumBlockHeightReal(bs)))
 			transactionsTotal.Set(float64(getFluentumTransactionsTotalReal(bs)))
-			validatorCount.Set(float64(getFluentumValidatorCountReal(bs, ss)))
+			validatorCount.Set(float64(getFluentumValidatorCountReal(bs)))
 			networkLatency.Set(getFluentumNetworkLatencyReal(bs))
 			time.Sleep(5 * time.Second)
 		}
-	}(n.BlockStore(), n.StateStore())
+	}(n.BlockStore())
+
+	return nil
 }
 
 // createInitCommand creates a custom init command that uses the Tendermint approach
