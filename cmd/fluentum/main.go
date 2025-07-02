@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -47,9 +48,12 @@ import (
 	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
 	"github.com/fluentum-chain/fluentum/proxy"
 	sm "github.com/fluentum-chain/fluentum/state"
+	"github.com/fluentum-chain/fluentum/store"
 	"github.com/fluentum-chain/fluentum/types"
 	tmtime "github.com/fluentum-chain/fluentum/types/time"
 	"github.com/fluentum-chain/fluentum/version"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
 )
 
@@ -57,6 +61,135 @@ import (
 type appOptions map[string]interface{}
 
 func (a appOptions) Get(key string) interface{} { return a[key] }
+
+// Prometheus metrics
+var (
+	blockHeight = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "fluentum_block_height",
+		Help: "Current block height of the Fluentum network.",
+	})
+	transactionsTotal = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "fluentum_transactions_total",
+		Help: "Total number of transactions processed by Fluentum.",
+	})
+	validatorCount = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "fluentum_validator_count",
+		Help: "Number of active validators in the Fluentum network.",
+	})
+	networkLatency = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "fluentum_network_latency",
+		Help: "Average network latency in seconds.",
+	})
+)
+
+func init() {
+	prometheus.MustRegister(blockHeight)
+	prometheus.MustRegister(transactionsTotal)
+	prometheus.MustRegister(validatorCount)
+	prometheus.MustRegister(networkLatency)
+}
+
+var (
+	blockStore      *store.BlockStore
+	stateStore      sm.Store
+	blockStoreOnce  sync.Once
+	stateStoreOnce  sync.Once
+	metricsInit     sync.Once
+	metricsConfig   *config.Config
+	metricsTMConfig *config.Config
+)
+
+// These will be set by main() after config is loaded
+var (
+	metricsBlockStore *store.BlockStore
+	metricsStateStore sm.Store
+)
+
+// Helper to initialize blockStore and stateStore using the running node's config
+func initMetricsStores(tmConfig *config.Config) {
+	metricsInit.Do(func() {
+		// BlockStore
+		db, err := dbm.NewDB("blockstore", dbm.GoLevelDBBackend, tmConfig.DBDir())
+		if err != nil {
+			panic(fmt.Errorf("failed to open blockstore DB: %w", err))
+		}
+		metricsBlockStore = store.NewBlockStore(db)
+
+		// StateStore
+		stateDB, err := dbm.NewDB("state", dbm.GoLevelDBBackend, tmConfig.DBDir())
+		if err != nil {
+			panic(fmt.Errorf("failed to open state DB: %w", err))
+		}
+		metricsStateStore = sm.NewStore(stateDB, sm.StoreOptions{DiscardABCIResponses: false})
+	})
+}
+
+func getFluentumBlockHeightReal() int64 {
+	if metricsBlockStore == nil {
+		return 0
+	}
+	return metricsBlockStore.Height()
+}
+
+// Cache total txs for efficiency
+var (
+	cachedTxsHeight int64
+	cachedTxsTotal  int64
+	cachedTxsMu     sync.Mutex
+)
+
+func getFluentumTransactionsTotalReal() int64 {
+	if metricsBlockStore == nil {
+		return 0
+	}
+	cachedTxsMu.Lock()
+	defer cachedTxsMu.Unlock()
+	height := metricsBlockStore.Height()
+	if height == cachedTxsHeight {
+		return cachedTxsTotal
+	}
+	base := metricsBlockStore.Base()
+	total := int64(0)
+	for h := base; h <= height; h++ {
+		meta := metricsBlockStore.LoadBlockMeta(h)
+		if meta != nil {
+			total += int64(meta.NumTxs)
+		}
+	}
+	cachedTxsHeight = height
+	cachedTxsTotal = total
+	return total
+}
+
+func getFluentumValidatorCountReal() int64 {
+	if metricsStateStore == nil || metricsBlockStore == nil {
+		return 0
+	}
+	height := metricsBlockStore.Height()
+	vals, err := metricsStateStore.LoadValidators(height)
+	if err != nil || vals == nil {
+		return 0
+	}
+	return int64(vals.Size())
+}
+
+func getFluentumNetworkLatencyReal() float64 {
+	if metricsBlockStore == nil {
+		return 0
+	}
+	height := metricsBlockStore.Height()
+	if height < 2 {
+		return 0
+	}
+	meta1 := metricsBlockStore.LoadBlockMeta(height)
+	meta0 := metricsBlockStore.LoadBlockMeta(height - 1)
+	if meta1 == nil || meta0 == nil {
+		return 0
+	}
+	t1 := meta1.Header.Time
+	t0 := meta0.Header.Time
+	return t1.Sub(t0).Seconds()
+}
 
 // NewRootCmd creates a new root command for the Fluentum application.
 func NewRootCmd() (*cobra.Command, app.EncodingConfig) {
@@ -656,6 +789,9 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 
 	fmt.Println("DEBUG: Tendermint configuration loaded")
 
+	// Make tmConfig available for metrics
+	metricsTMConfig = tmConfig
+
 	// Configure the server
 	tmConfig.Moniker = moniker
 
@@ -1054,6 +1190,29 @@ func main() {
 		http.Handle("/stats", apiKeyAuthMiddleware(http.HandlerFunc(statsHandler)))
 		fmt.Println("[Stats API] Listening on :8080 for /stats endpoint (API key protected)")
 		http.ListenAndServe(":8080", nil)
+	}()
+
+	// Start Prometheus metrics exporter
+	go func() {
+		// Wait for config to be loaded by startNode
+		var tmConfig *config.Config
+		for tmConfig == nil {
+			tmConfig = metricsTMConfig
+			time.Sleep(1 * time.Second)
+		}
+		initMetricsStores(tmConfig)
+		for {
+			blockHeight.Set(float64(getFluentumBlockHeightReal()))
+			transactionsTotal.Set(float64(getFluentumTransactionsTotalReal()))
+			validatorCount.Set(float64(getFluentumValidatorCountReal()))
+			networkLatency.Set(getFluentumNetworkLatencyReal())
+			time.Sleep(5 * time.Second)
+		}
+	}()
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		fmt.Println("Prometheus metrics exporter listening on :26660/metrics")
+		http.ListenAndServe(":26660", nil)
 	}()
 
 	fmt.Println("DEBUG: About to execute root command")
