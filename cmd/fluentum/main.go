@@ -1200,7 +1200,6 @@ func main() {
 			tmConfig = metricsTMConfig
 			time.Sleep(1 * time.Second)
 		}
-		initMetricsStores(tmConfig)
 		for {
 			blockHeight.Set(float64(getFluentumBlockHeightReal()))
 			transactionsTotal.Set(float64(getFluentumTransactionsTotalReal()))
