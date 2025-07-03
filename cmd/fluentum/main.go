@@ -866,10 +866,6 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		}
 	})
 
-	// Wait for interrupt signal
-	fluentumLogger.Info("Fluentum node is running. Press Ctrl+C to exit.")
-	select {}
-
 	// Start Prometheus metrics goroutine with live blockStore only
 	go func(stateStore sm.Store, bs *store.BlockStore) {
 		for {
@@ -880,6 +876,10 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 			time.Sleep(5 * time.Second)
 		}
 	}(n.StateStore(), n.BlockStore())
+
+	// Wait for interrupt signal
+	fluentumLogger.Info("Fluentum node is running. Press Ctrl+C to exit.")
+	select {}
 
 	return nil
 }
