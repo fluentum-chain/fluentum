@@ -492,7 +492,7 @@ func createBlockchainReactor(config *cfg.Config,
 func createConsensusReactor(config *cfg.Config,
 	state sm.State,
 	blockExec *sm.BlockExecutor,
-	blockStore sm.BlockStore,
+	blockStore *store.BlockStore,
 	mempool mempl.Mempool,
 	evidencePool *evidence.Pool,
 	privValidator types.PrivValidator,
@@ -1543,4 +1543,8 @@ func splitAndTrimEmpty(s, sep, cutset string) []string {
 		}
 	}
 	return nonEmptyStrings
+}
+
+func (n *Node) StateStore() sm.Store {
+	return n.stateStore
 }
