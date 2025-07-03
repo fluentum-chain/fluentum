@@ -879,7 +879,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 			networkLatency.Set(getFluentumNetworkLatencyReal(bs))
 			time.Sleep(5 * time.Second)
 		}
-	}(n.stateStore, n.BlockStore())
+	}(n.StateStore(), n.BlockStore())
 
 	return nil
 }
