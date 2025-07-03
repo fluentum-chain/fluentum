@@ -35,7 +35,7 @@ NODE_NAME=$1
 NODE_INDEX=$2
 
 # Validate node name
-VALID_NODES=("fluentum-node1" "fluentum-node2" "fluentum-node3" "fluentum-node4")
+VALID_NODES=("fluentum-node1" "fluentum-node2" "fluentum-node3" "fluentum-node4" "fluentum-node5")
 if [[ ! " ${VALID_NODES[@]} " =~ " ${NODE_NAME} " ]]; then
     print_error "Invalid node name: $NODE_NAME"
     echo "Valid options: ${VALID_NODES[*]}"
@@ -43,8 +43,8 @@ if [[ ! " ${VALID_NODES[@]} " =~ " ${NODE_NAME} " ]]; then
 fi
 
 # Validate node index
-if ! [[ "$NODE_INDEX" =~ ^[1-4]$ ]]; then
-    print_error "Invalid node index: $NODE_INDEX (must be 1-4)"
+if ! [[ "$NODE_INDEX" =~ ^[1-5]$ ]]; then
+    print_error "Invalid node index: $NODE_INDEX (must be 1-5)"
     exit 1
 fi
 
