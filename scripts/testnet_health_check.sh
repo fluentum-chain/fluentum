@@ -39,6 +39,7 @@ declare -A SERVERS=(
     ["fluentum-node2"]="34.44.82.114:26657"
     ["fluentum-node3"]="34.68.180.153:26657"
     ["fluentum-node4"]="34.72.252.153:26657"
+    ["fluentum-node5"]="35.225.118.226:26657"
 )
 
 # Function to check node health
