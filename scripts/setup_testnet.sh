@@ -40,6 +40,7 @@ declare -A SERVERS=(
     ["fluentum-node2"]="34.44.82.114"
     ["fluentum-node3"]="34.68.180.153"
     ["fluentum-node4"]="34.72.252.153"
+    ["fluentum-node5"]="35.225.118.226"
 )
 
 # Parse command line arguments
@@ -254,6 +255,7 @@ declare -A SERVERS=(
     ["fluentum-node2"]="34.44.82.114:26656"
     ["fluentum-node3"]="34.68.180.153:26656"
     ["fluentum-node4"]="34.72.252.153:26656"
+    ["fluentum-node5"]="35.225.118.226:26656"
 )
 
 # Build persistent peers string (exclude current node)
