@@ -118,9 +118,19 @@ func getFluentumTransactionsTotalReal(bs *store.BlockStore) int64 {
 	return total
 }
 
-func getFluentumValidatorCountReal(bs *store.BlockStore) int64 {
-	// Can't get validator count without stateStore, so return 0 or placeholder
-	return 0
+func getFluentumValidatorCountReal(stateStore sm.Store, bs *store.BlockStore) int64 {
+	if bs == nil || stateStore == nil {
+		return 0
+	}
+	height := bs.Height()
+	if height == 0 {
+		return 0
+	}
+	vals, err := stateStore.LoadValidators(height)
+	if err != nil || vals == nil {
+		return 0
+	}
+	return int64(vals.Size())
 }
 
 func getFluentumNetworkLatencyReal(bs *store.BlockStore) float64 {
@@ -861,15 +871,15 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	select {}
 
 	// Start Prometheus metrics goroutine with live blockStore only
-	go func(bs *store.BlockStore) {
+	go func(stateStore sm.Store, bs *store.BlockStore) {
 		for {
 			blockHeight.Set(float64(getFluentumBlockHeightReal(bs)))
 			transactionsTotal.Set(float64(getFluentumTransactionsTotalReal(bs)))
-			validatorCount.Set(float64(getFluentumValidatorCountReal(bs)))
+			validatorCount.Set(float64(getFluentumValidatorCountReal(stateStore, bs)))
 			networkLatency.Set(getFluentumNetworkLatencyReal(bs))
 			time.Sleep(5 * time.Second)
 		}
-	}(n.BlockStore())
+	}(n.stateStore, n.BlockStore())
 
 	return nil
 }
