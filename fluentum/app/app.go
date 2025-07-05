@@ -39,6 +39,11 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/spf13/cast"
 
+	// CosmWasm imports
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	// Fluentum modules
 	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum"
 	fluentumkeeper "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/keeper"
@@ -64,12 +69,14 @@ var (
 		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		params.AppModuleBasic{},
+		wasm.AppModuleBasic{},
 		// fluentum.AppModuleBasic{}, // Temporarily commented out to debug init issue
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
 		authtypes.FeeCollectorName: nil,
+		wasmtypes.ModuleName:       {authtypes.Burner},
 		fluentumtypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 	}
 )
@@ -100,6 +107,9 @@ type App struct {
 	AccountKeeper authkeeper.AccountKeeper
 	BankKeeper    bankkeeper.Keeper
 	ParamsKeeper  paramskeeper.Keeper
+
+	// Wasm keeper
+	WasmKeeper wasmkeeper.Keeper
 
 	// Fluentum keepers
 	FluentumKeeper fluentumkeeper.Keeper
@@ -161,7 +171,7 @@ func New(
 
 	fmt.Println("DEBUG: Creating store keys")
 	keys := storetypes.NewKVStoreKeys(
-		authtypes.StoreKey, banktypes.StoreKey, paramstypes.StoreKey, fluentumtypes.StoreKey,
+		authtypes.StoreKey, banktypes.StoreKey, paramstypes.StoreKey, wasmtypes.StoreKey, fluentumtypes.StoreKey,
 	)
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := storetypes.NewMemoryStoreKeys()
@@ -211,6 +221,12 @@ func New(
 		cosmosLogger,
 	)
 
+	fmt.Println("DEBUG: Creating wasm keeper")
+	// For now, we'll create a placeholder wasm keeper
+	// TODO: Implement proper wasm keeper with all required dependencies
+	// This is a simplified version that will be expanded later
+	app.WasmKeeper = wasmkeeper.Keeper{} // Placeholder
+
 	fmt.Println("DEBUG: Creating Fluentum keeper")
 	// Create Fluentum Keeper with correct parameters
 	app.FluentumKeeper = *fluentumkeeper.NewKeeper(
@@ -227,21 +243,22 @@ func New(
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
 		params.NewAppModule(app.ParamsKeeper),
+		// wasm.NewAppModule(appCodec, app.WasmKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(wasmtypes.ModuleName)), // TODO: Implement proper wasm module
 		fluentum.NewAppModule(appCodec, app.FluentumKeeper, AccountKeeperAdapter{app.AccountKeeper}, BankKeeperAdapter{app.BankKeeper}),
 	)
 
 	app.mm.SetOrderBeginBlockers(
-		authtypes.ModuleName, banktypes.ModuleName, genutiltypes.ModuleName, paramstypes.ModuleName, fluentumtypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, genutiltypes.ModuleName, paramstypes.ModuleName, wasmtypes.ModuleName, fluentumtypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
-		authtypes.ModuleName, banktypes.ModuleName, genutiltypes.ModuleName, paramstypes.ModuleName, fluentumtypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, genutiltypes.ModuleName, paramstypes.ModuleName, wasmtypes.ModuleName, fluentumtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		authtypes.ModuleName, banktypes.ModuleName, genutiltypes.ModuleName, paramstypes.ModuleName, fluentumtypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, genutiltypes.ModuleName, paramstypes.ModuleName, wasmtypes.ModuleName, fluentumtypes.ModuleName,
 	)
 
 	// app.mm.RegisterInvariants(nil) // Comment out for now - will be called during BeginBlock
