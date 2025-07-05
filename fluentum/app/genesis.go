@@ -3,12 +3,13 @@ package app
 import (
 	"encoding/json"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
 )
 
@@ -31,6 +32,7 @@ func (app *App) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs GenesisStat
 	// Initialize params keeper and module subspaces
 	app.ParamsKeeper.Subspace(authtypes.ModuleName)
 	app.ParamsKeeper.Subspace(banktypes.ModuleName)
+	app.ParamsKeeper.Subspace(wasmtypes.ModuleName)
 	app.ParamsKeeper.Subspace(fluentumtypes.ModuleName)
 
 	// Initialize modules
