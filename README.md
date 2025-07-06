@@ -1,3 +1,5 @@
+![FLUMX Logo](./flumx-logo.png)
+
 # Fluentum Core
 
 [![Go Version](https://img.shields.io/badge/Go-1.24%2B-blue.svg)](https://golang.org/)

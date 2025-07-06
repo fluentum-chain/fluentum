@@ -1,0 +1,12 @@
+{
+  "name": "FLUMX Token",
+  "symbol": "FLUMX",
+  "decimals": 9,
+  "description": "FLUMX is the native token of the Fluentum blockchain, providing utility, governance, and security.",
+  "logo": "flumx-logo.png",
+  "website": "https://fluentum.org",
+  "social": {
+    "twitter": "https://twitter.com/fluentumchain",
+    "github": "https://github.com/fluentum-chain/fluentum"
+  }
+} 

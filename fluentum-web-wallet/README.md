@@ -1,3 +1,5 @@
+![FLUMX Logo](./src/assets/flumx-logo.png)
+
 # Fluentum Web Wallet
 
 A browser-based self-custody wallet for the Fluentum blockchain, built with React, Vite, and the Fluentum SDK.
