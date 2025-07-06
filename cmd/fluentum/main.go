@@ -249,6 +249,10 @@ func queryCommand() *cobra.Command {
 				return err
 			}
 
+			if res == nil {
+				fmt.Println("No result returned (empty state or not available yet).")
+				return nil
+			}
 			return clientCtx.PrintProto(res)
 		},
 	}
@@ -276,6 +280,10 @@ func queryCommand() *cobra.Command {
 				return err
 			}
 
+			if res == nil {
+				fmt.Println("No result returned (empty state or not available yet).")
+				return nil
+			}
 			return clientCtx.PrintProto(res)
 		},
 	}
