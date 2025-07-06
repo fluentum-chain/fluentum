@@ -232,6 +232,12 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(bankCmd)
 
+	// Debug: Print all commands to see what's registered
+	fmt.Println("DEBUG: Available query commands:")
+	for _, subCmd := range cmd.Commands() {
+		fmt.Printf("  - %s: %s\n", subCmd.Use, subCmd.Short)
+	}
+
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
