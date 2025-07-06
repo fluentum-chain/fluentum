@@ -213,6 +213,15 @@ func queryCommand() *cobra.Command {
 		fmt.Printf("  - %s: %s\n", subCmd.Use, subCmd.Short)
 	}
 
+	// Debug: Check if bank command exists
+	bankCmd := cmd.Commands()
+	for _, c := range bankCmd {
+		if c.Use == "bank" {
+			fmt.Println("DEBUG: Bank command found!")
+			break
+		}
+	}
+
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
