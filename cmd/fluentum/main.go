@@ -194,7 +194,10 @@ func queryCommand() *cobra.Command {
 		Short:                      "Querying subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("DEBUG: Query command RunE function called")
+			return client.ValidateCmd(cmd, args)
+		},
 	}
 
 	cmd.AddCommand(
@@ -1175,6 +1178,12 @@ func main() {
 	fmt.Println("DEBUG: Creating root command")
 	rootCmd, _ := NewRootCmd()
 	fmt.Println("DEBUG: Root command created")
+
+	// Debug: Check what commands are in the root command
+	fmt.Println("DEBUG: Root command subcommands:")
+	for _, subCmd := range rootCmd.Commands() {
+		fmt.Printf("  - %s: %s\n", subCmd.Use, subCmd.Short)
+	}
 
 	// Start stats HTTP server in a goroutine
 	go func() {
