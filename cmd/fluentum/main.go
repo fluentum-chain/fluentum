@@ -275,6 +275,9 @@ func queryCommand() *cobra.Command {
 		},
 	)
 
+	// Add client context flags to bank command
+	flags.AddQueryFlagsToCmd(bankQueryCmd)
+
 	cmd.AddCommand(bankQueryCmd)
 	fmt.Println("DEBUG: Bank commands added successfully")
 
