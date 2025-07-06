@@ -234,49 +234,51 @@ func queryCommand() *cobra.Command {
 		Short: "Querying commands for the bank module",
 	}
 
-	bankQueryCmd.AddCommand(
-		&cobra.Command{
-			Use:   "total",
-			Short: "Query the total supply of coins of the chain",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				clientCtx := client.GetClientContextFromCmd(cmd)
-				queryClient := banktypes.NewQueryClient(clientCtx)
+	totalCmd := &cobra.Command{
+		Use:   "total",
+		Short: "Query the total supply of coins of the chain",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := banktypes.NewQueryClient(clientCtx)
 
-				res, err := queryClient.TotalSupply(cmd.Context(), &banktypes.QueryTotalSupplyRequest{})
-				if err != nil {
-					return err
-				}
+			res, err := queryClient.TotalSupply(cmd.Context(), &banktypes.QueryTotalSupplyRequest{})
+			if err != nil {
+				return err
+			}
 
-				return clientCtx.PrintProto(res)
-			},
+			return clientCtx.PrintProto(res)
 		},
-		&cobra.Command{
-			Use:   "balances [address]",
-			Short: "Query for account balances by address",
-			Args:  cobra.ExactArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				clientCtx := client.GetClientContextFromCmd(cmd)
-				queryClient := banktypes.NewQueryClient(clientCtx)
+	}
 
-				addr, err := sdk.AccAddressFromBech32(args[0])
-				if err != nil {
-					return err
-				}
+	balancesCmd := &cobra.Command{
+		Use:   "balances [address]",
+		Short: "Query for account balances by address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := banktypes.NewQueryClient(clientCtx)
 
-				res, err := queryClient.AllBalances(cmd.Context(), &banktypes.QueryAllBalancesRequest{
-					Address: addr.String(),
-				})
-				if err != nil {
-					return err
-				}
+			addr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
 
-				return clientCtx.PrintProto(res)
-			},
+			res, err := queryClient.AllBalances(cmd.Context(), &banktypes.QueryAllBalancesRequest{
+				Address: addr.String(),
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
-	)
+	}
 
-	// Add client context flags to bank command
-	flags.AddQueryFlagsToCmd(bankQueryCmd)
+	// Add client context flags to each subcommand
+	flags.AddQueryFlagsToCmd(totalCmd)
+	flags.AddQueryFlagsToCmd(balancesCmd)
+
+	bankQueryCmd.AddCommand(totalCmd, balancesCmd)
 
 	cmd.AddCommand(bankQueryCmd)
 	fmt.Println("DEBUG: Bank commands added successfully")
