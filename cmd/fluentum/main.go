@@ -1185,6 +1185,18 @@ func main() {
 		fmt.Printf("  - %s: %s\n", subCmd.Use, subCmd.Short)
 	}
 
+	// Debug: Check what commands are in the query command specifically
+	queryCmd := rootCmd.Commands()
+	for _, cmd := range queryCmd {
+		if cmd.Use == "query" {
+			fmt.Println("DEBUG: Found query command, checking its subcommands:")
+			for _, subCmd := range cmd.Commands() {
+				fmt.Printf("  - %s: %s\n", subCmd.Use, subCmd.Short)
+			}
+			break
+		}
+	}
+
 	// Start stats HTTP server in a goroutine
 	go func() {
 		http.Handle("/stats", apiKeyAuthMiddleware(http.HandlerFunc(statsHandler)))
