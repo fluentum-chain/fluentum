@@ -290,7 +290,7 @@ func New(
 	fmt.Printf("DEBUG: Mounted KV stores successfully\n")
 
 	// initialize BaseApp
-	// app.SetInitChainer(app.InitChainer) // Commented out due to signature mismatch
+	// app.SetInitChainer(app.InitChainer) // Temporarily commented out due to signature mismatch
 	app.SetBeginBlocker(func(ctx sdk.Context) (sdk.BeginBlock, error) {
 		// For Cosmos SDK v0.50.6, we need to return the proper type
 		return sdk.BeginBlock{}, nil
