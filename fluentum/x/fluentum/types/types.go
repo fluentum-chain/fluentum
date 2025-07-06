@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -380,11 +380,9 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // RegisterInterfaces registers the module's interface types
 func RegisterInterfaces(reg codectypes.InterfaceRegistry) {
-	reg.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCreateFluentum{},
-		&MsgUpdateFluentum{},
-		&MsgDeleteFluentum{},
-	)
+	// Skip interface registration for now to avoid typeURL conflicts
+	// These message types don't have proper protobuf definitions yet
+	// TODO: Add proper protobuf definitions and regenerate types
 }
 
 // AccountKeeper defines the expected account keeper
