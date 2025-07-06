@@ -173,6 +173,12 @@ func New(
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, paramstypes.StoreKey, wasmtypes.StoreKey, fluentumtypes.StoreKey,
 	)
+
+	// Debug: Print store keys
+	fmt.Printf("DEBUG: Created store keys: %v\n", keys)
+	for name, key := range keys {
+		fmt.Printf("DEBUG: Store key '%s': %v\n", name, key)
+	}
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := storetypes.NewMemoryStoreKeys()
 
@@ -280,6 +286,9 @@ func New(
 	app.MountTransientStores(tkeys)
 	app.MountMemoryStores(memKeys)
 
+	// Debug: Print mounted stores
+	fmt.Printf("DEBUG: Mounted KV stores successfully\n")
+
 	// initialize BaseApp
 	// app.SetInitChainer(app.InitChainer) // Commented out due to signature mismatch
 	app.SetBeginBlocker(func(ctx sdk.Context) (sdk.BeginBlock, error) {
@@ -290,11 +299,12 @@ func New(
 
 	fmt.Println("DEBUG: About to call LoadLatestVersion")
 	if loadLatest {
-		// Temporarily disable LoadLatestVersion to debug JSON unmarshaling issue
-		// if err := app.LoadLatestVersion(); err != nil {
-		// 	tmos.Exit(err.Error())
-		// }
-		fmt.Println("DEBUG: LoadLatestVersion skipped")
+		if err := app.LoadLatestVersion(); err != nil {
+			fmt.Printf("DEBUG: LoadLatestVersion failed: %v\n", err)
+			// Don't exit, just log the error for now
+		} else {
+			fmt.Println("DEBUG: LoadLatestVersion completed successfully")
+		}
 	}
 
 	fmt.Println("DEBUG: App.New() completed successfully")
