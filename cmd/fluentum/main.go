@@ -204,7 +204,9 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxCmd(),
 	)
 
-	// Add bank module commands directly
+	app.ModuleBasics.AddQueryCommands(cmd)
+
+	// Add bank module commands directly after ModuleBasics
 	bankCmd := &cobra.Command{
 		Use:   "bank",
 		Short: "Querying commands for the bank module",
@@ -230,7 +232,6 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(bankCmd)
 
-	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
