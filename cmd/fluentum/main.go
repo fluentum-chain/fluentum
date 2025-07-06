@@ -187,6 +187,7 @@ func addModuleInitFlags(startCmd *cobra.Command) {
 }
 
 func queryCommand() *cobra.Command {
+	fmt.Println("DEBUG: Creating query command")
 	cmd := &cobra.Command{
 		Use:                        "query",
 		Aliases:                    []string{"q"},
@@ -237,6 +238,7 @@ func queryCommand() *cobra.Command {
 	for _, subCmd := range cmd.Commands() {
 		fmt.Printf("  - %s: %s\n", subCmd.Use, subCmd.Short)
 	}
+	fmt.Println("DEBUG: Bank command added successfully")
 
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
