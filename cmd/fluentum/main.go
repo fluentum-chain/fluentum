@@ -171,7 +171,9 @@ for high throughput and security.`,
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(versionCmd)
+	fmt.Println("DEBUG: About to add query command")
 	rootCmd.AddCommand(queryCommand())
+	fmt.Println("DEBUG: About to add tx command")
 	rootCmd.AddCommand(txCommand())
 	// Note: keys command not available in this version, will add later
 
