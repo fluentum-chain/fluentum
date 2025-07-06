@@ -30,9 +30,9 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
-	wasmtypes "github.com/cosmwasm/wasmd/x/wasm/types"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	cs "github.com/fluentum-chain/fluentum/consensus"
@@ -169,9 +169,13 @@ for high throughput and security.`,
 	initCmd := createInitCommand()
 	versionCmd := versionCmd()
 
+	// Add CLI commands
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(queryCommand())
+	rootCmd.AddCommand(txCommand())
+	// Note: keys command not available in this version, will add later
 
 	return rootCmd, encodingConfig
 }
@@ -1238,7 +1242,7 @@ func wasmInstantiateCmd() *cobra.Command {
 
 			msg := &wasmtypes.MsgInstantiateContract{
 				Sender: clientCtx.GetFromAddress().String(),
-				CodeId: codeID,
+				CodeID: codeID,
 				Label:  args[1],
 				Msg:    []byte(args[2]),
 			}
