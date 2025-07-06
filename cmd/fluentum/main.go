@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -30,7 +29,6 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
@@ -1112,154 +1110,6 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(stats)
-}
-
-// wasmQueryCmd returns the wasm query command
-func wasmQueryCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "wasm",
-		Short: "Querying commands for the wasm module",
-	}
-
-	cmd.AddCommand(
-		wasmListCodeCmd(),
-		wasmListContractsCmd(),
-	)
-
-	return cmd
-}
-
-// wasmTxCmd returns the wasm transaction command
-func wasmTxCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "wasm",
-		Short: "Wasm transaction subcommands",
-	}
-
-	cmd.AddCommand(
-		wasmStoreCmd(),
-		wasmInstantiateCmd(),
-		wasmExecuteCmd(),
-	)
-
-	return cmd
-}
-
-// wasmListCodeCmd lists all wasm codes
-func wasmListCodeCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "list-code",
-		Short: "List all wasm codes",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := wasmtypes.NewQueryClient(clientCtx)
-
-			res, err := queryClient.Codes(cmd.Context(), &wasmtypes.QueryCodesRequest{})
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-}
-
-// wasmListContractsCmd lists all contracts for a code
-func wasmListContractsCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "list-contracts [code-id]",
-		Short: "List all contracts for a code",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := wasmtypes.NewQueryClient(clientCtx)
-
-			codeID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid code ID: %s", args[0])
-			}
-
-			res, err := queryClient.ContractsByCode(cmd.Context(), &wasmtypes.QueryContractsByCodeRequest{
-				CodeId: codeID,
-			})
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-}
-
-// wasmStoreCmd stores a wasm contract
-func wasmStoreCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "store [wasm-file]",
-		Short: "Upload a wasm binary",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			// Read the wasm file
-			wasmBytes, err := os.ReadFile(args[0])
-			if err != nil {
-				return fmt.Errorf("failed to read wasm file: %w", err)
-			}
-
-			msg := &wasmtypes.MsgStoreCode{
-				Sender:       clientCtx.GetFromAddress().String(),
-				WASMByteCode: wasmBytes,
-			}
-
-			return clientCtx.PrintProto(msg)
-		},
-	}
-}
-
-// wasmInstantiateCmd instantiates a wasm contract
-func wasmInstantiateCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "instantiate [code-id] [label] [init-msg]",
-		Short: "Instantiate a wasm contract",
-		Args:  cobra.ExactArgs(3),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			codeID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid code ID: %s", args[0])
-			}
-
-			msg := &wasmtypes.MsgInstantiateContract{
-				Sender: clientCtx.GetFromAddress().String(),
-				CodeID: codeID,
-				Label:  args[1],
-				Msg:    []byte(args[2]),
-			}
-
-			return clientCtx.PrintProto(msg)
-		},
-	}
-}
-
-// wasmExecuteCmd executes a wasm contract
-func wasmExecuteCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "execute [contract-address] [execute-msg]",
-		Short: "Execute a wasm contract",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			msg := &wasmtypes.MsgExecuteContract{
-				Sender:   clientCtx.GetFromAddress().String(),
-				Contract: args[0],
-				Msg:      []byte(args[1]),
-			}
-
-			return clientCtx.PrintProto(msg)
-		},
-	}
 }
 
 func main() {
