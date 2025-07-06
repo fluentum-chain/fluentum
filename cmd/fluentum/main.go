@@ -238,7 +238,10 @@ func queryCommand() *cobra.Command {
 		Use:   "total",
 		Short: "Query the total supply of coins of the chain",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := banktypes.NewQueryClient(clientCtx)
 
 			res, err := queryClient.TotalSupply(cmd.Context(), &banktypes.QueryTotalSupplyRequest{})
@@ -255,7 +258,10 @@ func queryCommand() *cobra.Command {
 		Short: "Query for account balances by address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := banktypes.NewQueryClient(clientCtx)
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
