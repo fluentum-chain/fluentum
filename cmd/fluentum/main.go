@@ -209,11 +209,6 @@ func queryCommand() *cobra.Command {
 	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
-	// Add custom wasm commands
-	cmd.AddCommand(
-		wasmQueryCmd(),
-	)
-
 	return cmd
 }
 
@@ -241,11 +236,6 @@ func txCommand() *cobra.Command {
 
 	app.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
-
-	// Add custom wasm commands
-	cmd.AddCommand(
-		wasmTxCmd(),
-	)
 
 	return cmd
 }

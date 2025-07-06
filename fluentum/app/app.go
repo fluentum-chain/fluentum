@@ -70,7 +70,7 @@ var (
 		bank.AppModuleBasic{},
 		params.AppModuleBasic{},
 		wasm.AppModuleBasic{},
-		// fluentum.AppModuleBasic{}, // Temporarily commented out to debug init issue
+		fluentum.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -248,7 +248,7 @@ func New(
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
 		params.NewAppModule(app.ParamsKeeper),
-		// wasm.NewAppModule(appCodec, &app.WasmKeeper, nil, nil, nil, app.GetSubspace(wasmtypes.ModuleName)), // TODO: Implement proper wasm module
+		wasm.NewAppModule(appCodec, &app.WasmKeeper, nil, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		fluentum.NewAppModule(appCodec, app.FluentumKeeper, AccountKeeperAdapter{app.AccountKeeper}, BankKeeperAdapter{app.BankKeeper}),
 	)
 
