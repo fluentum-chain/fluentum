@@ -1206,6 +1206,13 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Set Bech32 prefix for Fluentum chain
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount("fluentum", "fluentumpub")
+	config.SetBech32PrefixForValidator("fluentumvaloper", "fluentumvaloperpub")
+	config.SetBech32PrefixForConsensusNode("fluentumvalcons", "fluentumvalconspub")
+	config.Seal()
+
 	fmt.Fprintln(os.Stdout, "DEBUG: entered main function")
 	// Load main config - stub implementation for now
 	cfg := &config.Config{
