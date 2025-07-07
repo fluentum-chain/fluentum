@@ -31,6 +31,7 @@ import (
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
+	keysCmd "github.com/cosmos/cosmos-sdk/client/keys"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	cs "github.com/fluentum-chain/fluentum/consensus"
@@ -175,7 +176,7 @@ for high throughput and security.`,
 	rootCmd.AddCommand(queryCommand())
 	fmt.Println("DEBUG: About to add tx command")
 	rootCmd.AddCommand(txCommand())
-	// Note: keys command not available in this version, will add later
+	rootCmd.AddCommand(keysCmd.Commands())
 
 	return rootCmd, encodingConfig
 }
