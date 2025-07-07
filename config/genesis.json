@@ -1,4 +1,64 @@
 {
+  "genesis_time": "2025-06-30T02:57:31.18154298Z",
+  "chain_id": "fluentum-testnet-1",
+  "initial_height": "1",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "-1",
+      "time_iota_ms": "10"
+    },
+    "evidence": {
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "172800000000000",
+      "max_bytes": "1048576"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    },
+    "version": {}
+  },
+  "validators": [
+    {
+      "address": "83ECD79C29CB634B10B174D3735A2CB5B33E86ED",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "tHZ2x1Gt2DwcfRABJgCondBEr050YDrZnbVf2l7ZRY0="
+      },
+      "power": "10",
+      "name": "validator1"
+    },
+    {
+      "address": "73AA09CD650A859E9F9C0AFBCF5FC1A51F274CD0",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "4T2fzvz1P8N3vkyTdOpxKky+ktvVg/pk4y6wDHk2r4k="
+      },
+      "power": "10",
+      "name": "validator2"
+    },
+    {
+      "address": "94A92F648046E992AE3A9E761ECF40F668E9B07D",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "jiemxfgLYYJhy6VfSDWdk+cwvczhgOliLcLemBs7lKs="
+      },
+      "power": "10",
+      "name": "validator3"
+    },
+    {
+      "address": "9E44ED00C7F3D73827B68263FCBC38B910636380",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "7B99Go9Ak8ZwuqBeXl6dBpNGhr/cV6Ck17fwSuG6QhQ="
+      },
+      "power": "10",
+      "name": "validator4"
+    }
+  ],
+  "app_hash": "",
   "app_state": {
     "auth": {
       "params": {
@@ -11,7 +71,7 @@
       "accounts": [
         {
           "@type": "/cosmos.auth.v1beta1.BaseAccount",
-          "address": "wasm1uhs4uw2rerumav63yrn80lqy92jrfyk9e6hvu7",
+          "address": "fluentum1uhs4uw2rerumav63yrn80lqy92jrfyk9e6hvu7",
           "pub_key": null,
           "account_number": "0",
           "sequence": "0"
@@ -25,11 +85,11 @@
       },
       "balances": [
         {
-          "address": "wasm1uhs4uw2rerumav63yrn80lqy92jrfyk9e6hvu7",
+          "address": "fluentum1uhs4uw2rerumav63yrn80lqy92jrfyk9e6hvu7",
           "coins": [
             {
               "denom": "uflumx",
-              "amount": "10000000000000"
+              "amount": "1000000000"
             }
           ]
         }
@@ -37,7 +97,7 @@
       "supply": [
         {
           "denom": "uflumx",
-          "amount": "100000000000000"
+          "amount": "1000000000"
         }
       ],
       "denom_metadata": []
