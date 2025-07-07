@@ -1215,8 +1215,8 @@ func main() {
 
 	fmt.Fprintln(os.Stdout, "DEBUG: entered main function")
 	// Load main config - stub implementation for now
-	cfg := &config.Config{
-		Quantum: &config.QuantumConfig{
+	cfg := &config.Config{}  // Proper empty struct initialization
+	cfg.Quantum = &config.QuantumConfig{
 			Enabled: false,
 			Mode:    "mode3",
 			LibPath: "",
