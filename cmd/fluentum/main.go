@@ -9,14 +9,15 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"sync"
+	"syscall"
 	"time"
 
-	"os/signal"
-	"syscall"
-
 	dbm "github.com/cometbft/cometbft-db"
+	cometabci "github.com/cometbft/cometbft/abci/types"
+	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
