@@ -800,7 +800,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 
 	// Override default configuration with flag values if needed
 	if testnetMode {
-		nodeConfig.P2P.Seeds = "seed1.testnet:26656,seed2.testnet:26656"
+		// nodeConfig.P2P.Seeds = "seed1.testnet:26656,seed2.testnet:26656"
 		nodeConfig.Consensus.TimeoutCommit = 1 * time.Second
 	}
 
