@@ -99,7 +99,7 @@ check_node_health() {
 # Function to check local node
 check_local_node() {
     echo "Checking local node..."
-    
+
     # Check if service is running
     if systemctl is-active --quiet fluentum-testnet.service; then
         print_success "Local fluentum-testnet service is running"
@@ -107,14 +107,23 @@ check_local_node() {
         print_error "Local fluentum-testnet service is not running"
         return 1
     fi
-    
-    # Check local RPC endpoint
-    if curl -s --max-time 5 "http://localhost:26657/status" > /dev/null 2>&1; then
+
+    # Wait/retry for local RPC endpoint
+    local rpc_ready=false
+    for i in {1..5}; do
+        if curl -s --max-time 2 "http://localhost:26657/status" > /dev/null 2>&1; then
+            rpc_ready=true
+            break
+        fi
+        sleep 1
+    done
+
+    if [ "$rpc_ready" = true ]; then
         print_success "Local RPC endpoint is responding"
     else
-        print_error "Local RPC endpoint is not responding"
+        print_error "Local RPC endpoint is not responding after 5 seconds"
     fi
-    
+
     # Check logs for errors
     local recent_errors=$(journalctl -u fluentum-testnet.service --since "5 minutes ago" | grep -i error | wc -l)
     if [ "$recent_errors" -gt 0 ]; then
@@ -122,7 +131,7 @@ check_local_node() {
     else
         print_success "No recent errors in logs"
     fi
-    
+
     echo ""
 }
 
