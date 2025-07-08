@@ -884,5 +884,9 @@ func createInitCommand() *cobra.Command {
 }
 
 func main() {
-	fmt.Println("Fluentum node started (minimal main)")
+	rootCmd, _ := NewRootCmd()
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println("Error executing root command:", err)
+		os.Exit(1)
+	}
 }
