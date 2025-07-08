@@ -41,7 +41,11 @@ import (
 	_ "github.com/fluentum-chain/fluentum/crypto/ed25519" // Import to register types
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/node"
+	"github.com/fluentum-chain/fluentum/p2p"
+	"github.com/fluentum-chain/fluentum/privval"
+	"github.com/fluentum-chain/fluentum/proxy"
 	sm "github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/store"
 	"github.com/fluentum-chain/fluentum/version"
@@ -763,7 +767,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	fmt.Println("DEBUG: Getting configuration from flags")
 	homeDir, _ := cmd.Flags().GetString(flags.FlagHome)
 	chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
-	logLevel, _ := cmd.Flags().GetString("log_level")
+	// logLevel, _ := cmd.Flags().GetString("log_level") // Remove unused logLevel
 	moniker, _ := cmd.Flags().GetString("moniker")
 	testnetMode, _ := cmd.Flags().GetBool("testnet")
 	fmt.Println("DEBUG: Configuration flags retrieved")
@@ -789,7 +793,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	}
 
 	// Initialize logging
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	logger := fluentumlog.NewTMLogger(fluentumlog.NewSyncWriter(os.Stdout))
 
 	// Create node configuration
 	nodeConfig := config.DefaultConfig()
@@ -799,7 +803,6 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 
 	// Override default configuration with flag values if needed
 	if testnetMode {
-		// Apply testnet-specific configuration
 		nodeConfig.P2P.Seeds = "seed1.testnet:26656,seed2.testnet:26656"
 		nodeConfig.Consensus.TimeoutCommit = 1 * time.Second
 	}
@@ -817,16 +820,16 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		encodingConfig,
 	)
 
-	// Load or generate PrivValidator and NodeKey
+	// Load or generate PrivValidator and NodeKey using Fluentum's packages
 	privVal := privval.LoadOrGenFilePV(
 		nodeConfig.PrivValidatorKey, nodeConfig.PrivValidatorState,
 	)
-	nodeKey, err := p2p.LoadOrGenNodeKey(nodeConfig.P2P.NodeKey)
+	nodeKey, err := p2p.LoadOrGenNodeKey(nodeConfig.P2P.NodeKeyFile)
 	if err != nil {
 		return fmt.Errorf("failed to load or generate node key: %w", err)
 	}
 
-	// Create ClientCreator
+	// Create ClientCreator using Fluentum's proxy
 	clientCreator := proxy.NewLocalClientCreator(appInstance)
 
 	// GenesisDocProvider, DBProvider, MetricsProvider
