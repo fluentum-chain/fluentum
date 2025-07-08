@@ -38,6 +38,7 @@ import (
 	_ "github.com/fluentum-chain/fluentum/crypto/ed25519"
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/node"
 	"github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
@@ -789,7 +790,8 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	}
 
 	// Initialize logging
-	logger := tmlog.NewTMLogger(tmlog.NewSyncWriter(os.Stdout))
+	tmLogger := tmlog.NewTMLogger(tmlog.NewSyncWriter(os.Stdout))
+	fluentumLogger := fluentumlog.NewTMLogger(fluentumlog.NewSyncWriter(os.Stdout))
 
 	// Create node configuration
 	nodeConfig := config.DefaultConfig()
@@ -808,7 +810,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 
 	// Create the ABCI application
 	appInstance := app.NewFluentumApp(
-		logger,
+		tmLogger,
 		dbm.NewMemDB(),
 		nil,
 		true,
@@ -843,7 +845,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		genesisDocProvider,
 		dbProvider,
 		metricsProvider,
-		logger,
+		fluentumLogger,
 	)
 
 	if err != nil {
@@ -854,16 +856,16 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		return fmt.Errorf("failed to start node: %w", err)
 	}
 
-	logger.Info("Fluentum node started", "version", version.Version)
+	fluentumLogger.Info("Fluentum node started", "version", version.Version)
 
 	// Handle graceful shutdown
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
-		logger.Info("Shutting down node...")
+		fluentumLogger.Info("Shutting down node...")
 		if err := nodeInstance.Stop(); err != nil {
-			logger.Error("Failed to stop node", "error", err)
+			fluentumLogger.Error("Failed to stop node", "error", err)
 		}
 		os.Exit(0)
 	}()
