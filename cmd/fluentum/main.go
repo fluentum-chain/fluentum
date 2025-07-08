@@ -7,12 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
+
+	"os/signal"
+	"syscall"
 
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -31,30 +32,20 @@ import (
 	"github.com/spf13/cobra"
 
 	cometabci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/p2p"
+	"github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/proxy"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
-	cs "github.com/fluentum-chain/fluentum/consensus"
 	_ "github.com/fluentum-chain/fluentum/crypto/ed25519" // Import to register types
 	"github.com/fluentum-chain/fluentum/fluentum/app"
-	"github.com/fluentum-chain/fluentum/fluentum/core"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-	tmjson "github.com/fluentum-chain/fluentum/libs/json"
-	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
-	tmos "github.com/fluentum-chain/fluentum/libs/os"
-	mempl "github.com/fluentum-chain/fluentum/mempool"
 	"github.com/fluentum-chain/fluentum/node"
-	p2p "github.com/fluentum-chain/fluentum/p2p"
-	"github.com/fluentum-chain/fluentum/privval"
-	tmproto "github.com/fluentum-chain/fluentum/proto/tendermint/types"
-	"github.com/fluentum-chain/fluentum/proxy"
 	sm "github.com/fluentum-chain/fluentum/state"
 	"github.com/fluentum-chain/fluentum/store"
-	"github.com/fluentum-chain/fluentum/types"
-	tmtime "github.com/fluentum-chain/fluentum/types/time"
 	"github.com/fluentum-chain/fluentum/version"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/spf13/viper"
 )
 
 // AppOptions wrapper for map[string]interface{}
@@ -799,25 +790,25 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 
 	// Initialize logging
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-	if logLevel != "" {
-		logger = log.NewFilter(logger, log.NewLevelFilter(logLevel))
-	}
 
 	// Create node configuration
-	nodeConfig, err := node.DefaultConfig(homeDir, chainID, moniker)
-	if err != nil {
-		return fmt.Errorf("failed to create node config: %w", err)
-	}
+	nodeConfig := config.DefaultConfig()
+	nodeConfig.RootDir = homeDir
+	nodeConfig.Moniker = moniker
+	// Do not set ChainID directly (not addressable)
 
 	// Override default configuration with flag values if needed
 	if testnetMode {
 		// Apply testnet-specific configuration
-		nodeConfig.P2P.SeedNodes = []string{"seed1.testnet:26656", "seed2.testnet:26656"}
+		nodeConfig.P2P.Seeds = "seed1.testnet:26656,seed2.testnet:26656"
 		nodeConfig.Consensus.TimeoutCommit = 1 * time.Second
 	}
 
+	// Ensure appOpts is defined
+	appOpts := appOptions{}
+
 	// Create the ABCI application
-	app := app.NewFluentumApp(
+	appInstance := app.NewFluentumApp(
 		logger,
 		dbm.NewMemDB(),
 		nil,
@@ -826,11 +817,32 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		encodingConfig,
 	)
 
+	// Load or generate PrivValidator and NodeKey
+	privVal := privval.LoadOrGenFilePV(
+		nodeConfig.PrivValidatorKey, nodeConfig.PrivValidatorState,
+	)
+	nodeKey, err := p2p.LoadOrGenNodeKey(nodeConfig.P2P.NodeKey)
+	if err != nil {
+		return fmt.Errorf("failed to load or generate node key: %w", err)
+	}
+
+	// Create ClientCreator
+	clientCreator := proxy.NewLocalClientCreator(appInstance)
+
+	// GenesisDocProvider, DBProvider, MetricsProvider
+	genesisDocProvider := node.DefaultGenesisDocProviderFunc(nodeConfig)
+	dbProvider := node.DefaultDBProvider
+	metricsProvider := node.DefaultMetricsProvider(nodeConfig.Instrumentation)
+
 	// Start the node
-	node, err := node.NewNode(
-		context.Background(),
+	nodeInstance, err := node.NewNode(
 		nodeConfig,
-		app,
+		privVal,
+		nodeKey,
+		clientCreator,
+		genesisDocProvider,
+		dbProvider,
+		metricsProvider,
 		logger,
 	)
 
@@ -838,11 +850,11 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 		return fmt.Errorf("failed to create node: %w", err)
 	}
 
-	if err := node.Start(); err != nil {
+	if err := nodeInstance.Start(); err != nil {
 		return fmt.Errorf("failed to start node: %w", err)
 	}
 
-	logger.Info("Fluentum node started", "chain_id", chainID, "version", version.Version)
+	logger.Info("Fluentum node started", "version", version.Version)
 
 	// Handle graceful shutdown
 	c := make(chan os.Signal, 1)
@@ -850,7 +862,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	go func() {
 		<-c
 		logger.Info("Shutting down node...")
-		if err := node.Stop(); err != nil {
+		if err := nodeInstance.Stop(); err != nil {
 			logger.Error("Failed to stop node", "error", err)
 		}
 		os.Exit(0)
@@ -860,3 +872,12 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	select {}
 }
 
+func createInitCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "init",
+		Short: "Stub init command (to be implemented)",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("init command is not implemented yet.")
+		},
+	}
+}
