@@ -31,6 +31,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
+	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	_ "github.com/fluentum-chain/fluentum/crypto/ed25519"
 	"github.com/fluentum-chain/fluentum/fluentum/app"
