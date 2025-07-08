@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -347,13 +346,13 @@ type appCreator struct {
 
 // CreateApp implements types.AppCreator interface for Cosmos SDK v0.50.6
 func (a appCreator) CreateApp(
-	logger log.Logger,
+	tmLogger tmlog.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
 	return app.NewFluentumApp(
-		logger,
+		tmLogger,
 		db,
 		traceStore,
 		true, // loadLatest
@@ -364,7 +363,7 @@ func (a appCreator) CreateApp(
 
 // ExportApp implements types.AppExporter interface for Cosmos SDK v0.50.6
 func (a appCreator) ExportApp(
-	logger log.Logger,
+	tmLogger tmlog.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	height int64,
@@ -373,7 +372,7 @@ func (a appCreator) ExportApp(
 	appOpts servertypes.AppOptions,
 ) (servertypes.ExportedApp, error) {
 	app := app.NewFluentumApp(
-		logger,
+		tmLogger,
 		db,
 		traceStore,
 		height == 0, // loadLatest if height=0
