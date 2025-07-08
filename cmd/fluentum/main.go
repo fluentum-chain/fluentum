@@ -882,3 +882,7 @@ func createInitCommand() *cobra.Command {
 		},
 	}
 }
+
+func main() {
+	fmt.Println("Fluentum node started (minimal main)")
+}
