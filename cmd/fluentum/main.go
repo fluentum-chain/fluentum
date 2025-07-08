@@ -32,12 +32,12 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
+	tmlog "github.com/cometbft/cometbft/libs/log"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	_ "github.com/fluentum-chain/fluentum/crypto/ed25519"
 	"github.com/fluentum-chain/fluentum/fluentum/app"
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/node"
 	"github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
@@ -789,7 +789,7 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	}
 
 	// Initialize logging
-	logger := fluentumlog.NewTMLogger(fluentumlog.NewSyncWriter(os.Stdout))
+	logger := tmlog.NewTMLogger(tmlog.NewSyncWriter(os.Stdout))
 
 	// Create node configuration
 	nodeConfig := config.DefaultConfig()
@@ -820,13 +820,14 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	privVal := privval.LoadOrGenFilePV(
 		nodeConfig.PrivValidatorKey, nodeConfig.PrivValidatorState,
 	)
-	nodeKey, err := p2p.LoadOrGenNodeKey(nodeConfig.P2P.NodeKeyFile)
+	nodeKey, err := p2p.LoadOrGenNodeKey(nodeConfig.NodeKeyFile())
 	if err != nil {
 		return fmt.Errorf("failed to load or generate node key: %w", err)
 	}
 
 	// Create ClientCreator using Fluentum's proxy
-	clientCreator := proxy.NewLocalClientCreator(appInstance)
+	adapter := &CosmosAppAdapter{App: appInstance}
+	clientCreator := proxy.NewLocalClientCreator(adapter)
 
 	// GenesisDocProvider, DBProvider, MetricsProvider
 	genesisDocProvider := node.DefaultGenesisDocProviderFunc(nodeConfig)
