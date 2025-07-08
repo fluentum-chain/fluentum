@@ -160,7 +160,7 @@ and ZK-Rollups for high throughput and security.`,
 	initCmd := createInitCommand()
 	versionCmd := versionCmd()
 
-	// Add CLI commands
+	// Add CLI commands (important)
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(versionCmd)
