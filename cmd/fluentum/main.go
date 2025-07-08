@@ -43,7 +43,7 @@ import (
 	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
 	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/node"
-	"github.com/fluentum-chain/fluentum/p2p"
+	p2p "github.com/fluentum-chain/fluentum/p2p"
 	"github.com/fluentum-chain/fluentum/privval"
 	"github.com/fluentum-chain/fluentum/proxy"
 	sm "github.com/fluentum-chain/fluentum/state"
