@@ -90,16 +90,6 @@ else
     print_success "Node initialized successfully"
 fi
 
-# Generate validator key if not exists
-if [ ! -f "$FLUENTUM_HOME/config/priv_validator_key.json" ]; then
-    print_status "Generating validator key..."
-    if ! VALKEY_OUT=$($FLUENTUMD gen-validator-key --home "$FLUENTUM_HOME" 2>&1); then
-        print_error "Validator key generation failed. Output:\n$VALKEY_OUT"
-        exit 1
-    fi
-    print_success "Validator key generated"
-fi
-
 # Create systemd service
 SERVICE_NAME="fluentum-$NODE_NAME"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
