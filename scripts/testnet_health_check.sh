@@ -1,7 +1,16 @@
 #!/bin/bash
 
 # Fluentum Testnet Health Check Script
-# Monitors all 4 testnet nodes
+# Monitors all testnet nodes defined in nodes.conf
+# 
+# Configuration:
+# - Node list and IPs: sourced from scripts/nodes.conf
+# - Local node: set LOCAL_NODE_NAME env var or defaults to fluentum-node1
+# - Chain ID: sourced from nodes.conf
+# - Ports: sourced from nodes.conf (RPC_PORT, P2P_PORT)
+#
+# Usage: ./testnet_health_check.sh
+#        LOCAL_NODE_NAME=fluentum-node2 ./testnet_health_check.sh
 
 set -e
 
@@ -28,19 +37,24 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Source centralized node configuration
+NODES_CONF="$(dirname "$0")/nodes.conf"
+if [ ! -f "$NODES_CONF" ]; then
+    echo "Error: nodes.conf file not found at $NODES_CONF"
+    exit 1
+fi
+source "$NODES_CONF"
+
 # Testnet configuration
-TESTNET_CHAIN_ID="fluentum-testnet-1"
+TESTNET_CHAIN_ID="$CHAIN_ID"
 
 # Server configurations
 # Use standard ports for all nodes
 # Format: ["node_name"]="<ip>:26657"
-declare -A SERVERS=(
-    ["fluentum-node1"]="34.44.129.207:26657"
-    ["fluentum-node2"]="34.44.82.114:26657"
-    ["fluentum-node3"]="34.68.180.153:26657"
-    ["fluentum-node4"]="34.72.252.153:26657"
-    ["fluentum-node5"]="35.225.118.226:26657"
-)
+declare -A SERVERS=()
+for node_name in "${VALID_NODES[@]}"; do
+    SERVERS["$node_name"]="${NODE_IPS[$node_name]}:$RPC_PORT"
+done
 
 # Function to check node health
 check_node_health() {
@@ -100,18 +114,22 @@ check_node_health() {
 check_local_node() {
     echo "Checking local node..."
     
+    # Determine local node name - assume node1 if not specified
+    local local_node_name=${LOCAL_NODE_NAME:-"fluentum-node1"}
+    local service_name="fluentum-$local_node_name"
+    
     # Check if service is running
-    if systemctl is-active --quiet fluentum-fluentum-node1.service; then
-        print_success "Local fluentum-fluentum-node1 service is running"
+    if systemctl is-active --quiet "$service_name.service"; then
+        print_success "Local $service_name service is running"
     else
-        print_error "Local fluentum-fluentum-node1 service is not running"
+        print_error "Local $service_name service is not running"
         return 1
     fi
     
     # Wait/retry for local RPC endpoint
     local rpc_ready=false
     for i in {1..5}; do
-        if curl -s --max-time 2 "http://localhost:26657/status" > /dev/null 2>&1; then
+        if curl -s --max-time 2 "http://localhost:$RPC_PORT/status" > /dev/null 2>&1; then
             rpc_ready=true
             break
         fi
@@ -125,7 +143,7 @@ check_local_node() {
     fi
     
     # Check logs for errors
-    local recent_errors=$(journalctl -u fluentum-fluentum-node1.service --since "5 minutes ago" | grep -i error | wc -l)
+    local recent_errors=$(journalctl -u "$service_name.service" --since "5 minutes ago" | grep -i error | wc -l)
     if [ "$recent_errors" -gt 0 ]; then
         print_warning "Found $recent_errors errors in recent logs"
     else
@@ -142,8 +160,8 @@ check_network_connectivity() {
     for node_name in "${!SERVERS[@]}"; do
         local endpoint=${SERVERS[$node_name]}
         local ip=$(echo "$endpoint" | cut -d: -f1)
-        local rpc_port=26657
-        local p2p_port=26656
+        local rpc_port=$RPC_PORT
+        local p2p_port=$P2P_PORT
         
         # Test TCP connectivity for RPC
         if timeout 5 bash -c "</dev/tcp/$ip/$rpc_port" 2>/dev/null; then
@@ -231,12 +249,22 @@ check_consensus() {
     echo ""
 }
 
+# Function to display configuration
+display_config() {
+    echo "=== Fluentum Testnet Health Check ==="
+    echo "Configuration:"
+    echo "  Chain ID: $TESTNET_CHAIN_ID"
+    echo "  RPC Port: $RPC_PORT"
+    echo "  P2P Port: $P2P_PORT"
+    echo "  Local Node: ${LOCAL_NODE_NAME:-fluentum-node1}"
+    echo "  Total Nodes: ${#SERVERS[@]}"
+    echo "  Timestamp: $(date)"
+    echo ""
+}
+
 # Main execution
 main() {
-    echo "=== Fluentum Testnet Health Check ==="
-    echo "Chain ID: $TESTNET_CHAIN_ID"
-    echo "Timestamp: $(date)"
-    echo ""
+    display_config
     
     # Check local node first
     check_local_node
