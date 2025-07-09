@@ -5,12 +5,19 @@
 # 
 # Configuration:
 # - Node list and IPs: sourced from scripts/nodes.conf
-# - Local node: set LOCAL_NODE_NAME env var or defaults to fluentum-node1
+# - Local node: automatically detected from hostname or running services
+#   (can override with LOCAL_NODE_NAME env var)
 # - Chain ID: sourced from nodes.conf
 # - Ports: sourced from nodes.conf (RPC_PORT, P2P_PORT)
 #
 # Usage: ./testnet_health_check.sh
 #        LOCAL_NODE_NAME=fluentum-node2 ./testnet_health_check.sh
+#
+# Auto-detection priority:
+# 1. LOCAL_NODE_NAME environment variable (if set)
+# 2. Hostname containing "fluentum-node" pattern
+# 3. Running fluentum service detection
+# 4. Fallback to fluentum-node1
 
 set -e
 
@@ -110,13 +117,45 @@ check_node_health() {
     echo ""
 }
 
+# Function to detect local node name
+detect_local_node() {
+    # If LOCAL_NODE_NAME is set, use it
+    if [ -n "$LOCAL_NODE_NAME" ]; then
+        echo "$LOCAL_NODE_NAME"
+        return 0
+    fi
+    
+    # Try to detect from hostname
+    local hostname=$(hostname)
+    if [[ "$hostname" == *"fluentum-node"* ]]; then
+        # Extract node name from hostname (e.g., fluentum-node1 -> fluentum-node1)
+        echo "$hostname"
+        return 0
+    fi
+    
+    # Try to detect by checking which fluentum services are running
+    for node_name in "${VALID_NODES[@]}"; do
+        local service_name="fluentum-$node_name"
+        if systemctl is-active --quiet "$service_name.service" 2>/dev/null; then
+            echo "$node_name"
+            return 0
+        fi
+    done
+    
+    # Fallback to node1 if no detection method works
+    echo "fluentum-node1"
+    return 0
+}
+
 # Function to check local node
 check_local_node() {
     echo "Checking local node..."
     
-    # Determine local node name - assume node1 if not specified
-    local local_node_name=${LOCAL_NODE_NAME:-"fluentum-node1"}
+    # Detect local node name
+    local local_node_name=$(detect_local_node)
     local service_name="fluentum-$local_node_name"
+    
+    print_status "Detected local node: $local_node_name"
     
     # Check if service is running
     if systemctl is-active --quiet "$service_name.service"; then
@@ -256,7 +295,7 @@ display_config() {
     echo "  Chain ID: $TESTNET_CHAIN_ID"
     echo "  RPC Port: $RPC_PORT"
     echo "  P2P Port: $P2P_PORT"
-    echo "  Local Node: ${LOCAL_NODE_NAME:-fluentum-node1}"
+    echo "  Local Node: $(detect_local_node)"
     echo "  Total Nodes: ${#SERVERS[@]}"
     echo "  Timestamp: $(date)"
     echo ""
