@@ -799,6 +799,9 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	nodeConfig.Moniker = moniker
 	// Do not set ChainID directly (not addressable)
 
+	// DEBUG: Print the loaded RPC listen address
+	fmt.Printf("DEBUG: nodeConfig.RPC.ListenAddress = %s\n", nodeConfig.RPC.ListenAddress)
+
 	// Example: Load genesis.json using the new utility
 	genesisPath := filepath.Join(homeDir, "config", "genesis.json")
 	var genesisDoc map[string]interface{} // TODO: Replace with your actual GenesisDoc type
