@@ -30,6 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	tmlog "github.com/cometbft/cometbft/libs/log"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
@@ -792,11 +793,55 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	tmLogger := tmlog.NewTMLogger(tmlog.NewSyncWriter(os.Stdout))
 	fluentumLogger := fluentumlog.NewTMLogger(fluentumlog.NewSyncWriter(os.Stdout))
 
-	// Create node configuration
-	nodeConfig := config.DefaultConfig()
+	// Load config from file (NEW)
+	nodeConfig := loadConfig(homeDir)
 	nodeConfig.RootDir = homeDir
 	nodeConfig.Moniker = moniker
 	// Do not set ChainID directly (not addressable)
+
+	// Example: Load genesis.json using the new utility
+	genesisPath := filepath.Join(homeDir, "config", "genesis.json")
+	var genesisDoc map[string]interface{} // TODO: Replace with your actual GenesisDoc type
+	_, err := loadJSONConfig(genesisPath, &genesisDoc)
+	if err != nil {
+		return fmt.Errorf("failed to load genesis.json: %w", err)
+	}
+
+	// Example: Load priv_validator_key.json using the new utility (for demonstration)
+	privValKeyPath := filepath.Join(homeDir, "config", "priv_validator_key.json")
+	var privValKey map[string]interface{} // TODO: Replace with your actual PrivValidatorKey type if you want to inspect raw JSON
+	_, err = loadJSONConfig(privValKeyPath, &privValKey)
+	if err != nil {
+		return fmt.Errorf("failed to load priv_validator_key.json: %w", err)
+	}
+	// The real privVal used by the node is still loaded below with privval.LoadOrGenFilePV
+
+	// Example: Load priv_validator_state.json using the new utility (for demonstration)
+	privValStatePath := filepath.Join(homeDir, "data", "priv_validator_state.json")
+	var privValState map[string]interface{} // TODO: Replace with your actual PrivValidatorState type if you want to inspect raw JSON
+	_, err = loadJSONConfig(privValStatePath, &privValState)
+	if err != nil {
+		return fmt.Errorf("failed to load priv_validator_state.json: %w", err)
+	}
+	// The real privVal used by the node is still loaded below with privval.LoadOrGenFilePV
+
+	// Example: Load node_key.json using the new utility (for demonstration)
+	nodeKeyPath := filepath.Join(homeDir, "config", "node_key.json")
+	var nodeKeyRaw map[string]interface{} // TODO: Replace with your actual NodeKey type if you want to inspect raw JSON
+	_, err = loadJSONConfig(nodeKeyPath, &nodeKeyRaw)
+	if err != nil {
+		return fmt.Errorf("failed to load node_key.json: %w", err)
+	}
+	// The real nodeKey used by the node is still loaded below with p2p.LoadOrGenNodeKey
+
+	// Example: Load addrbook.json using the new utility (for demonstration)
+	addrBookPath := filepath.Join(homeDir, "config", "addrbook.json")
+	var addrBook map[string]interface{} // TODO: Replace with your actual AddrBook type if you want to inspect raw JSON
+	_, err = loadJSONConfig(addrBookPath, &addrBook)
+	if err != nil {
+		return fmt.Errorf("failed to load addrbook.json: %w", err)
+	}
+	// The real addrbook is managed by the node's P2P subsystem
 
 	// Override default configuration with flag values if needed
 	if testnetMode {
@@ -889,4 +934,45 @@ func main() {
 		fmt.Println("Error executing root command:", err)
 		os.Exit(1)
 	}
+}
+
+func loadConfig(homeDir string) *config.Config {
+	v := viper.New()
+	v.SetConfigName("config")
+	v.SetConfigType("toml")
+	v.AddConfigPath(homeDir)
+	v.AddConfigPath(filepath.Join(homeDir, "config"))
+
+	cfg := config.DefaultConfig()
+	if err := v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Fprintf(os.Stderr, "[WARN] config.toml not found in %s or %s/config, using defaults\n", homeDir, homeDir)
+		} else {
+			panic(fmt.Errorf("fatal error reading config file: %w", err))
+		}
+	} else {
+		if err := v.Unmarshal(cfg); err != nil {
+			panic(fmt.Errorf("unable to decode config.toml into config struct: %w", err))
+		}
+	}
+	return cfg
+}
+
+// Loads a JSON config file into the given struct pointer.
+// If the file does not exist, returns false and does not error.
+func loadJSONConfig(path string, out interface{}) (bool, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "[WARN] %s not found, using defaults\n", path)
+			return false, nil
+		}
+		return false, fmt.Errorf("error opening %s: %w", path, err)
+	}
+	defer f.Close()
+	dec := json.NewDecoder(f)
+	if err := dec.Decode(out); err != nil {
+		return false, fmt.Errorf("error decoding %s: %w", path, err)
+	}
+	return true, nil
 }
