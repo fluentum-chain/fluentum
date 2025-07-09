@@ -52,13 +52,11 @@ NODE_IP="${NODE_IPS[$NODE_NAME]}"
 print_status "Deploying Fluentum testnet node: $NODE_NAME (index: $NODE_INDEX, IP: $NODE_IP)"
 
 # Check for fluentumd binary
-if [ -f "./build/fluentumd" ]; then
-    FLUENTUMD="./build/fluentumd"
-elif [ -f "/usr/local/bin/fluentumd" ]; then
+
+if [ -f "/usr/local/bin/fluentumd" ]; then
     FLUENTUMD="/usr/local/bin/fluentumd"
 else
-    print_error "fluentumd binary not found. Please build or install it first."
-    echo "  make build"
+    print_error "fluentumd binary not found at /usr/local/bin/fluentumd. Please install it first."
     exit 1
 fi
 
