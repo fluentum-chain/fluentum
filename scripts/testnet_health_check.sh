@@ -101,10 +101,10 @@ check_local_node() {
     echo "Checking local node..."
     
     # Check if service is running
-    if systemctl is-active --quiet fluentum-testnet.service; then
-        print_success "Local fluentum-testnet service is running"
+    if systemctl is-active --quiet fluentum-fluentum-node1.service; then
+        print_success "Local fluentum-fluentum-node1 service is running"
     else
-        print_error "Local fluentum-testnet service is not running"
+        print_error "Local fluentum-fluentum-node1 service is not running"
         return 1
     fi
     
@@ -125,7 +125,7 @@ check_local_node() {
     fi
     
     # Check logs for errors
-    local recent_errors=$(journalctl -u fluentum-testnet.service --since "5 minutes ago" | grep -i error | wc -l)
+    local recent_errors=$(journalctl -u fluentum-fluentum-node1.service --since "5 minutes ago" | grep -i error | wc -l)
     if [ "$recent_errors" -gt 0 ]; then
         print_warning "Found $recent_errors errors in recent logs"
     else
