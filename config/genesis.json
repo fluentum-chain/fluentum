@@ -56,6 +56,15 @@
       },
       "power": "10",
       "name": "validator4"
+    },
+    {
+      "address": "F93DF842EFC255A709E265D40C7A033017DECDA4",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "0Igj9Jg3KZLPWyShv7V9/y5RgcZIF1f0/q5BWhlkC3A="
+      },
+      "power": "10",
+      "name": "validator5"
     }
   ],
   "app_hash": "",
@@ -89,7 +98,7 @@
           "coins": [
             {
               "denom": "uflumx",
-              "amount": "1000000000"
+              "amount": "10000000000000"
             }
           ]
         }
@@ -97,7 +106,7 @@
       "supply": [
         {
           "denom": "uflumx",
-          "amount": "1000000000"
+          "amount": "1000000000000000"
         }
       ],
       "denom_metadata": []
