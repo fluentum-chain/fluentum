@@ -90,16 +90,6 @@ else
     print_success "Node initialized successfully"
 fi
 
-# Generate node key if not exists
-if [ ! -f "$FLUENTUM_HOME/config/node_key.json" ]; then
-    print_status "Generating node key..."
-    if ! NODEKEY_OUT=$($FLUENTUMD gen-node-key --home "$FLUENTUM_HOME" 2>&1); then
-        print_error "Node key generation failed. Output:\n$NODEKEY_OUT"
-        exit 1
-    fi
-    print_success "Node key generated"
-fi
-
 # Generate validator key if not exists
 if [ ! -f "$FLUENTUM_HOME/config/priv_validator_key.json" ]; then
     print_status "Generating validator key..."
