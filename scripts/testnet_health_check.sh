@@ -15,9 +15,11 @@
 #
 # Auto-detection priority:
 # 1. LOCAL_NODE_NAME environment variable (if set)
-# 2. Hostname containing "fluentum-node" pattern
-# 3. Running fluentum service detection
+# 2. Hostname containing "fluentum-node" pattern (extracts node number)
+# 3. Running fluentum-testnet.service detection (extracts from service description)
 # 4. Fallback to fluentum-node1
+#
+# Service naming: All nodes use "fluentum-testnet.service" regardless of node number
 
 set -e
 
@@ -128,12 +130,55 @@ detect_local_node() {
     # Try to detect from hostname
     local hostname=$(hostname)
     if [[ "$hostname" == *"fluentum-node"* ]]; then
-        # Extract node name from hostname (e.g., fluentum-node1 -> fluentum-node1)
-        echo "$hostname"
-        return 0
+        # Extract node name from hostname (e.g., fluentum-node1.us-central1-c.c.local-scope-463022-k9.internal -> fluentum-node1)
+        local node_name=$(echo "$hostname" | grep -o "fluentum-node[0-9]*" | head -1)
+        if [ -n "$node_name" ]; then
+            echo "$node_name"
+            return 0
+        fi
     fi
     
     # Try to detect by checking which fluentum services are running
+    # Check for the actual service name pattern: fluentum-testnet.service
+    if systemctl is-active --quiet "fluentum-testnet.service" 2>/dev/null; then
+        # Extract node name from service description
+        local service_description=$(systemctl show fluentum-testnet.service --property=Description --value 2>/dev/null || echo "")
+        if [[ "$service_description" == *"fluentum-node"* ]]; then
+            local node_name=$(echo "$service_description" | grep -o "fluentum-node[0-9]*" | head -1)
+            if [ -n "$node_name" ]; then
+                echo "$node_name"
+                return 0
+            fi
+        fi
+        
+        # Try to determine from the working directory path
+        local working_dir=$(systemctl show fluentum-testnet.service --property=WorkingDirectory --value 2>/dev/null || echo "")
+        if [[ "$working_dir" == *"fluentum-node"* ]]; then
+            local node_name=$(echo "$working_dir" | grep -o "fluentum-node[0-9]*" | head -1)
+            if [ -n "$node_name" ]; then
+                echo "$node_name"
+                return 0
+            fi
+        fi
+        
+        # If we can't extract from description or working directory, try to determine from config
+        # Check the config directory for node-specific information
+        local config_dir="/opt/fluentum"
+        if [ -d "$config_dir" ]; then
+            for node_name in "${VALID_NODES[@]}"; do
+                if [ -d "$config_dir/$node_name" ]; then
+                    echo "$node_name"
+                    return 0
+                fi
+            done
+        fi
+        
+        # Final fallback - we'll assume it's the first node if we can't determine
+        echo "fluentum-node1"
+        return 0
+    fi
+    
+    # Try checking for individual node services as fallback
     for node_name in "${VALID_NODES[@]}"; do
         local service_name="fluentum-$node_name"
         if systemctl is-active --quiet "$service_name.service" 2>/dev/null; then
@@ -153,15 +198,14 @@ check_local_node() {
     
     # Detect local node name
     local local_node_name=$(detect_local_node)
-    local service_name="fluentum-$local_node_name"
     
     print_status "Detected local node: $local_node_name"
     
-    # Check if service is running
-    if systemctl is-active --quiet "$service_name.service"; then
-        print_success "Local $service_name service is running"
+    # Check if service is running - use the actual service name pattern
+    if systemctl is-active --quiet "fluentum-testnet.service"; then
+        print_success "Local fluentum-testnet service is running"
     else
-        print_error "Local $service_name service is not running"
+        print_error "Local fluentum-testnet service is not running"
         return 1
     fi
     
@@ -182,7 +226,7 @@ check_local_node() {
     fi
     
     # Check logs for errors
-    local recent_errors=$(journalctl -u "$service_name.service" --since "5 minutes ago" | grep -i error | wc -l)
+    local recent_errors=$(journalctl -u "fluentum-testnet.service" --since "5 minutes ago" | grep -i error | wc -l)
     if [ "$recent_errors" -gt 0 ]; then
         print_warning "Found $recent_errors errors in recent logs"
     else
