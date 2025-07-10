@@ -22,49 +22,49 @@
   },
   "validators": [
     {
-      "address": "83ECD79C29CB634B10B174D3735A2CB5B33E86ED",
+      "address": "72A5368C6FE05FB9864A09D059848626008CF958",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "tHZ2x1Gt2DwcfRABJgCondBEr050YDrZnbVf2l7ZRY0="
+        "value": "cdu54HGx/X7HNhqetEsG80d6CNAeXMGUFCun4e85uoE="
       },
       "power": "10",
-      "name": "validator1"
+      "name": "fluentum-node1"
     },
     {
-      "address": "73AA09CD650A859E9F9C0AFBCF5FC1A51F274CD0",
+      "address": "D4F63230FE9D017DA411B8E30AA46E968A4E4CA7",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "4T2fzvz1P8N3vkyTdOpxKky+ktvVg/pk4y6wDHk2r4k="
+        "value": "Gv+Q/92rFrn7o9qE2RFffEbZRcTeyL262tiQ3qNUj9U="
       },
       "power": "10",
-      "name": "validator2"
+      "name": "fluentum-node2"
     },
     {
-      "address": "94A92F648046E992AE3A9E761ECF40F668E9B07D",
+      "address": "3B468F8D3C5B29143EFA2CCF8C7E5A179463D43B",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "jiemxfgLYYJhy6VfSDWdk+cwvczhgOliLcLemBs7lKs="
+        "value": "IbZZ66t48zYFHt/kbCjntlskMAXdnSuU2AqixM556uc="
       },
       "power": "10",
-      "name": "validator3"
+      "name": "fluentum-node3"
     },
     {
-      "address": "9E44ED00C7F3D73827B68263FCBC38B910636380",
+      "address": "E5918542068F0DFBBC224831BDDDC4D826624174",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "7B99Go9Ak8ZwuqBeXl6dBpNGhr/cV6Ck17fwSuG6QhQ="
+        "value": "tTe1MK0JC1scFChjuwztF8ZnYwmwBTAs04jUBIMQH+A="
       },
       "power": "10",
-      "name": "validator4"
+      "name": "fluentum-node4"
     },
     {
-      "address": "F93DF842EFC255A709E265D40C7A033017DECDA4",
+      "address": "37E338410A08D79C3ED4CF91AC12A086CC79A70B",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "0Igj9Jg3KZLPWyShv7V9/y5RgcZIF1f0/q5BWhlkC3A="
+        "value": "/gLGMZw4ulum2AOPo3eV+ZRlTLmXR0Rem27hWpU5cRI="
       },
       "power": "10",
-      "name": "validator5"
+      "name": "fluentum-node5"
     }
   ],
   "app_hash": "",
