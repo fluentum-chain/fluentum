@@ -52,7 +52,7 @@ for node_name in "${VALID_NODES[@]}"; do
     
     # Try to get node ID from RPC
     if curl -s --max-time 10 "http://$local_ip:$RPC_PORT/status" > /dev/null 2>&1; then
-        local node_id=$(curl -s --max-time 10 "http://$local_ip:$RPC_PORT/status" | jq -r '.result.node_info.id' 2>/dev/null || echo "")
+        node_id=$(curl -s --max-time 10 "http://$local_ip:$RPC_PORT/status" | jq -r '.result.node_info.id' 2>/dev/null || echo "")
         
         if [ -n "$node_id" ] && [ "$node_id" != "null" ]; then
             print_success "$node_name: $node_id"
