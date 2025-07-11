@@ -21,7 +21,7 @@ max_latency_ms = 50
 
 # State Sync Feature Configuration
 [features.state_sync]
-enabled = true
+enabled = false
 # Enable fast state synchronization
 fast_sync = true
 # State sync chunk size
@@ -33,7 +33,7 @@ timeout_seconds = 30
 
 # ZK Rollup Feature Configuration
 [features.zk_rollup]
-enabled = true
+enabled = false
 # Enable zero-knowledge proof generation
 enable_proofs = true
 # ZK proof verification
