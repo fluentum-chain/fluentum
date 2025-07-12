@@ -4,21 +4,16 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/fluentum-chain/fluentum/fluentum/features/quantum_signing"
-	"github.com/fluentum-chain/fluentum/fluentum/features/state_sync"
-	"github.com/fluentum-chain/fluentum/fluentum/features/zk_rollup"
+	"github.com/fluentum-chain/fluentum/features"
 )
 
 // Feature interface that all features must implement
 type Feature interface {
-	Name() string
-	Version() string
-	Init(config map[string]interface{}) error
+	features.FeatureInterface
 	Start() error
 	Stop() error
 	Reload() error
 	CheckCompatibility(nodeVersion string) error
-	IsEnabled() bool
 }
 
 // FeatureManager manages all features in the Fluentum node
@@ -54,24 +49,7 @@ func (fm *FeatureManager) RegisterFeature(feature Feature) error {
 
 // LoadFeatures loads all available features
 func (fm *FeatureManager) LoadFeatures() error {
-	// Register quantum signing feature
-	quantumFeature := quantum_signing.NewQuantumSigningFeature()
-	if err := fm.RegisterFeature(quantumFeature); err != nil {
-		return fmt.Errorf("failed to register quantum signing feature: %w", err)
-	}
-
-	// Register state sync feature
-	stateSyncFeature := state_sync.NewStateSyncFeature()
-	if err := fm.RegisterFeature(stateSyncFeature); err != nil {
-		return fmt.Errorf("failed to register state sync feature: %w", err)
-	}
-
-	// Register ZK rollup feature
-	zkRollupFeature := zk_rollup.NewZKRollupFeature()
-	if err := fm.RegisterFeature(zkRollupFeature); err != nil {
-		return fmt.Errorf("failed to register ZK rollup feature: %w", err)
-	}
-
+	// TODO: Implement dynamic feature loading from the features directory
 	return nil
 }
 
@@ -92,7 +70,7 @@ func (fm *FeatureManager) InitializeFeatures() error {
 		}
 
 		// Initialize the feature
-		if err := feature.Init(config); err != nil {
+		if err := feature.Initialize(config); err != nil {
 			return fmt.Errorf("failed to initialize feature %s: %w", name, err)
 		}
 	}
@@ -222,7 +200,7 @@ func (fm *FeatureManager) EnableFeature(name string) error {
 	fm.SetFeatureConfig(name, config)
 
 	// Reinitialize the feature
-	return feature.Init(config)
+	return feature.Initialize(config)
 }
 
 // DisableFeature disables a specific feature
@@ -244,5 +222,5 @@ func (fm *FeatureManager) DisableFeature(name string) error {
 	fm.SetFeatureConfig(name, config)
 
 	// Reinitialize the feature
-	return feature.Init(config)
+	return feature.Initialize(config)
 }

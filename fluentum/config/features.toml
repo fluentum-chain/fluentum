@@ -1,0 +1,44 @@
+# Fluentum Feature Configuration
+
+[features]
+enabled = true
+auto_reload = true
+check_compatibility = true
+min_node_version = "1.0.0"
+
+# Quantum Signing Configuration
+[features.quantum_signing]
+enabled = true
+dilithium_mode = 3  # 2: Dilithium2, 3: Dilithium3 (recommended), 5: Dilithium5
+quantum_headers = true
+enable_metrics = true
+max_latency_ms = 1000
+
+# State Sync Configuration
+[features.state_sync]
+enabled = true
+fast_sync = true
+chunk_size = 16384  # 16KB chunks
+max_concurrent = 10
+timeout_seconds = 30
+
+# ZK Rollup Configuration
+[features.zk_rollup]
+enabled = true
+enable_proofs = true
+enable_verification = true
+batch_size = 1000
+proof_timeout = 30
+
+# Feature Distribution Settings
+[features.distribution]
+use_git_submodules = true
+auto_update = true
+repository_url = "https://github.com/fluentum-chain/features"
+branch = "main"
+
+# Compatibility Settings
+[features.compatibility]
+min_node_version = "1.0.0"
+max_node_version = "2.0.0"
+required_features = ["quantum_signing"]

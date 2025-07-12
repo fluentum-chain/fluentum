@@ -6,7 +6,7 @@ package main
 import (
 	"crypto/rand"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/crypto"
+	"github.com/fluentum-chain/fluentum/core/crypto"
 )
 
 // DilithiumSigner implements the crypto.Signer interface for quantum-resistant signatures

@@ -1,0 +1,89 @@
+# Fluentum Node Configuration
+
+[features]
+# Enable or disable features
+enabled = true
+# Automatically reload features when configuration changes
+auto_reload = true
+# Check for feature compatibility with node version
+check_compatibility = true
+# Minimum required node version
+min_node_version = "1.0.0"
+
+# Quantum Signing Configuration
+[features.quantum_signing]
+# Enable quantum-resistant signatures using CRYSTALS-Dilithium
+enabled = true
+# Security level: 2 (Dilithium2), 3 (Dilithium3), or 5 (Dilithium5)
+dilithium_mode = 3
+# Include quantum signatures in block headers
+quantum_headers = true
+# Enable performance metrics collection
+enable_metrics = true
+# Maximum allowed signing latency in milliseconds
+max_latency_ms = 1000
+
+# AI Validation Configuration
+[features.ai_validation]
+# Enable AI-based transaction and block validation
+enabled = true
+# Path to the AI model (leave empty for default)
+model_path = ""
+# Enable GPU acceleration if available
+use_gpu = true
+# Maximum batch size for AI processing
+max_batch_size = 32
+# Confidence threshold for AI validation (0.0 to 1.0)
+confidence_threshold = 0.9
+# Enable detailed logging of AI decisions
+enable_logging = true
+
+# State Sync Configuration
+[features.state_sync]
+enabled = true
+fast_sync = true
+chunk_size = 16384  # 16KB chunks
+max_concurrent = 10
+timeout_seconds = 30
+
+# ZK Rollup Configuration
+[features.zk_rollup]
+enabled = true
+enable_proofs = true
+enable_verification = true
+batch_size = 1000
+proof_timeout = 30
+
+# Feature Distribution Settings
+[features.distribution]
+use_git_submodules = true
+auto_update = true
+repository_url = "https://github.com/fluentum-chain/features"
+branch = "main"
+
+# Compatibility Settings
+[features.compatibility]
+min_node_version = "1.0.0"
+max_node_version = "2.0.0"
+# List of features that must be available
+required_features = ["quantum_signing", "ai_validation"]
+
+# Logging Configuration
+[log]
+# Log level: debug, info, warn, error
+level = "info"
+# Log format: json, text
+format = "text"
+# Log file path (leave empty for stdout)
+file = ""
+
+# Performance Tuning
+[performance]
+# Maximum number of concurrent signature operations
+max_concurrent_signatures = 100
+# Signature operation timeout in seconds
+signature_timeout = 10
+# AI validation queue size
+ai_validation_queue_size = 1000
+# AI validation timeout in seconds
+ai_validation_timeout = 30
