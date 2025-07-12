@@ -22,7 +22,6 @@
   },
   "validators": [
     {
-
       "address": "f15d8357d1a1fad5735bb1ea1f068038c7518eda",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
@@ -67,7 +66,6 @@
       "power": "10",
       "name": "node5-validator"
     }
-
   ],
   "app_hash": "",
   "app_state": {
