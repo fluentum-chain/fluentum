@@ -123,62 +123,34 @@ check_node_health() {
 detect_local_node() {
     # If LOCAL_NODE_NAME is set, use it
     if [ -n "$LOCAL_NODE_NAME" ]; then
-        echo "$LOCAL_NODE_NAME"
-        return 0
+        # Validate the provided node name
+        if [[ " ${VALID_NODES[@]} " =~ " $LOCAL_NODE_NAME " ]]; then
+            echo "$LOCAL_NODE_NAME"
+            return 0
+        else
+            print_warning "LOCAL_NODE_NAME ($LOCAL_NODE_NAME) is not in VALID_NODES"
+        fi
     fi
     
-    # Try to detect from hostname
-    local hostname=$(hostname)
+    # Try to detect from hostname first
+    local hostname=$(hostname -s)  # Using -s to get just the hostname without domain
     if [[ "$hostname" == *"fluentum-node"* ]]; then
-        # Extract node name from hostname (e.g., fluentum-node1.us-central1-c.c.local-scope-463022-k9.internal -> fluentum-node1)
+        # Try exact match first
+        if [[ " ${VALID_NODES[@]} " =~ " $hostname " ]]; then
+            echo "$hostname"
+            return 0
+        fi
+        
+        # Try to extract node name from hostname (e.g., fluentum-node1)
         local node_name=$(echo "$hostname" | grep -o "fluentum-node[0-9]*" | head -1)
-        if [ -n "$node_name" ]; then
+        if [ -n "$node_name" ] && [[ " ${VALID_NODES[@]} " =~ " $node_name " ]]; then
             echo "$node_name"
             return 0
         fi
     fi
     
-    # Try to detect by checking which fluentum services are running
-    # Check for the actual service name pattern: fluentum-testnet.service
-    if systemctl is-active --quiet "fluentum-testnet.service" 2>/dev/null; then
-        # Extract node name from service description
-        local service_description=$(systemctl show fluentum-testnet.service --property=Description --value 2>/dev/null || echo "")
-        if [[ "$service_description" == *"fluentum-node"* ]]; then
-            local node_name=$(echo "$service_description" | grep -o "fluentum-node[0-9]*" | head -1)
-            if [ -n "$node_name" ]; then
-                echo "$node_name"
-                return 0
-            fi
-        fi
-        
-        # Try to determine from the working directory path
-        local working_dir=$(systemctl show fluentum-testnet.service --property=WorkingDirectory --value 2>/dev/null || echo "")
-        if [[ "$working_dir" == *"fluentum-node"* ]]; then
-            local node_name=$(echo "$working_dir" | grep -o "fluentum-node[0-9]*" | head -1)
-            if [ -n "$node_name" ]; then
-                echo "$node_name"
-                return 0
-            fi
-        fi
-        
-        # If we can't extract from description or working directory, try to determine from config
-        # Check the config directory for node-specific information
-        local config_dir="/opt/fluentum"
-        if [ -d "$config_dir" ]; then
-            for node_name in "${VALID_NODES[@]}"; do
-                if [ -d "$config_dir/$node_name" ]; then
-                    echo "$node_name"
-                    return 0
-                fi
-            done
-        fi
-        
-        # Final fallback - we'll assume it's the first node if we can't determine
-        echo "fluentum-node1"
-        return 0
-    fi
-    
-    # Try checking for individual node services as fallback
+    # Try to detect by checking running services
+    # First check for node-specific services (fluentum-node1, fluentum-node2, etc.)
     for node_name in "${VALID_NODES[@]}"; do
         local service_name="fluentum-$node_name"
         if systemctl is-active --quiet "$service_name.service" 2>/dev/null; then
@@ -187,9 +159,70 @@ detect_local_node() {
         fi
     done
     
-    # Fallback to node1 if no detection method works
-    echo "fluentum-node1"
-    return 0
+    # Then check for the generic service name
+    local generic_services=("fluentum-testnet.service" "fluentumd.service")
+    for service in "${generic_services[@]}"; do
+        if systemctl is-active --quiet "$service" 2>/dev/null; then
+            # Try to determine node name from service properties
+            local working_dir=$(systemctl show "$service" --property=WorkingDirectory --value 2>/dev/null || echo "")
+            local exec_start=$(systemctl show "$service" --property=ExecStart --value 2>/dev/null || echo "")
+            
+            # Check working directory for node name
+            if [[ "$working_dir" == *"fluentum-node"* ]]; then
+                local node_name=$(echo "$working_dir" | grep -o "fluentum-node[0-9]*" | head -1)
+                if [ -n "$node_name" ] && [[ " ${VALID_NODES[@]} " =~ " $node_name " ]]; then
+                    echo "$node_name"
+                    return 0
+                fi
+            fi
+            
+            # Check ExecStart for --home parameter
+            if [[ "$exec_start" == *"--home"* ]]; then
+                local home_path=$(echo "$exec_start" | grep -o -- '--home[ =][^ ]*' | cut -d' ' -f2 | cut -d'=' -f2)
+                if [[ "$home_path" == *"fluentum-node"* ]]; then
+                    local node_name=$(basename "$home_path")
+                    if [ -n "$node_name" ] && [[ " ${VALID_NODES[@]} " =~ " $node_name " ]]; then
+                        echo "$node_name"
+                        return 0
+                    fi
+                fi
+            fi
+        fi
+    done
+    
+    # Try to determine from config directory
+    local config_dirs=("/opt/fluentum" "/root/.fluentum" "/home/*/.fluentum")
+    for dir in "${config_dirs[@]}"; do
+        if [ -d "$dir" ]; then
+            for node_name in "${VALID_NODES[@]}"; do
+                if [ -d "$dir/$node_name" ] || [ -d "$dir/config" ]; then
+                    # If we find a node-specific directory, use that
+                    if [ -d "$dir/$node_name" ] && [[ " ${VALID_NODES[@]} " =~ " $node_name " ]]; then
+                        echo "$node_name"
+                        return 0
+                    # If we find a config directory, try to get node name from config
+                    elif [ -d "$dir/config" ]; then
+                        local config_toml="$dir/config/config.toml"
+                        if [ -f "$config_toml" ]; then
+                            local moniker=$(grep -oP '^moniker\s*=\s*"\K[^"]+' "$config_toml" 2>/dev/null || echo "")
+                            if [ -n "$moniker" ] && [[ " ${VALID_NODES[@]} " =~ " $moniker " ]]; then
+                                echo "$moniker"
+                                return 0
+                            fi
+                        fi
+                    fi
+                fi
+            done
+        fi
+    done
+    
+    # If we still can't determine, prompt the user
+    print_warning "Could not automatically determine node name. Please set LOCAL_NODE_NAME environment variable."
+    echo "Available nodes: ${VALID_NODES[*]}"
+    
+    # Fallback to first node if we can't determine
+    echo "${VALID_NODES[0]}"
+    return 1
 }
 
 # Function to check local node
@@ -197,41 +230,107 @@ check_local_node() {
     echo "Checking local node..."
     
     # Detect local node name
-    local local_node_name=$(detect_local_node)
+    local local_node_name
+    local_node_name=$(detect_local_node)
+    local detection_status=$?
+    
+    if [ $detection_status -ne 0 ]; then
+        print_warning "Node detection had issues, but continuing with $local_node_name"
+    fi
     
     print_status "Detected local node: $local_node_name"
     
-    # Check if service is running - use the actual service name pattern
-    if systemctl is-active --quiet "fluentum-testnet.service"; then
-        print_success "Local fluentum-testnet service is running"
-    else
-        print_error "Local fluentum-testnet service is not running"
+    # Try both service name patterns
+    local service_names=("fluentum-$local_node_name" "fluentum-testnet" "fluentumd")
+    local service_found=false
+    local active_service=""
+    
+    for service in "${service_names[@]}"; do
+        if systemctl is-active --quiet "$service" 2>/dev/null || systemctl is-active --quiet "$service.service" 2>/dev/null; then
+            service_found=true
+            active_service="$service"
+            # Remove .service suffix if present for consistent display
+            active_service="${active_service%.service}"
+            print_success "Local $active_service service is running"
+            break
+        fi
+    done
+    
+    if [ "$service_found" = false ]; then
+        print_error "No Fluentum service is running. Tried: ${service_names[*]}"
         return 1
     fi
     
-    # Wait/retry for local RPC endpoint
+    # Get the actual service name with .service suffix for journalctl
+    local full_service_name="$active_service"
+    if ! [[ "$full_service_name" == *".service" ]]; then
+        full_service_name="${full_service_name}.service"
+    fi
+    
+    # Check if RPC port is open
     local rpc_ready=false
+    local rpc_url="http://localhost:$RPC_PORT/status"
+    
+    print_status "Checking RPC endpoint at $rpc_url"
+    
+    # Try with retries
     for i in {1..5}; do
-        if curl -s --max-time 2 "http://localhost:$RPC_PORT/status" > /dev/null 2>&1; then
+        if curl -s --max-time 2 "$rpc_url" > /dev/null 2>&1; then
             rpc_ready=true
             break
         fi
-        sleep 1
+        print_status "Waiting for RPC endpoint... (attempt $i/5)"
+        sleep 2
     done
-
+    
     if [ "$rpc_ready" = true ]; then
-        print_success "Local RPC endpoint is responding"
+        print_success "RPC endpoint is responding"
+        
+        # Get node status
+        local status=$(curl -s --max-time 5 "$rpc_url" 2>/dev/null)
+        if [ -n "$status" ]; then
+            if command -v jq &> /dev/null; then
+                local latest_block=$(echo "$status" | jq -r '.result.sync_info.latest_block_height // empty' 2>/dev/null)
+                local catching_up=$(echo "$status" | jq -r '.result.sync_info.catching_up // empty' 2>/dev/null)
+                local node_id=$(echo "$status" | jq -r '.result.node_info.id // empty' 2>/dev/null)
+                
+                echo "  Latest Block: ${latest_block:-unknown}"
+                echo "  Catching Up: ${catching_up:-unknown}"
+                echo "  Node ID: ${node_id:0:10}...${node_id: -10}"
+                
+                if [ "$catching_up" = "false" ]; then
+                    print_success "Node is caught up"
+                elif [ "$catching_up" = "true" ]; then
+                    print_warning "Node is still catching up"
+                fi
+            else
+                print_warning "jq not found. Install jq for detailed status information."
+            fi
+        fi
     else
-        print_error "Local RPC endpoint is not responding after 5 seconds"
+        print_error "RPC endpoint is not responding after 10 seconds"
     fi
     
-    # Check logs for errors
-    local recent_errors=$(journalctl -u "fluentum-testnet.service" --since "5 minutes ago" | grep -i error | wc -l)
+    # Check logs for errors (last 10 minutes)
+    print_status "Checking recent logs for errors..."
+    local log_check_cmd="journalctl -u \"$full_service_name\" --since \"10 minutes ago\" | grep -i -E 'error|failed|exception|panic' | tail -n 10"
+    local recent_errors=$(eval "$log_check_cmd" | wc -l)
+    
     if [ "$recent_errors" -gt 0 ]; then
-        print_warning "Found $recent_errors errors in recent logs"
+        print_warning "Found $recent_errors errors/warnings in recent logs"
+        echo "Last few errors from logs (if any):"
+        eval "$log_check_cmd" 2>/dev/null || echo "  (unable to retrieve logs)"
     else
-        print_success "No recent errors in logs"
+        print_success "No recent errors found in logs"
     fi
+    
+    # Check disk space
+    local disk_check=$(df -h / | awk 'NR==2 {print $5 " used (" $4 " free)"}')
+    print_status "Disk Usage: $disk_check"
+    
+    # Check memory usage
+    local mem_check=$(free -h | awk '/^Mem:/ {print $3 "/" $2 " used (" $4 " free)"}')
+    print_status "Memory Usage: $mem_check"
     
     echo ""
 }

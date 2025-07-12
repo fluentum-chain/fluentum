@@ -74,10 +74,20 @@ if [ ! -f "config/testnet-config.toml" ]; then
     exit 1
 fi
 cp config/testnet-config.toml "$FLUENTUM_HOME/config/config.toml"
+
+# Set node configuration
 sed -i "s/^moniker *=.*/moniker = \"$NODE_NAME\"/" "$FLUENTUM_HOME/config/config.toml"
 sed -i "s|^external_address *=.*|external_address = \"$NODE_IP:$P2P_PORT\"|" "$FLUENTUM_HOME/config/config.toml"
 sed -i "s|^laddr *=.*|laddr = \"tcp://0.0.0.0:$P2P_PORT\"|" "$FLUENTUM_HOME/config/config.toml"
 sed -i "s|^laddr *=.*|laddr = \"tcp://0.0.0.0:$RPC_PORT\"|" "$FLUENTUM_HOME/config/config.toml"
+
+# Set persistent peers if configured for this node
+if [ -n "${PERSISTENT_PEERS[$NODE_NAME]}" ]; then
+    print_status "Setting persistent peers for $NODE_NAME"
+    sed -i "s|^persistent_peers *=.*|persistent_peers = \"${PERSISTENT_PEERS[$NODE_NAME]}\"|" "$FLUENTUM_HOME/config/config.toml"
+else
+    print_status "No persistent peers configured for $NODE_NAME"
+fi
 
 # Initialize the node
 print_status "Initializing node..."
