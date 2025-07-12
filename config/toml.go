@@ -158,6 +158,7 @@ filter_peers = {{ .BaseConfig.FilterPeers }}
 [rpc]
 
 # TCP or UNIX socket address for the RPC server to listen on
+# Default is now 0.0.0.0:26657 to allow remote access
 laddr = "{{ .RPC.ListenAddress }}"
 
 # A list of origins a cross-domain request can be executed from

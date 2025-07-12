@@ -1,512 +1,189 @@
-﻿# This is a TOML config file.
-# For more information, see https://github.com/toml-lang/toml
+# Fluentum Testnet Configuration Template
+# Copy this file to ~/.fluentum/config/config.toml and customize as needed
 
-# NOTE: Any path below can be absolute (e.g. "/var/myawesomeapp/data") or
-# relative to the home directory (e.g. "data"). The home directory is
-# "$HOME/.cometbft" by default, but could be changed via $CMTHOME env variable
-# or --home cmd flag.
+# Node identification
+moniker = "fluentum-node1"
 
-#######################################################################
-###                   Main Base Config Options                      ###
-#######################################################################
+# Chain ID for testnet
+chain_id = "fluentum-testnet-1"
 
-# TCP or UNIX socket address of the ABCI application,
-# or the name of an ABCI application compiled in with the CometBFT binary
-proxy_app = "tcp://127.0.0.1:26658"
-
-# A custom human readable name for this node
-moniker = "anonymous"
-
-# If this node is many blocks behind the tip of the chain, FastSync
-# allows them to catchup quickly by downloading blocks in parallel
-# and verifying their commits
-fast_sync = true
-
-# Database backend: pebble | cleveldb | boltdb | rocksdb | badgerdb
-# * pebble (github.com/cockroachdb/pebble - recommended for CometBFT)
-#   - pure go
-#   - stable
-# * cleveldb (uses levigo wrapper)
-#   - fast
-#   - requires gcc
-#   - use cleveldb build tag (go build -tags cleveldb)
-# * boltdb (uses etcd's fork of bolt - github.com/etcd-io/bbolt)
-#   - EXPERIMENTAL
-#   - may be faster is some use-cases (random reads - indexer)
-#   - use boltdb build tag (go build -tags boltdb)
-# * rocksdb (uses github.com/tecbot/gorocksdb)
-#   - EXPERIMENTAL
-#   - requires gcc
-#   - use rocksdb build tag (go build -tags rocksdb)
-# * badgerdb (uses github.com/dgraph-io/badger)
-#   - EXPERIMENTAL
-#   - use badgerdb build tag (go build -tags badgerdb)
-db_backend = "goleveldb"
-
-# Database directory
-db_dir = "data"
-
-# Output level for logging, including package level options
-log_level = "info"
-
-# Output format: 'plain' (colored text) or 'json'
-log_format = "plain"
-
-##### additional base config options #####
-
-# Path to the JSON file containing the initial validator set and other meta data
-genesis_file = "config/genesis.json"
-
-# Path to the JSON file containing the private key to use as a validator in the consensus protocol
-priv_validator_key_file = "config/priv_validator_key.json"
-
-# Path to the JSON file containing the last sign state of a validator
-priv_validator_state_file = "data/priv_validator_state.json"
-
-# TCP or UNIX socket address for CometBFT to listen on for
-# connections from an external PrivValidator process
-priv_validator_laddr = ""
-
-# Path to the JSON file containing the private key to use for node authentication in the p2p protocol
-node_key_file = "config/node_key.json"
-
-# Mechanism to connect to the ABCI application: socket | grpc
-abci = "socket"
-
-# If true, query the ABCI app on connecting to a new peer
-# so the app can decide if we should keep the connection or not
-filter_peers = false
-
-
-#######################################################################
-###                 Advanced Configuration Options                  ###
-#######################################################################
-
-#######################################################
-###       RPC Server Configuration Options          ###
-#######################################################
-[rpc]
-
-# TCP or UNIX socket address for the RPC server to listen on
-laddr = "tcp://0.0.0.0:26657"
-
-# A list of origins a cross-domain request can be executed from
-# Default value '[]' disables cors support
-# Use '["*"]' to allow any origin
-cors_allowed_origins = []
-
-# A list of methods the client is allowed to use with cross-domain requests
-cors_allowed_methods = ["HEAD", "GET", "POST"]
-
-# A list of non simple headers the client is allowed to use with cross-domain requests
-cors_allowed_headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time"]
-
-# TCP or UNIX socket address for the gRPC server to listen on
-# NOTE: This server only supports /broadcast_tx_commit
-grpc_laddr = ""
-
-# Maximum number of simultaneous connections.
-# Does not include RPC (HTTP&WebSocket) connections. See max_open_connections
-# If you want to accept a larger number than the default, make sure
-# you increase your OS limits.
-# 0 - unlimited.
-# Should be < {ulimit -Sn} - {MaxNumInboundPeers} - {MaxNumOutboundPeers} - {N of wal, db and other open files}
-# 1024 - 40 - 10 - 50 = 924 = ~900
-grpc_max_open_connections = 900
-
-# Activate unsafe RPC commands like /dial_seeds and /unsafe_flush_mempool
-unsafe = false
-
-# Maximum number of simultaneous connections (including WebSocket).
-# Does not include gRPC connections. See grpc_max_open_connections
-# If you want to accept a larger number than the default, make sure
-# you increase your OS limits.
-# 0 - unlimited.
-# Should be < {ulimit -Sn} - {MaxNumInboundPeers} - {MaxNumOutboundPeers} - {N of wal, db and other open files}
-# 1024 - 40 - 10 - 50 = 924 = ~900
-max_open_connections = 900
-
-# Maximum number of unique clientIDs that can /subscribe
-# If you're using /broadcast_tx_commit, set to the estimated maximum number
-# of broadcast_tx_commit calls per block.
-max_subscription_clients = 100
-
-# Maximum number of unique queries a given client can /subscribe to
-# If you're using GRPC (or Local RPC client) and /broadcast_tx_commit, set
-# to the estimated maximum number of broadcast_tx_commit calls per block.
-max_subscriptions_per_client = 5
-
-# The number of events that can be buffered per subscription before
-# returning `ErrOutOfCapacity`.
-experimental_subscription_buffer_size = 200
-
-# The maximum number of responses that can be buffered per WebSocket
-# client. If clients cannot read from the WebSocket endpoint fast enough,
-# they will be disconnected, so increasing this parameter may reduce the
-# chances of them being disconnected (but will cause the node to use more
-# memory).
-#
-# Must be at least the same as `SubscriptionBufferSize`, otherwise
-# connections may be dropped unnecessarily.
-experimental_websocket_write_buffer_size = 200
-
-# If a WebSocket client cannot read fast enough, at present we may
-# silently drop events instead of generating an error or disconnecting the
-# client.
-#
-# Enabling this parameter will cause the WebSocket connection to be closed
-# instead if it cannot read fast enough, allowing for greater
-# predictability in subscription behaviour.
-experimental_close_on_slow_client = false
-
-# How long to wait for a tx to be committed during /broadcast_tx_commit
-# WARNING: Using a value larger than 10s will result in increasing the
-# global HTTP write timeout, which applies to all connections and endpoints.
-# See https://github.com/fluentum-chain/fluentum/issues/3435
-timeout_broadcast_tx_commit = 10s
-
-# Maximum size of request body, in bytes
-max_body_bytes = 1000000
-
-# Maximum size of request header, in bytes
-max_header_bytes = 1048576
-
-# The path to a file containing certificate that is used to create the HTTPS server.
-# Might be either absolute path or path related to CometBFT's config directory.
-#
-# If the certificate is signed by a certificate authority,
-# the certFile should be the concatenation of the server's certificate, any intermediates,
-# and the CA's certificate.
-#
-# NOTE: both tls_cert_file and tls_key_file must be present for CometBFT to create HTTPS server.
-# Otherwise, HTTP server is run.
-tls_cert_file = ""
-
-# The path to a file containing matching private key that is used to create the HTTPS server.
-# Might be either absolute path or path related to CometBFT's config directory.
-#
-# NOTE: both tls_cert_file and tls_key_file must be present for CometBFT to create HTTPS server.
-# Otherwise, HTTP server is run.
-tls_key_file = ""
-
-# pprof listen address (https://golang.org/pkg/net/http/pprof)
-pprof_laddr = ""
-
-#######################################################
-###       P2P Configuration Options                ###
-#######################################################
+# P2P Configuration
 [p2p]
-
-# Address to listen for incoming connections
 laddr = "tcp://0.0.0.0:26656"
-
-# Address to advertise to peers for them to dial
-# If empty, will use the same port as the laddr,
-# and will introspect on the listener or use UPnP
-# to figure out the address. ip and port are required
-# example: 159.89.10.97:26656
-external_address = ""
-
-# Comma separated list of seed nodes to connect to
-# We only use these if we can't connect to peers in the addrbook
+external_address = "34.44.129.207:26656"
 seeds = ""
-
-# Comma separated list of nodes to keep persistent connections to
-persistent_peers = "0c89ba21d414cbfa4c9fb4ee5748845967ab60e0@34.44.82.114:26656,a282a50276ca6e2ea329c6a823ac6de976001a33@34.72.252.153:26656,bfce2c393b70ff18d6a1e970bc635b6f4296ea0a@35.225.118.226:26656"
-
-# UPNP port forwarding
-upnp = false
-
-# Path to address book
-addr_book_file = "config/addrbook.json"
-
-# Set true for strict address routability rules
-# Set false for private or local networks
-addr_book_strict = true
-
-# Maximum number of inbound peers
+persistent_peers = "eda71ccb73c02d9bdf2054e19e3bd32b6c71049a@34.44.82.114:26656,4f9ddeb658c8b157509f1934533d4c1c24c7108b@34.68.180.153:26656"
 max_num_inbound_peers = 40
-
-# Maximum number of outbound peers to connect to, excluding persistent peers
 max_num_outbound_peers = 10
-
-# List of node IDs, to which a connection will be (re)established ignoring any existing limits
-unconditional_peer_ids = ""
-
-# Maximum pause when redialing a persistent peer (if zero, exponential backoff is used)
-persistent_peers_max_dial_period = 0s
-
-# Time to wait before flushing messages out on the connection
-flush_throttle_timeout = 100ms
-
-# Maximum size of a message packet payload, in bytes
+flush_throttle_timeout = "100ms"
 max_packet_msg_payload_size = 1024
-
-# Rate at which packets can be sent, in bytes/second
 send_rate = 5120000
-
-# Rate at which packets can be received, in bytes/second
 recv_rate = 5120000
-
-# Set true to enable the peer-exchange reactor
 pex = true
-
-# Seed mode, in which node constantly crawls the network and looks for
-# peers. If another node asks it for addresses, it responds and disconnects.
-#
-# Does not work if the peer-exchange reactor is disabled.
 seed_mode = false
-
-# Comma separated list of peer IDs to keep private (will not be gossiped to
-# other peers)
 private_peer_ids = ""
-
-# Toggle to disable guard against peers connecting from the same ip.
 allow_duplicate_ip = false
+handshake_timeout = "20s"
+dial_timeout = "3s"
 
-# Peer connection configuration.
-handshake_timeout = 20s
-dial_timeout = 3s
+# RPC Configuration
+[rpc]
+laddr = "tcp://0.0.0.0:26657"
+cors_allowed_origins = ["*"]
+cors_allowed_methods = ["HEAD", "GET", "POST"]
+cors_allowed_headers = ["*"]
+grpc_laddr = ""
+grpc_max_open_connections = 900
+unsafe = false
+max_open_connections = 900
+max_subscription_clients = 100
+max_subscriptions_per_client = 5
+timeout_broadcast_tx_commit = "10s"
+max_body_bytes = 1000000
+max_header_bytes = 1048576
+tls_cert_file = ""
+tls_key_file = ""
+pprof_laddr = "localhost:6060"
 
-#######################################################
-###         Mempool Configuration Options           ###
-#######################################################
+# Mempool Configuration
 [mempool]
-
-# Mempool version to use:
-#  1) "v0" - (default) FIFO mempool.
-#  2) "v1" - prioritized mempool.
-#  3) "nop" - no mempool (transactions are managed by the application)
-# WARNING: There's a known memory leak with the prioritized mempool
-# that the team are working on. Read more here:
-# https://github.com/fluentum-chain/fluentum/issues/8775
-version = "nop"
-
-# Recheck enables rechecking of transactions in the mempool after a block
-# is committed. This is disabled by default as it can be expensive.
-recheck = false
-
-# Broadcast enables broadcasting of transactions to other peers.
-# This is disabled by default when using nop mempool.
-broadcast = false
-
-# WalDir sets the location of the write-ahead log files.
-# If not set, WAL files are stored in the data directory.
+recheck = true
+broadcast = true
 wal_dir = ""
-
-# Maximum number of transactions in the mempool
-size = 10000
-
-# Limit the total size of all txs in the mempool.
-# This only accounts for raw transactions (e.g. given 1MB transactions and
-# max_txs_bytes=5MB, mempool will only accept 5 transactions).
+size = 5000
 max_txs_bytes = 1073741824
-
-# Size of the cache (used to filter transactions we saw earlier) in transactions
-cache_size = 100000
-
-# Do not remove invalid transactions from the cache (default: false)
-# Set to true if it's not possible for any invalid transaction to become
-# valid again in the future.
-keep-invalid-txs-in-cache = false
-
-# Maximum size of a single transaction
-# NOTE: the max size of a tx transmitted over the network is {max_tx_bytes}.
+cache_size = 10000
+keep_invalid_txs_in_cache = true
 max_tx_bytes = 1048576
-
-# Maximum size of a batch of transactions to send to a peer
-# Including space needed by encoding (one varint per transaction).
-# XXX: Unused due to https://github.com/fluentum-chain/fluentum/issues/5796
 max_batch_bytes = 0
+ttl_duration = "0s"
+ttl_num_blocks = 0
 
-# TTLDuration, if non-zero, defines the maximum amount of time a transaction
-# can exist for in the mempool.
-#
-# Note, if TTLNumBlocks is also defined, a transaction will be removed if it
-# has existed in the mempool at least TTLNumBlocks number of blocks or if it's
-# insertion time into the mempool is beyond TTLDuration.
-ttl-duration = "0s"
-
-# TTLNumBlocks, if non-zero, defines the maximum number of blocks a transaction
-# can exist for in the mempool.
-#
-# Note, if TTLDuration is also defined, a transaction will be removed if it
-# has existed in the mempool at least TTLNumBlocks number of blocks or if
-# it's insertion time into the mempool is beyond TTLDuration.
-ttl-num-blocks = 0
-
-#######################################################
-###         State Sync Configuration Options        ###
-#######################################################
-[statesync]
-
-# State sync rapidly bootstraps a new node by discovering, fetching, and restoring a
-# state machine snapshot from peers instead of fetching and replaying historical blocks.
-# Requires some peers in the network to take and serve state machine snapshots.
-# State sync is not attempted if the node has any local state (LastBlockHeight > 0).
-# The node will have a truncated block history, starting from the height of the
-# snapshot, but will retain the ability to participate in consensus as a full node.
-enable = false
-
-# Temporary directory for state sync snapshot chunks, defaults to the OS temp directory (default /tmp).
-# If set, this directory will not be cleaned up automatically.
-# WARNING: Use of a persistent directory requires manual cleanup.
-temp_dir = ""
-
-# The hash and height of a trusted block. Must be within the trust-period.
-# 
-# For Cosmos SDK-based chains, you can use the `tendermint snapshot restore` command
-# to get the hash and height of a snapshot at the current time.
-# 
-# For chains built with the Cosmos SDK, the following command can be used to find a trusted block:
-#   curl -s https://rpc.cosmos.network:26657/block | jq -r '.result.block.header.height + "\n" + .result.block_id.hash'
-trust_height = 0
-trust_hash = ""
-
-# Time to spend discovering snapshots before initiating a restore.
-discovery_time = 15s
-
-# The timeout duration before re-requesting a chunk, possibly from a different
-# peer (default: 15 seconds). Note that in some cases the last peer of a
-# given chunk may be the only one that has it.  Double check your
-# bandwidth and latency settings if you see timeouts and retries.
-chunk_request_timeout = 10s
-
-# The number of concurrent chunk fetchers to run (default: 4).
-chunk_fetchers = 4
-
-#######################################################
-###         Fast Sync Configuration Options         ###
-#######################################################
-[fastsync]
-
-# Fast Sync version to use:
-#   1) "v0" (default) - the legacy fast sync implementation
-#   2) "v1" - refactor of v0 version for better testability
-#   2) "v2" - complete redesign of v0, optimized for testability & readability
-version = "v0"
-
-#######################################################
-###         Consensus Configuration Options         ###
-#######################################################
+# Consensus Configuration (optimized for testnet)
 [consensus]
-
 wal_file = "data/cs.wal/wal"
-
-# How long we wait for a proposal block before prevoting nil
-timeout_propose = "3s"
-# How much timeout_propose increases with each round
+timeout_propose = "1s"
 timeout_propose_delta = "500ms"
-# How long we wait after receiving +2/3 prevotes for "anything" (ie. not a single block or nil)
 timeout_prevote = "1s"
-# How much the timeout_prevote increases with each round
 timeout_prevote_delta = "500ms"
-# How long we wait after receiving +2/3 precommits for "anything" (ie. not a single block or nil)
 timeout_precommit = "1s"
-# How much the timeout_precommit increases with each round
 timeout_precommit_delta = "500ms"
-# How long we wait after committing a block, before starting on the new
-# height (this gives us a chance to receive some more precommits, even
-# though we already have +2/3).
-# NOTE: when modifying, make sure to update time_iota_ms genesis parameter
-timeout_commit = "5s"
-
-# How many blocks to look back to check existence of the node's consensus votes before joining consensus
-# When non-zero, the node will panic upon restart
-# if the same consensus key was used to sign {double_sign_check_height} last blocks.
-# So, validators should stop the state machine, wait for some blocks, and then restart the state machine to avoid panic.
-double_sign_check_height = 0
-
-# Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
+timeout_commit = "1s"
 skip_timeout_commit = false
-
-# EmptyBlocks mode and possible interval between empty blocks
 create_empty_blocks = true
-create_empty_blocks_interval = "0s"
-
-# Reactor sleep duration parameters
+create_empty_blocks_interval = "10s"
 peer_gossip_sleep_duration = "100ms"
 peer_query_maj23_sleep_duration = "2s"
 
-# Signature scheme to use for consensus signing (e.g., "ecdsa", "ed25519", "quantum")
-signature_scheme = "ed25519"
+# Database Configuration
+[database]
+db_backend = "goleveldb"
+dir = "data"
 
-# Enable Proposer-Based Timestamps (PBTS)
-# This allows the proposer to include a timestamp in the block header
-# instead of using the median of the previous block's timestamps
-pbts_enable = true
+# Logging Configuration
+[log_level]
+default = "info"
+module = [
+    "consensus:info",
+    "mempool:info",
+    "p2p:info",
+    "state:info",
+    "main:info"
+]
 
-# PBTS timeout for proposer to include timestamp
-pbts_timeout = "2s"
-
-#######################################################
-###         Storage Configuration Options           ###
-#######################################################
-[storage]
-
-# Set to true to discard ABCI responses from the state store, which can save a
-# considerable amount of disk space. Set to false to ensure ABCI responses are
-# persisted. ABCI responses are required for /block_results RPC queries, and to
-# reindex events in the command-line tool.
-discard_abci_responses = false
-
-#######################################################
-###   Transaction Indexer Configuration Options     ###
-#######################################################
-[tx_index]
-
-# What indexer to use for transactions
-#
-# The application will set which txs to index. In some cases a node operator will be able
-# to decide which txs to index based on configuration set in the application.
-#
-# Options:
-#   1) "null"
-#   2) "kv" (default) - the simplest possible indexer, backed by key-value storage (defaults to levelDB; see DBBackend).
-# 		- When "kv" is chosen "tx.height" and "tx.hash" will always be indexed.
-#   3) "psql" - the indexer services backed by PostgreSQL.
-# When "kv" or "psql" is chosen "tx.height" and "tx.hash" will always be indexed.
-indexer = "kv"
-
-# The PostgreSQL connection configuration, the connection format:
-#   postgresql://<user>:<password>@<host>:<port>/<db>?<opts>
-psql-conn = ""
-
-#######################################################
-###       Instrumentation Configuration Options     ###
-#######################################################
+# Instrumentation Configuration
 [instrumentation]
-
-# When true, Prometheus metrics are served under /metrics on
-# PrometheusListenAddr.
-# Check out the documentation for the list of available metrics.
-prometheus = false
-
-# Address to listen for Prometheus collector(s) connections
+prometheus = true
 prometheus_listen_addr = ":26660"
-
-# Maximum number of simultaneous connections.
-# If you want to accept a larger number than the default, make sure
-# you increase your OS limits.
-# 0 - unlimited.
 max_open_connections = 3
-
-# Instrumentation namespace
 namespace = "tendermint"
 
-#######################################################
-###         Quantum Configuration Options           ###
-#######################################################
-[quantum]
+# Plugin Configuration
+[plugins]
+qmoe_validator = false  # Disable QMoE validator plugin on startup
+enable_quantization = false  # Disable dynamic quantization
+enable_sparse_activation = false  # Disable sparse activation
+num_experts = 8  # Number of experts in QMoE model
+confidence_threshold = 0.7  # Minimum confidence threshold for batch validation
+gas_savings_threshold = 0.3  # Minimum gas savings threshold for batch optimization
 
-# Whether quantum cryptography features are enabled
+# Fast Sync Configuration
+[fastsync]
+version = "v0"
+
+# Application Configuration (app.toml)
+# Copy this section to ~/.fluentum/config/app.toml
+
+[api]
+enable = true
+swagger = true
+address = "tcp://0.0.0.0:1317"
+max_open_connections = 1000
+rpc_read_timeout = 10
+rpc_write_timeout = 0
+rpc_max_body_bytes = 1000000
+enable_unsafe_cors = false
+
+[grpc]
+enable = true
+address = "0.0.0.0:9090"
+
+[grpc-web]
+enable = true
+address = "0.0.0.0:9091"
+enable_unsafe_cors = false
+
+[state-sync]
+enable = false
+snapshot_interval = 0
+snapshot_keep_recent = 2
+
+[store]
+streamers = []
+
+[streamers]
+file = { "keys" = ["*"], "write_dir" = ".", "prefix" = "kvia" }
+
+[minimal-gas-prices]
+# Minimum gas prices to accept for transactions; any fee in a tx must meet this minimum (e.g. 0.01photino,0.001stake)
+# Gas prices in global fee are used if the value is empty.
+global_min_gas_price = 0
+
+[telemetry]
 enabled = false
+global_labels = [["chain_id", "fluentum-testnet-1"]]
+metrics_file = "telemetry/metrics.json"
 
-# Path to the quantum signing plugin library
-lib_path = "/usr/local/lib/fluentum/quantum.so"
+[rosetta]
+enable = false
+address = ":8080"
+blockchain = "app"
+network = "network"
+tendermint_endpoint = "http://localhost:26657"
+grcpc_endpoint = "localhost:9090"
+grpcws_endpoint = "localhost:9091"
+retries = 3
+offline = false
 
-# Quantum signature mode (e.g., "dilithium3", "dilithium5", "falcon512", etc.)
-mode = "dilithium3"
+[server]
+address = "tcp://0.0.0.0:1317"
+enable = true
+enable_unsafe_cors = false
+rpc_read_timeout = 10
+rpc_write_timeout = 0
+rpc_max_body_bytes = 1000000
 
-enable_dilithium = false  # Set true after governance vote
-redteam_mode = "monitor"  # Options: monitor|active 
+[client]
+node = "tcp://localhost:26657"
+chain_id = "fluentum-testnet-1"
+keyring_backend = "test"
+gas = "auto"
+gas_adjustment = 1.2
+gas_prices = "0.025uflumx"
+min_gas_prices = ""
+broadcast_mode = "sync"
+simulate_and_execute_gas_multiplier = 1.1
+output_format = "text"
+output = "text"
+sign_mode = "direct"
+extra_codecs = []
