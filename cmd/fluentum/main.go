@@ -32,7 +32,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/BurntSushi/toml"
 
 	tmlog "github.com/cometbft/cometbft/libs/log"
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
@@ -828,49 +828,8 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	// DEBUG: Print the loaded RPC listen address
 	fmt.Printf("DEBUG: nodeConfig.RPC.ListenAddress = %s\n", nodeConfig.RPC.ListenAddress)
 
-	// Example: Load genesis.json using the new utility
-	genesisPath := filepath.Join(homeDir, "config", "genesis.json")
-	var genesisDoc map[string]interface{} // TODO: Replace with your actual GenesisDoc type
-	_, err := loadJSONConfig(genesisPath, &genesisDoc)
-	if err != nil {
-		return fmt.Errorf("failed to load genesis.json: %w", err)
-	}
-
-	// Example: Load priv_validator_key.json using the new utility (for demonstration)
-	privValKeyPath := filepath.Join(homeDir, "config", "priv_validator_key.json")
-	var privValKey map[string]interface{} // TODO: Replace with your actual PrivValidatorKey type if you want to inspect raw JSON
-	_, err = loadJSONConfig(privValKeyPath, &privValKey)
-	if err != nil {
-		return fmt.Errorf("failed to load priv_validator_key.json: %w", err)
-	}
-	// The real privVal used by the node is still loaded below with privval.LoadOrGenFilePV
-
-	// Example: Load priv_validator_state.json using the new utility (for demonstration)
-	privValStatePath := filepath.Join(homeDir, "data", "priv_validator_state.json")
-	var privValState map[string]interface{} // TODO: Replace with your actual PrivValidatorState type if you want to inspect raw JSON
-	_, err = loadJSONConfig(privValStatePath, &privValState)
-	if err != nil {
-		return fmt.Errorf("failed to load priv_validator_state.json: %w", err)
-	}
-	// The real privVal used by the node is still loaded below with privval.LoadOrGenFilePV
-
-	// Example: Load node_key.json using the new utility (for demonstration)
-	nodeKeyPath := filepath.Join(homeDir, "config", "node_key.json")
-	var nodeKeyRaw map[string]interface{} // TODO: Replace with your actual NodeKey type if you want to inspect raw JSON
-	_, err = loadJSONConfig(nodeKeyPath, &nodeKeyRaw)
-	if err != nil {
-		return fmt.Errorf("failed to load node_key.json: %w", err)
-	}
-	// The real nodeKey used by the node is still loaded below with p2p.LoadOrGenNodeKey
-
-	// Example: Load addrbook.json using the new utility (for demonstration)
-	addrBookPath := filepath.Join(homeDir, "config", "addrbook.json")
-	var addrBook map[string]interface{} // TODO: Replace with your actual AddrBook type if you want to inspect raw JSON
-	_, err = loadJSONConfig(addrBookPath, &addrBook)
-	if err != nil {
-		return fmt.Errorf("failed to load addrbook.json: %w", err)
-	}
-	// The real addrbook is managed by the node's P2P subsystem
+	// Load node configuration
+	var err error
 
 	// Override default configuration with flag values if needed
 	if testnetMode {
