@@ -98,14 +98,57 @@ prometheus_listen_addr = ":26660"
 max_open_connections = 3
 namespace = "tendermint"
 
-# Plugin Configuration
-[plugins]
-qmoe_validator = false  # Disable QMoE validator plugin on startup
-enable_quantization = false  # Disable dynamic quantization
-enable_sparse_activation = false  # Disable sparse activation
-num_experts = 8  # Number of experts in QMoE model
-confidence_threshold = 0.7  # Minimum confidence threshold for batch validation
-gas_savings_threshold = 0.3  # Minimum gas savings threshold for batch optimization
+# Feature Plugins Configuration
+[features]
+# List of enabled features (comma-separated)
+enabled = ["qmoe_validator", "quantum_signer"]
+
+# Feature version requirements (format: feature=version)
+version_requirements = [
+    "qmoe_validator>=1.0.0",
+    "quantum_signer>=1.0.0"
+]
+
+# Feature auto-update settings
+auto_update = true
+update_check_interval = "24h"
+
+# Feature registry configuration
+[features.registry]
+# Local path for feature storage
+local_path = "$HOME/.fluentum/features"
+# Optional: Remote registry URL for feature discovery
+remote_registry = "https://features.fluentum.xyz"
+
+# QMoE Validator Configuration
+[features.qmoe_validator]
+enabled = true
+quantization = true
+sparse_activation = true
+num_experts = 8
+confidence_threshold = 0.7
+gas_savings_threshold = 0.3
+
+# Quantum Signer Configuration
+[features.quantum_signer]
+enabled = true
+key_type = "dilithium3"
+key_path = "$HOME/.fluentum/keys/quantum"
+
+# Feature Loader Configuration
+[features.loader]
+# Maximum number of concurrent feature loads
+max_concurrent_loads = 5
+# Feature load timeout
+load_timeout = "30s"
+# Enable/disable feature isolation
+isolation_enabled = true
+
+# Feature Metrics Configuration
+[features.metrics]
+enabled = true
+endpoint = ":9090"
+collection_interval = "1m"
 
 # Fast Sync Configuration
 [fastsync]

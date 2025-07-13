@@ -14,6 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fluentum-chain/fluentum/fluentum/core"
+
 	dbm "github.com/cometbft/cometbft-db"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cosmosbaseapp "github.com/cosmos/cosmos-sdk/baseapp"
@@ -793,10 +795,34 @@ func startNode(cmd *cobra.Command, encodingConfig app.EncodingConfig) error {
 	tmLogger := tmlog.NewTMLogger(tmlog.NewSyncWriter(os.Stdout))
 	fluentumLogger := fluentumlog.NewTMLogger(fluentumlog.NewSyncWriter(os.Stdout))
 
-	// Load config from file (NEW)
+	// Load config from file
 	nodeConfig := loadConfig(homeDir)
 	nodeConfig.RootDir = homeDir
 	nodeConfig.Moniker = moniker
+
+	// Initialize feature loader
+	featuresPath := filepath.Join(homeDir, "config", "features.toml")
+	featureLoader := core.NewFeatureLoader(featuresPath, version.Version)
+	if err := featureLoader.LoadConfiguration(); err != nil {
+		return fmt.Errorf("failed to load feature configuration: %w", err)
+	}
+
+	// Initialize and start features
+	if err := featureLoader.InitializeFeatures(); err != nil {
+		return fmt.Errorf("failed to initialize features: %w", err)
+	}
+
+	if err := featureLoader.StartFeatures(); err != nil {
+		return fmt.Errorf("failed to start features: %w", err)
+	}
+
+	// Ensure features are stopped when the node shuts down
+	defer func() {
+		if err := featureLoader.StopFeatures(); err != nil {
+			fmt.Printf("Error stopping features: %v\n", err)
+		}
+	}()
+
 	// Do not set ChainID directly (not addressable)
 
 	// DEBUG: Print the loaded RPC listen address
@@ -937,45 +963,74 @@ func main() {
 		fmt.Println("Error executing root command:", err)
 		os.Exit(1)
 	}
-}
-
-func loadConfig(homeDir string) *config.Config {
-	v := viper.New()
-	v.SetConfigName("config")
-	v.SetConfigType("toml")
-	v.AddConfigPath(homeDir)
-	v.AddConfigPath(filepath.Join(homeDir, "config"))
-
 	cfg := config.DefaultConfig()
-	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			fmt.Fprintf(os.Stderr, "[WARN] config.toml not found in %s or %s/config, using defaults\n", homeDir, homeDir)
+
+	// Load config from file if it exists
+	if _, err := toml.DecodeFile(configPath, &cfg); err != nil && !os.IsNotExist(err) {
+		fmt.Printf("Error loading config file: %v\n", err)
+	}
+
+	// Set home directory
+	cfg.RootDir = homeDir
+
+	// Ensure features.toml exists with default configuration
+	featuresPath := filepath.Join(homeDir, "config", "features.toml")
+	if _, err := os.Stat(featuresPath); os.IsNotExist(err) {
+		// Create default features.toml
+		defaultFeatures := `[features]
+enabled = true
+auto_reload = true
+check_compatibility = true
+
+[features.quantum_signing]
+enabled = true
+dilithium_mode = 3
+quantum_headers = true
+enable_metrics = true
+max_latency_ms = 1000
+
+[features.ai_validation]
+enabled = true
+model_path = ""
+use_gpu = true
+max_batch_size = 32
+confidence_threshold = 0.9
+enable_logging = true
+
+[features.state_sync]
+enabled = true
+fast_sync = true
+chunk_size = 16384
+max_concurrent = 10
+timeout_seconds = 30
+
+[features.zk_rollup]
+enabled = true
+enable_proofs = true
+enable_verification = true
+batch_size = 1000
+proof_timeout = 30`
+
+		// Create config directory if it doesn't exist
+		if err := os.MkdirAll(filepath.Dir(featuresPath), 0755); err != nil {
+			fmt.Printf("Failed to create config directory: %v\n", err)
+		} else if err := os.WriteFile(featuresPath, []byte(defaultFeatures), 0644); err != nil {
+			fmt.Printf("Warning: failed to create default features.toml: %v\n", err)
 		} else {
-			panic(fmt.Errorf("fatal error reading config file: %w", err))
-		}
-	} else {
-		if err := v.Unmarshal(cfg); err != nil {
-			panic(fmt.Errorf("unable to decode config.toml into config struct: %w", err))
+			fmt.Println("Created default features.toml configuration file")
 		}
 	}
+
 	return cfg
 }
 
-// Loads a JSON config file into the given struct pointer.
-// If the file does not exist, returns false and does not error.
-func loadJSONConfig(path string, out interface{}) (bool, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Fprintf(os.Stderr, "[WARN] %s not found, using defaults\n", path)
-			return false, nil
-		}
-		return false, fmt.Errorf("error opening %s: %w", path, err)
+func main() {
+	rootCmd, _ := NewRootCmd()
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println("Error executing root command:", err)
+		os.Exit(1)
 	}
-	defer f.Close()
-	dec := json.NewDecoder(f)
-	if err := dec.Decode(out); err != nil {
-		return false, fmt.Errorf("error decoding %s: %w", path, err)
-	}
-	return true, nil
+	cfg := loadConfig(homeDir)
+
+	// ...
 }

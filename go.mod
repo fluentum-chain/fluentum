@@ -6,6 +6,18 @@ replace github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.38.6
 
 replace github.com/tendermint/tendermint-db => github.com/cometbft/cometbft-db v1.0.4
 
+// Local development replace for features package and its submodules
+replace (
+	github.com/fluentum-chain/fluentum => .
+	github.com/fluentum-chain/fluentum/features => ./fluentum/features
+	github.com/fluentum-chain/fluentum/features/ai_validation => ./fluentum/features/ai_validation
+	github.com/fluentum-chain/fluentum/features/qmoe_validator => ./fluentum/features/qmoe_validator
+	github.com/fluentum-chain/fluentum/features/quantum_signer => ./fluentum/features/quantum_signer
+	github.com/fluentum-chain/fluentum/features/quantum_signing => ./fluentum/features/quantum_signing
+	github.com/fluentum-chain/fluentum/features/state_sync => ./fluentum/features/state_sync
+	github.com/fluentum-chain/fluentum/features/zk_rollup => ./fluentum/features/zk_rollup
+)
+
 require (
 	cloud.google.com/go/kms v1.20.1
 	cosmossdk.io/core v0.11.3
@@ -26,6 +38,10 @@ require (
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/creachadair/taskgroup v0.13.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
+	github.com/fluentum-chain/fluentum/features v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/features/quantum_signing v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/features/state_sync v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/features/zk_rollup v0.0.0-00010101000000-000000000000
 	github.com/fortytw2/leaktest v1.3.0
 	github.com/go-kit/kit v0.13.0
 	github.com/go-kit/log v0.2.1
