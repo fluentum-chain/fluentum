@@ -12,7 +12,8 @@ chain_id = "fluentum-testnet-1"
 laddr = "tcp://0.0.0.0:26656"
 external_address = "34.44.129.207:26656"
 seeds = ""
-persistent_peers = "eda71ccb73c02d9bdf2054e19e3bd32b6c71049a@34.44.82.114:26656,4f9ddeb658c8b157509f1934533d4c1c24c7108b@34.68.180.153:26656"
+# Customize persistent_peers below for each node as needed
+persistent_peers = ""
 max_num_inbound_peers = 40
 max_num_outbound_peers = 10
 flush_throttle_timeout = "100ms"
@@ -81,15 +82,7 @@ db_backend = "goleveldb"
 dir = "data"
 
 # Logging Configuration
-[log_level]
-default = "info"
-module = [
-    "consensus:info",
-    "mempool:info",
-    "p2p:info",
-    "state:info",
-    "main:info"
-]
+log_level = "info"
 
 # Instrumentation Configuration
 [instrumentation]
