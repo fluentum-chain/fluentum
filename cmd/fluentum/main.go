@@ -930,7 +930,7 @@ func loadConfig(homeDir string) *config.Config {
 		}
 	} else {
 		defer file.Close()
-		if err := toml.NewDecoder(file).Decode(cfg); err != nil {
+		if _, err := toml.NewDecoder(file).Decode(cfg); err != nil {
 			fmt.Printf("Error decoding config file: %v\n", err)
 		}
 	}
