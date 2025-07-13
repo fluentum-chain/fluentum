@@ -957,21 +957,24 @@ func createInitCommand() *cobra.Command {
 	}
 }
 
-func main() {
-	rootCmd, _ := NewRootCmd()
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println("Error executing root command:", err)
-		os.Exit(1)
-	}
+func loadConfig(homeDir string) *config.Config {
 	cfg := config.DefaultConfig()
+	configPath := filepath.Join(homeDir, "config", "config.toml")
 
 	// Load config from file if it exists
-	if _, err := toml.DecodeFile(configPath, &cfg); err != nil && !os.IsNotExist(err) {
-		fmt.Printf("Error loading config file: %v\n", err)
+	file, err := os.Open(configPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Printf("Config file not found at %s, using defaults\n", configPath)
+		} else {
+			fmt.Printf("Error opening config file: %v\n", err)
+		}
+	} else {
+		defer file.Close()
+		if err := toml.NewDecoder(file).Decode(cfg); err != nil {
+			fmt.Printf("Error decoding config file: %v\n", err)
+		}
 	}
-
-	// Set home directory
-	cfg.RootDir = homeDir
 
 	// Ensure features.toml exists with default configuration
 	featuresPath := filepath.Join(homeDir, "config", "features.toml")
@@ -1030,7 +1033,4 @@ func main() {
 		fmt.Println("Error executing root command:", err)
 		os.Exit(1)
 	}
-	cfg := loadConfig(homeDir)
-
-	// ...
 }
