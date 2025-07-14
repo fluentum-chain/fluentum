@@ -208,11 +208,11 @@ laddr = "tcp://0.0.0.0:26656"
 # example: 159.89.10.97:26656
 external_address = ""
 
-# Comma separated list of seed nodes to connect to
-seeds = ""
+# Comma separated list of seed nodes to query for initial peer discovery
+seeds = "30ae10bb812957bca76a@34.68.180.153:26656,9d16b1c939f5c3dfaaf52a1f3f4f8e5c1e1b5d1f@35.184.255.225:26656,6c8a8b50d86c191e5d8e5bb1ad3b8d3c73278d24@34.72.252.153:26656,5c9c4e5d8a9b3c2d1e0f9a8b7c6d5e4f@35.225.118.226:26656"
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "eda71ccb73c02d9bdf2054e19e3bd32b6c71049a@34.44.82.114:26656,4f9ddeb658c8b157509f1934533d4c1c24c7108b@34.68.180.153:26656"
+persistent_peers = "30ae10bb812957bca76a@34.68.180.153:26656,9d16b1c939f5c3dfaaf52a1f3f4f8e5c1e1b5d1f@35.184.255.225:26656,6c8a8b50d86c191e5d8e5bb1ad3b8d3c73278d24@34.72.252.153:26656,5c9c4e5d8a9b3c2d1e0f9a8b7c6d5e4f@35.225.118.226:26656,eda71ccb73c02d9bdf2054e19e3bd32b6c71049a@34.44.82.114:26656,4f9ddeb658c8b157509f1934533d4c1c24c7108b@34.68.180.153:26656"
 
 # UPNP port forwarding
 upnp = false
@@ -248,7 +248,7 @@ send_rate = 5120000
 # Rate at which packets can be received, in bytes/second
 recv_rate = 5120000
 
-# Set true to enable the peer-exchange reactor
+# Set true to disable the peer exchange reactor
 pex = true
 
 # Seed mode, in which node constantly crawls the network and looks for
