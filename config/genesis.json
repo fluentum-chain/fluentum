@@ -28,6 +28,15 @@
       },
       "power": "10",
       "name": "node1-validator"
+    },
+    {
+      "address": "03808C47B05605109EDAF743EB17D8BDB04E0ABB",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "havU7mvCHTzpBneYcKfvZMR9W7H4m2aKtn4bpll565E="
+      },
+      "power": "10",
+      "name": "node2-validator"
     }
   ],
   "app_hash": "",
