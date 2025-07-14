@@ -72,7 +72,7 @@ ufw allow 26660/tcp
 
 # Allow specific server IPs for better security
 print_status "Allowing specific server IPs..."
-ufw allow from 34.44.129.207 to any port 26656:26660 proto tcp
+ufw allow from 35.184.255.225 to any port 26656:26660 proto tcp
 ufw allow from 34.44.82.114 to any port 26656:26660 proto tcp
 ufw allow from 34.68.180.153 to any port 26656:26660 proto tcp
 ufw allow from 34.72.252.153 to any port 26656:26660 proto tcp

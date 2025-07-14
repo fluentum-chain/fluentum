@@ -33,7 +33,7 @@ TESTNET_CHAIN_ID="fluentum-testnet-1"
 
 # Server configurations with correct ports
 declare -A SERVERS=(
-    ["fluentum-node1"]="34.44.129.207"
+    ["fluentum-node1"]="35.184.255.225"
     ["fluentum-node2"]="34.44.82.114"
     ["fluentum-node3"]="34.68.180.153"
     ["fluentum-node4"]="34.72.252.153"

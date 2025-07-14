@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2025-07-12T03:18:24.160564194Z",
+  "genesis_time": "2025-07-14T04:05:16Z",
   "chain_id": "fluentum-testnet-1",
   "initial_height": "1",
   "consensus_params": {
@@ -17,54 +17,17 @@
       "pub_key_types": [
         "ed25519"
       ]
-    },
-    "version": {}
+    }
   },
   "validators": [
     {
-      "address": "f15d8357d1a1fad5735bb1ea1f068038c7518eda",
+      "address": "0EAF87294A7CF05BE83C038719F7EAA913EB73C5",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "IV766Li8BF4Crp1i3aVvvmxKj+ByGXdV2bV/3K1K99T0VtLGQMS9C46Q2NfkGj3BSvJ6fKpVmmes6ulfSxlsnA=="
+        "value": "EJhpB0ufLWumLLrt0i+Kyyb74lOw3MDI5cheBcp7F8w="
       },
       "power": "10",
       "name": "node1-validator"
-    },
-    {
-      "address": "39c5cdf1b07761d3105bb05c629ee0c0da85e1a5",
-      "pub_key": {
-        "type": "tendermint/PubKeyEd25519",
-        "value": "kLVTdByH+faK9Mb9/Vsph1gwq9Ji1SszfJWm6IotqWta02JW2WK9A8nhpKgg47RxYOrvK8S3JwPD/OXMBbxqIg=="
-      },
-      "power": "10",
-      "name": "node2-validator"
-    },
-    {
-      "address": "a824ce9ac64c99c3b3b90e891b7d90c9502ddf1d",
-      "pub_key": {
-        "type": "tendermint/PubKeyEd25519",
-        "value": "OTJmY2I0OWVkYzVhODMxYjkzZDMyMjEwMDAyMjI1ZmU4NjM2Mzk4Y2RjNGFkNjEyMTIxYmUwMDUyYzc5ZDIyOAo="
-      },
-      "power": "10",
-      "name": "node3-validator"
-    },
-    {
-      "address": "aa81be4b8aa8636259a9d50fd29841ab18eff76b",
-      "pub_key": {
-        "type": "tendermint/PubKeyEd25519",
-        "value": "2/iCq9RdmR9mBZvOCevxx+lKjAG7ymCUhHGk1y709MaYCkEB72bd0kyC3DnK3Ojyb38QnfjLvpRrKaCXjbCGvA=="
-      },
-      "power": "10",
-      "name": "node4-validator"
-    },
-    {
-      "address": "0c2572c78015f8be9850817e3e826cd10a617db9",
-      "pub_key": {
-        "type": "tendermint/PubKeyEd25519",
-        "value": "NvUQjYHo0ak3pai0ad5cLw+7fyjpGnGg6MPw9fw0P6VXuoI1GtoLrg+2ZpMu2xY+q32GHRQ2amR5CL1pJzUVKQ=="
-      },
-      "power": "10",
-      "name": "node5-validator"
     }
   ],
   "app_hash": "",
@@ -77,38 +40,15 @@
         "sig_verify_cost_ed25519": "590",
         "sig_verify_cost_secp256k1": "1000"
       },
-      "accounts": [
-        {
-          "@type": "/cosmos.auth.v1beta1.BaseAccount",
-          "address": "fluentum1uhs4uw2rerumav63yrn80lqy92jrfyk9e6hvu7",
-          "pub_key": null,
-          "account_number": "0",
-          "sequence": "0"
-        }
-      ]
+      "accounts": []
     },
     "bank": {
       "params": {
         "send_enabled": [],
         "default_send_enabled": true
       },
-      "balances": [
-        {
-          "address": "fluentum1uhs4uw2rerumav63yrn80lqy92jrfyk9e6hvu7",
-          "coins": [
-            {
-              "denom": "uflumx",
-              "amount": "10000000000000"
-            }
-          ]
-        }
-      ],
-      "supply": [
-        {
-          "denom": "uflumx",
-          "amount": "1000000000000000"
-        }
-      ],
+      "balances": [],
+      "supply": [],
       "denom_metadata": []
     },
     "staking": {
