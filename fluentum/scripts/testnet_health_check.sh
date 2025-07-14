@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Fluentum Testnet Health Check Script
-# Version: 2.0.0
-# Description: Monitors the health of Fluentum testnet nodes with quantum signing and AI validation
+# Version: 3.0.0
+# Description: Comprehensive health check for Fluentum testnet nodes with detailed status reporting
 
 set -e
 
@@ -10,6 +10,7 @@ set -e
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default values
@@ -18,15 +19,39 @@ RPC_PORT=26657
 API_PORT=1317
 GRPC_PORT=9090
 CHECK_INTERVAL=60  # seconds
-NODE_PREFIX="node"
-TOTAL_NODES=5
 LOG_FILE="/var/log/fluentum_health.log"
 ALERT_THRESHOLD=3  # Number of failed attempts before alerting
+OUTPUT_FORMAT="text"  # text or json
+
+# Node configuration - can be overridden with --nodes flag
+# Format: NODE_ID:IP:RPC_PORT:API_PORT:GRPC_PORT
+NODES=(
+    "node1:35.184.255.225:26657:1317:9090"
+    "node2:34.44.82.114:26657:1318:9091"
+    "node3:34.68.180.153:26657:1319:9092"
+    "node4:34.72.252.153:26657:1320:9093"
+    "node5:35.225.118.226:26657:1321:9094"
+)
 
 # Alert configuration
 ALERT_EMAIL=""  # Set this to receive email alerts
 ALERT_TELEGRAM_CHAT_ID=""
 ALERT_TELEGRAM_BOT_TOKEN=""
+
+# Check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Check if jq is installed, if not use python
+if command_exists jq; then
+    JSON_PROCESSOR="jq"
+elif command_exists python3; then
+    JSON_PROCESSOR="python3 -c \"import sys, json; print(json.load(sys.stdin)""['result'])\""
+else
+    echo "Error: jq or python3 is required but not installed."
+    exit 1
+fi
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -34,44 +59,66 @@ while [[ $# -gt 0 ]]; do
     case $key in
         --ip)
             NODE_IP="$2"
-            shift
-            shift
+            shift 2
             ;;
         --rpc-port)
             RPC_PORT="$2"
-            shift
-            shift
+            shift 2
             ;;
         --api-port)
             API_PORT="$2"
-            shift
-            shift
-            ;;
-        --nodes)
-            TOTAL_NODES="$2"
-            shift
-            shift
-            ;;
-        --prefix)
-            NODE_PREFIX="$2"
-            shift
-            shift
+            shift 2
             ;;
         --interval)
             CHECK_INTERVAL="$2"
-            shift
-            shift
+            shift 2
             ;;
         --log)
             LOG_FILE="$2"
+            shift 2
+            ;;
+        --format)
+            OUTPUT_FORMAT="$2"
+            shift 2
+            [[ "$OUTPUT_FORMAT" != "json" && "$OUTPUT_FORMAT" != "text" ]] && {
+                echo "Error: Invalid format. Must be 'text' or 'json'"
+                exit 1
+            }
+            ;;
+        --nodes)
+            # Override default nodes
             shift
-            shift
+            NODES=()
+            while [[ $# -gt 0 && ! $1 =~ ^-- ]]; do
+                NODES+=("$1")
+                shift
+            done
+            ;;
+        --help)
+            echo "Fluentum Testnet Health Check"
+            echo ""
+            echo "Usage: $0 [options]"
+            echo ""
+            echo "Options:"
+            echo "  --ip IP                Set the node IP (default: localhost)"
+            echo "  --rpc-port PORT        Set the RPC port (default: 26657)"
+            echo "  --api-port PORT        Set the API port (default: 1317)"
+            echo "  --interval SECONDS     Set check interval in seconds (default: 60)"
+            echo "  --log FILE             Set log file (default: /var/log/fluentum_health.log)"
+            echo "  --format FORMAT        Output format: text or json (default: text)"
+            echo "  --nodes NODE1,NODE2    Override default nodes (format: id:ip:rpc_port:api_port:grpc_port)"
+            echo "  --help                 Show this help message"
+            echo ""
+            echo "Example:"
+            echo "  $0 --format json"
+            echo "  $0 --nodes 'node1:1.2.3.4:26657:1317:9090' 'node2:5.6.7.8:26657:1318:9091'"
+            exit 0
             ;;
         *)
             echo "Unknown option: $1"
             exit 1
             ;;
-    esc
+    esac
 done
 
 # Create log directory if it doesn't exist
@@ -103,17 +150,37 @@ alert() {
     fi
 }
 
+# Function to parse JSON response
+parse_json() {
+    local json_data=$1
+    local key=$2
+    
+    if [ "$JSON_PROCESSOR" = "jq" ]; then
+        echo "$json_data" | jq -r "$key" 2>/dev/null
+    else
+        # Simple Python-based JSON parser
+        echo "$json_data" | python3 -c "import sys, json; print(json.load(sys.stdin)$key or '')" 2>/dev/null || echo ""
+    fi
+}
+
 # Function to check RPC endpoint
 check_rpc() {
     local node_ip=$1
     local node_rpc_port=$2
     local endpoint=$3
     
-    local response=$(curl -s "http://${node_ip}:${node_rpc_port}/${endpoint}" || echo "ERROR")
-    if [ "$response" = "ERROR" ]; then
+    local response
+    response=$(curl -s --max-time 5 "http://${node_ip}:${node_rpc_port}/${endpoint}" 2>/dev/null || echo "ERROR")
+    
+    if [ "$response" = "ERROR" ] || [ -z "$response" ]; then
         echo "ERROR"
     else
-        echo $response | jq -r '.result' 2>/dev/null || echo "ERROR"
+        if [ "$JSON_PROCESSOR" = "jq" ]; then
+            echo "$response" | jq -r '.result' 2>/dev/null || echo "ERROR"
+        else
+            # For Python parser, we'll handle the result extraction in the parse_json function
+            echo "$response"
+        fi
     fi
 }
 
@@ -200,34 +267,87 @@ check_node_health() {
     echo "${health_status},${status_info}"
 }
 
+# Function to print node status in text format
+print_node_status_text() {
+    local status=$1
+    local node_id=$(parse_json "$status" '["node_id"]')
+    local ip=$(parse_json "$status" '["ip"]')
+    local version=$(parse_json "$status" '["version"]')
+    local block_height=$(parse_json "$status" '["block_height"]')
+    local catching_up=$(parse_json "$status" '["catching_up"]')
+    local is_validator=$(parse_json "$status" '["is_validator"]')
+    local peers=$(parse_json "$status" '["peers"]')
+    local disk_usage=$(parse_json "$status" '["disk_usage"]')
+    local memory_usage=$(parse_json "$status" '["memory_usage"]')
+    local health_status=$(parse_json "$status" '["health_status"]')
+    local status_info=$(parse_json "$status" '["status"]')
+    
+    local status_color=$GREEN
+    if [ "$health_status" -gt 0 ]; then
+        status_color=$RED
+    elif [ "$catching_up" = "true" ]; then
+        status_color=$YELLOW
+    fi
+    
+    echo -e "${BLUE}=== Node: $node_id ($ip) ===${NC}"
+    echo -e "Status: ${status_color}${status_info}${NC}"
+    echo -e "Version: $version | Block: $block_height | Catching Up: $catching_up"
+    echo -e "Validator: $is_validator | Peers: $peers | Disk: ${disk_usage}% | Memory: ${memory_usage}%"
+    echo -e "----------------------------------------\n"
+}
+
 # Main monitoring loop
 log "Starting Fluentum Testnet Health Monitor"
-log "Monitoring ${TOTAL_NODES} nodes with prefix '${NODE_PREFIX}'"
+log "Monitoring ${#NODES[@]} nodes"
 log "Check interval: ${CHECK_INTERVAL} seconds"
 log "Log file: ${LOG_FILE}"
+log "Output format: ${OUTPUT_FORMAT}"
 
 # Initialize alert counters
 declare -A alert_counters
-for ((i=1; i<=TOTAL_NODES; i++)); do
-    alert_counters["${NODE_PREFIX}${i}"]=0
+for node in "${NODES[@]}"; do
+    node_id=$(echo "$node" | cut -d':' -f1)
+    alert_counters["$node_id"]=0
 done
 
 while true; do
-    log "--- Starting health check at $(date) ---"
+    log "=== Starting health check at $(date) ==="
     
-    for ((i=1; i<=TOTAL_NODES; i++)); do
-        node_id="${NODE_PREFIX}${i}"
-        node_rpc_port=$((RPC_PORT + (i - 1) * 10))
-        node_api_port=$((API_PORT + (i - 1) * 10))
+    # Initialize JSON output array if in JSON mode
+    if [ "$OUTPUT_FORMAT" = "json" ]; then
+        json_output="["
+        first_node=true
+    fi
+    
+    for node in "${NODES[@]}"; do
+        IFS=':' read -r node_id node_ip node_rpc_port node_api_port node_grpc_port <<< "$node"
         
-        log "Checking node ${node_id}..."
+        log "Checking node ${node_id} (${node_ip}:${node_rpc_port})..."
         
         # Check node health
-        result=$(check_node_health "$node_id" "$NODE_IP" "$node_rpc_port" "$node_api_port")
-        health_status=$(echo "$result" | cut -d',' -f1)
-        status_info=$(echo "$result" | cut -d',' -f2-)
+        result=$(check_node_health "$node_id" "$node_ip" "$node_rpc_port" "$node_api_port")
         
-        # Process health status
+        if [ "$OUTPUT_FORMAT" = "json" ]; then
+            # Add to JSON array
+            if [ "$first_node" = true ]; then
+                json_output="${json_output}${result}"
+                first_node=false
+            else
+                json_output="${json_output},${result}"
+            fi
+            
+            # Extract health status for logging
+            health_status=$(parse_json "$result" '["health_status"]')
+            status_info=$(parse_json "$result" '["status"]')
+        else
+            # Text format - already processed in the function
+            health_status=$(echo "$result" | cut -d',' -f1)
+            status_info=$(echo "$result" | cut -d',' -f2)
+            node_json=$(echo "$result" | cut -d',' -f3-)
+            print_node_status_text "$node_json"
+        fi
+        
+        # Process health status for alerts
         if [ "$health_status" -gt 0 ]; then
             alert_counters["$node_id"]=$((alert_counters["$node_id"] + 1))
             
@@ -237,15 +357,30 @@ while true; do
                 alert_counters["$node_id"]=0
             fi
             
-            log "${RED}Node ${node_id}: ${status_info}${NC}"
+            log "${RED}Node ${node_id} has issues: ${status_info}${NC}"
         else
             # Reset counter if node is healthy
             alert_counters["$node_id"]=0
-            log "${GREEN}Node ${node_id}: ${status_info}${NC}"
+            log "${GREEN}Node ${node_id} is healthy${NC}"
         fi
     done
     
-    # Wait for the next check
-    log "Waiting ${CHECK_INTERVAL} seconds until next check..."
-    sleep "$CHECK_INTERVAL"
+    # Finalize JSON output
+    if [ "$OUTPUT_FORMAT" = "json" ]; then
+        json_output="${json_output}]"
+        if [ "$health_status" -gt 0 ]; then
+            echo -e "${RED}${json_output}${NC}"
+        else
+            echo -e "${GREEN}${json_output}${NC}"
+        fi
+    fi
+    
+    # Wait for the next check if not in single-run mode
+    if [ "$CHECK_INTERVAL" -gt 0 ]; then
+        log "Waiting ${CHECK_INTERVAL} seconds until next check..."
+        sleep "$CHECK_INTERVAL"
+    else
+        # Single run mode
+        break
+    fi
 done
