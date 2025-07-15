@@ -78,104 +78,152 @@ get_current_node() {
 }
 
 # Function to check local service status
+detect_fluentum_service() {
+    # Try to find the correct fluentum service name
+    local service="fluentum-testnet.service"
+    if systemctl list-units --type=service | grep -q "$service"; then
+        echo "$service"
+        return
+    fi
+    # Fallback: try to find any fluentum-* service
+    local alt_service=$(systemctl list-units --type=service | grep 'fluentum-' | awk '{print $1}' | head -n1)
+    if [ -n "$alt_service" ]; then
+        echo "$alt_service"
+        return
+    fi
+    # Not found
+    echo ""
+}
+
 check_local_service() {
     print_status "Checking local service status..."
-    
-    if systemctl is-active --quiet fluentum-testnet.service; then
-        print_success "Local fluentum-testnet service is running"
-        
+    local service_name=$(detect_fluentum_service)
+    if [ -z "$service_name" ]; then
+        print_error "No fluentum service found (fluentum-testnet.service or fluentum-*)!"
+        echo "Please check installation or service naming."
+        echo "Try: sudo systemctl list-units --type=service | grep fluentum"
+        return
+    fi
+    if systemctl is-active --quiet "$service_name"; then
+        print_success "Local $service_name is running"
         # Check local RPC endpoint
         local rpc_port="26657"
         if curl -s --max-time 5 "http://localhost:$rpc_port/status" > /dev/null 2>&1; then
             print_success "Local RPC endpoint (localhost:$rpc_port) is responding"
         else
             print_error "Local RPC endpoint (localhost:$rpc_port) is not responding"
+            echo "  Suggestion: Check service logs with: sudo journalctl -u $service_name -f"
         fi
-        
         # Check what ports are actually listening
         print_status "Checking listening ports..."
         netstat -tulpn | grep -E "(26656|26657|26658|26659|26660)" || echo "No fluentum ports found listening"
-        
     else
-        print_error "Local fluentum-testnet service is not running"
-        echo "Start it with: sudo systemctl start fluentum-testnet.service"
+        print_error "Local $service_name is not running"
+        echo "Start it with: sudo systemctl start $service_name"
+        echo "Check logs: sudo journalctl -u $service_name -f"
     fi
-    
     echo ""
 }
 
 # Function to check firewall status
 check_firewall() {
     print_status "Checking firewall status..."
-    
+    local required_ports=(26656 26657)
+    local missing_ufw=()
+    local missing_iptables=()
     # Check UFW status
     if command -v ufw &> /dev/null; then
         local ufw_status=$(sudo ufw status 2>/dev/null | head -1)
         echo "UFW Status: $ufw_status"
-        
         if echo "$ufw_status" | grep -q "inactive"; then
             print_warning "UFW is inactive - this might be good for testing"
         else
             print_status "UFW is active - checking rules..."
-            sudo ufw status numbered | grep -E "(26656|26657|26658|26659|26660)" || echo "No fluentum ports in UFW rules"
+            local ufw_rules=$(sudo ufw status numbered)
+            for port in "${required_ports[@]}"; do
+                if ! echo "$ufw_rules" | grep -q "$port"; then
+                    missing_ufw+=("$port")
+                fi
+            done
+            echo "$ufw_rules" | grep -E "(26656|26657|26658|26659|26660)" || echo "No fluentum ports in UFW rules"
         fi
     else
         print_warning "UFW not found"
+        missing_ufw=(26656 26657)
     fi
-    
     # Check iptables
     print_status "Checking iptables..."
-    sudo iptables -L -n | grep -E "(26656|26657|26658|26659|26660)" || echo "No fluentum ports in iptables rules"
-    
+    local iptables_rules=$(sudo iptables -L -n)
+    for port in "${required_ports[@]}"; do
+        if ! echo "$iptables_rules" | grep -q "$port"; then
+            missing_iptables+=("$port")
+        fi
+    done
+    echo "$iptables_rules" | grep -E "(26656|26657|26658|26659|26660)" || echo "No fluentum ports in iptables rules"
+    # Suggest fixes if missing
+    if [ ${#missing_ufw[@]} -gt 0 ]; then
+        print_warning "Missing UFW rules for: ${missing_ufw[*]}"
+        for port in "${missing_ufw[@]}"; do
+            echo "  Suggestion: sudo ufw allow $port/tcp"
+        done
+    fi
+    if [ ${#missing_iptables[@]} -gt 0 ]; then
+        print_warning "Missing iptables rules for: ${missing_iptables[*]}"
+        for port in "${missing_iptables[@]}"; do
+            echo "  Suggestion: sudo iptables -A INPUT -p tcp --dport $port -j ACCEPT"
+        done
+    fi
     echo ""
 }
 
 # Function to test connectivity to other nodes
 test_connectivity() {
     print_status "Testing connectivity to other nodes..."
-    
     local current_node=$(get_current_node)
     echo "Current node: $current_node"
     echo ""
-    
+    local local_rules_ok=true
     for node_name in "${!SERVERS[@]}"; do
         local ip=${SERVERS[$node_name]}
         local rpc_port=${RPC_PORTS[$node_name]}
         local p2p_port=${P2P_PORTS[$node_name]}
-        
         echo "Testing $node_name ($ip)..."
-        
         # Test basic connectivity
         if ping -c 1 -W 3 "$ip" > /dev/null 2>&1; then
             print_success "  Ping successful"
         else
             print_error "  Ping failed"
+            echo "    Suggestion: Check GCP firewall, network routing, or if node is offline."
             continue
         fi
-        
         # Test RPC port
         if timeout 5 bash -c "</dev/tcp/$ip/$rpc_port" 2>/dev/null; then
             print_success "  RPC port $rpc_port is open"
         else
             print_error "  RPC port $rpc_port is closed"
+            echo "    Suggestion: Ensure firewall allows $rpc_port/tcp and GCP firewall is configured."
+            local_rules_ok=false
         fi
-        
         # Test P2P port
         if timeout 5 bash -c "</dev/tcp/$ip/$p2p_port" 2>/dev/null; then
             print_success "  P2P port $p2p_port is open"
         else
             print_error "  P2P port $p2p_port is closed"
+            echo "    Suggestion: Ensure firewall allows $p2p_port/tcp and GCP firewall is configured."
+            local_rules_ok=false
         fi
-        
         # Test HTTP RPC endpoint
         if curl -s --max-time 5 "http://$ip:$rpc_port/status" > /dev/null 2>&1; then
             print_success "  HTTP RPC endpoint is responding"
         else
             print_error "  HTTP RPC endpoint is not responding"
+            echo "    Suggestion: Check if the service is running and listening on $rpc_port, and firewall rules."
         fi
-        
         echo ""
     done
+    if [ "$local_rules_ok" = true ]; then
+        print_status "All local firewall rules appear correct. If remote ports are still closed, check Google Cloud firewall configuration."
+    fi
 }
 
 # Function to configure firewall rules
@@ -290,20 +338,31 @@ show_manual_steps() {
     echo "   - Go to Google Cloud Console"
     echo "   - Navigate to VPC Network -> Firewall"
     echo "   - Create rules for each node's RPC and P2P ports"
+    echo "   - Ensure rules allow TCP 26656, 26657 from 0.0.0.0/0"
     echo ""
     echo "2. Check node configurations:"
-    echo "   - Verify each node is running: sudo systemctl status fluentum-testnet.service"
-    echo "   - Check logs: sudo journalctl -u fluentum-testnet.service -f"
+    echo "   - Verify each node is running: sudo systemctl status fluentum-testnet.service (or fluentum-* service)"
+    echo "   - If service not found, check installation and service files."
+    echo "   - Check logs: sudo journalctl -u fluentum-testnet.service -f (or correct service name)"
     echo "   - Verify ports are listening: netstat -tulpn | grep fluentum"
     echo ""
     echo "3. Test connectivity manually:"
     echo "   - From each node, test: curl http://[NODE_IP]:[RPC_PORT]/status"
-    echo "   - Test P2P: telnet [NODE_IP] [P2P_PORT]"
+    echo "   - Test P2P: telnet [NODE_IP] [P2P_PORT] or nc -vz [NODE_IP] [P2P_PORT]"
     echo ""
     echo "4. Update persistent peers in config:"
     echo "   - Edit /opt/fluentum/config/config.toml"
     echo "   - Update persistent_peers with correct addresses"
     echo ""
+    echo "5. If service is missing:"
+    echo "   - Check for service files in /etc/systemd/system/ or /lib/systemd/system/"
+    echo "   - Reinstall or recreate the service if needed."
+    echo ""
+    echo "6. If ports are closed remotely but open locally:"
+    echo "   - Check Google Cloud firewall and VPC routes."
+    echo "   - Ensure no host-based firewall is blocking traffic."
+    echo ""
+}
 }
 
 # Main execution

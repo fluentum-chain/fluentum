@@ -100,8 +100,11 @@ check_node_health() {
                 # Check if node is caught up
                 if [ "$catching_up" = "false" ]; then
                     print_success "  Node is caught up"
-                else
+                elif [ "$catching_up" = "true" ]; then
                     print_warning "  Node is still catching up"
+                    echo "    Explanation: Node is downloading and verifying new blocks. If this persists, check network connectivity, peer list, and logs."
+                else
+                    print_warning "  Catching up status unknown"
                 fi
                 
             else
@@ -440,7 +443,8 @@ display_config() {
     echo "  P2P Port: $P2P_PORT"
     echo "  Local Node: $(detect_local_node)"
     echo "  Total Nodes: ${#SERVERS[@]}"
-    echo "  Timestamp: $(date)"
+    echo "  Timestamp (UTC): $(TZ=UTC date -u)"
+    echo "  Timestamp (Local): $(date)"
     echo ""
 }
 
@@ -448,20 +452,87 @@ display_config() {
 main() {
     display_config
     
+    # Arrays for summary
+    declare -A SUMMARY_REACHABLE
+    declare -A SUMMARY_RPC
+    declare -A SUMMARY_P2P
+    declare -A SUMMARY_BLOCK
+    declare -A SUMMARY_CATCHING
+    declare -A SUMMARY_ERRORS
+
     # Check local node first
     check_local_node
     
     # Check network connectivity
     check_network_connectivity
     
-    # Check each remote node
+    # Check each remote node and collect summary
     for node_name in "${!SERVERS[@]}"; do
+        local endpoint=${SERVERS[$node_name]}
+        local ip=$(echo "$endpoint" | cut -d: -f1)
+        local rpc_port=$RPC_PORT
+        local p2p_port=$P2P_PORT
+        local reachable="NO"
+        local rpc_open="NO"
+        local p2p_open="NO"
+        local block_height="-"
+        local catching_up="-"
+        local errors="-"
+
+        # Ping
+        if ping -c 1 -W 3 "$ip" > /dev/null 2>&1; then
+            reachable="YES"
+        fi
+        # RPC port
+        if timeout 5 bash -c "</dev/tcp/$ip/$rpc_port" 2>/dev/null; then
+            rpc_open="YES"
+        fi
+        # P2P port
+        if timeout 5 bash -c "</dev/tcp/$ip/$p2p_port" 2>/dev/null; then
+            p2p_open="YES"
+        fi
+        # Block height & catching up
+        local status=$(curl -s --max-time 5 "http://$ip:$rpc_port/status" 2>/dev/null)
+        if [ -n "$status" ] && command -v jq &> /dev/null; then
+            block_height=$(echo "$status" | jq -r '.result.sync_info.latest_block_height // empty' 2>/dev/null)
+            catching_up=$(echo "$status" | jq -r '.result.sync_info.catching_up // empty' 2>/dev/null)
+        fi
+        # Errors (last 10 min)
+        local remote_service="fluentum-$node_name.service"
+        local error_count=$(ssh $ip "journalctl -u $remote_service --since '10 minutes ago' | grep -i -E 'error|failed|exception|panic' | wc -l" 2>/dev/null)
+        if [ -z "$error_count" ]; then error_count="-"; fi
+        errors="$error_count"
+
+        SUMMARY_REACHABLE[$node_name]="$reachable"
+        SUMMARY_RPC[$node_name]="$rpc_open"
+        SUMMARY_P2P[$node_name]="$p2p_open"
+        SUMMARY_BLOCK[$node_name]="$block_height"
+        SUMMARY_CATCHING[$node_name]="$catching_up"
+        SUMMARY_ERRORS[$node_name]="$errors"
+
         check_node_health "$node_name" "${SERVERS[$node_name]}"
     done
     
     # Check consensus
     check_consensus
-    
+
+    # Print summary table
+    echo ""
+    echo "Node Health Summary:"
+    printf "%-16s %-10s %-6s %-6s %-12s %-10s %-8s\n" "Node" "Reachable" "RPC" "P2P" "BlockHeight" "CatchingUp" "Errors"
+    for node_name in "${!SERVERS[@]}"; do
+        printf "%-16s %-10s %-6s %-6s %-12s %-10s %-8s\n" \
+            "$node_name" "${SUMMARY_REACHABLE[$node_name]}" "${SUMMARY_RPC[$node_name]}" "${SUMMARY_P2P[$node_name]}" "${SUMMARY_BLOCK[$node_name]}" "${SUMMARY_CATCHING[$node_name]}" "${SUMMARY_ERRORS[$node_name]}"
+    done
+
+    echo ""
+    echo "Legend:"
+    echo "  Reachable: Ping success"
+    echo "  RPC/P2P: Port open"
+    echo "  BlockHeight: Latest block height (if available)"
+    echo "  CatchingUp: true=still syncing, false=fully synced"
+    echo "  Errors: Recent log errors (last 10 min) if SSH/journalctl available"
+    echo ""
     echo "=== Health Check Complete ==="
 }
 
