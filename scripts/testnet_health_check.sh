@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Fluentum Testnet Health Check Script
+
+# Root privilege check
+if [ "$EUID" -ne 0 ]; then
+    echo -e "\033[1;33m[WARNING]\033[0m Some checks (firewall, netstat, iptables) may require root privileges. Consider rerunning with: sudo $0 $@\n"
+fi
 # Monitors all testnet nodes defined in nodes.conf
 # 
 # Configuration:
@@ -357,12 +362,18 @@ check_network_connectivity() {
             print_success "TCP connection to $node_name ($ip:$rpc_port) successful"
         else
             print_error "TCP connection to $node_name ($ip:$rpc_port) failed"
+            echo "    Suggestion: Ensure firewall allows $rpc_port/tcp and GCP firewall is configured."
+            echo "    To allow with ufw: sudo ufw allow $rpc_port/tcp"
+            echo "    To allow with iptables: sudo iptables -A INPUT -p tcp --dport $rpc_port -j ACCEPT"
         fi
         # Test TCP connectivity for P2P
         if timeout 5 bash -c "</dev/tcp/$ip/$p2p_port" 2>/dev/null; then
             print_success "TCP connection to $node_name ($ip:$p2p_port) successful (P2P)"
         else
             print_error "TCP connection to $node_name ($ip:$p2p_port) failed (P2P)"
+            echo "    Suggestion: Ensure firewall allows $p2p_port/tcp and GCP firewall is configured."
+            echo "    To allow with ufw: sudo ufw allow $p2p_port/tcp"
+            echo "    To allow with iptables: sudo iptables -A INPUT -p tcp --dport $p2p_port -j ACCEPT"
         fi
     done
     
@@ -524,13 +535,36 @@ main() {
     echo ""
     echo "Node Health Summary:"
     printf "%-16s %-10s %-6s %-6s %-12s %-10s %-8s\n" "Node" "Reachable" "RPC" "P2P" "BlockHeight" "CatchingUp" "Errors"
+    local unreachable=0
+    local rpc_issues=0
+    local catching_up_issues=0
     for node_name in "${!SERVERS[@]}"; do
+        local reach_sym="❌"; [ "${SUMMARY_REACHABLE[$node_name]}" = "YES" ] && reach_sym="✅"
+        local rpc_sym="❌"; [ "${SUMMARY_RPC[$node_name]}" = "YES" ] && rpc_sym="✅"
+        local p2p_sym="❌"; [ "${SUMMARY_P2P[$node_name]}" = "YES" ] && p2p_sym="✅"
+        local catch_sym=""
+        if [ "${SUMMARY_CATCHING[$node_name]}" = "true" ]; then
+            catch_sym="🕒"
+            catching_up_issues=$((catching_up_issues+1))
+        elif [ "${SUMMARY_CATCHING[$node_name]}" = "false" ]; then
+            catch_sym="✅"
+        else
+            catch_sym="?"
+        fi
+        [ "${SUMMARY_REACHABLE[$node_name]}" != "YES" ] && unreachable=$((unreachable+1))
+        [ "${SUMMARY_RPC[$node_name]}" != "YES" ] && rpc_issues=$((rpc_issues+1))
         printf "%-16s %-10s %-6s %-6s %-12s %-10s %-8s\n" \
-            "$node_name" "${SUMMARY_REACHABLE[$node_name]}" "${SUMMARY_RPC[$node_name]}" "${SUMMARY_P2P[$node_name]}" "${SUMMARY_BLOCK[$node_name]}" "${SUMMARY_CATCHING[$node_name]}" "${SUMMARY_ERRORS[$node_name]}"
+            "$node_name" "$reach_sym" "$rpc_sym" "$p2p_sym" "${SUMMARY_BLOCK[$node_name]}" "$catch_sym" "${SUMMARY_ERRORS[$node_name]}"
     done
 
     echo ""
+    echo "Critical Issues Summary:"
+    echo "  Nodes unreachable: $unreachable"
+    echo "  Nodes with RPC issues: $rpc_issues"
+    echo "  Nodes catching up: $catching_up_issues"
+    echo ""
     echo "Legend:"
+    echo "  ✅: OK, ❌: Issue, 🕒: Catching up, ?: Unknown"
     echo "  Reachable: Ping success (node responded to HTTP status request)"
     echo "  RPC/P2P: Port open (TCP check)"
     echo "  BlockHeight: Latest block height (if available)"
@@ -541,10 +575,25 @@ main() {
     echo "- If you encounter SSH host authenticity prompts, for automation you can use:"
     echo "    ssh -o StrictHostKeyChecking=no user@host ..."
     echo "  (NOT recommended for production security!)"
-    echo "- For persistent catching up, check persistent_peers in config.toml, network/firewall, and logs."
-    echo "- For unreachable nodes, verify service status, firewall, and cloud network settings."
+    echo "- For persistent catching up (🕒), check persistent_peers in config.toml, network/firewall, and logs."
+    echo "- For unreachable nodes (❌), verify service status, firewall, and cloud network settings."
+    echo "- If catching_up is '?', check logs for startup/sync issues, ensure the node is fully started, and check config."
+    echo "- If RPC is ❌ but service is running, check config.toml (laddr/rpc), restart service, and check for port conflicts."
+    echo "- For log errors like 'auth failure: secret conn failed' or 'connection reset by peer', check peer keys, firewall, and persistent_peers."
     echo ""
     echo "=== Health Check Complete ==="
+
+    # Offer auto-fix if issues detected
+    if [ "$unreachable" -gt 0 ] || [ "$rpc_issues" -gt 0 ]; then
+        echo ""
+        echo "[ACTION] Some nodes are unreachable or have RPC issues."
+        echo "You can try to auto-fix firewall rules using:"
+        echo "    sudo ./scripts/fix_connectivity.sh --auto-fix"
+        read -p "Would you like to run fix_connectivity.sh --auto-fix now? [y/N]: " fixnow
+        if [[ "$fixnow" =~ ^[Yy]$ ]]; then
+            sudo ./scripts/fix_connectivity.sh --auto-fix
+        fi
+    fi
 }
 
 # Run main function

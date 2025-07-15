@@ -1,6 +1,18 @@
 #!/bin/bash
 
 # Fluentum Testnet Connectivity Fix Script
+
+# Root privilege check
+auto_fix=false
+if [ "$EUID" -ne 0 ]; then
+    echo -e "\033[1;33m[WARNING]\033[0m Some checks (firewall, netstat, iptables) may require root privileges. Consider rerunning with: sudo $0 $@\n"
+fi
+# Parse --auto-fix flag
+for arg in "$@"; do
+    if [ "$arg" = "--auto-fix" ]; then
+        auto_fix=true
+    fi
+done
 # This script helps diagnose and fix connectivity issues between testnet nodes
 
 set -e
@@ -202,6 +214,19 @@ test_connectivity() {
         else
             print_error "  RPC port $rpc_port is closed"
             echo "    Suggestion: Ensure firewall allows $rpc_port/tcp and GCP firewall is configured."
+            echo "    To allow with ufw: sudo ufw allow $rpc_port/tcp"
+            echo "    To allow with iptables: sudo iptables -A INPUT -p tcp --dport $rpc_port -j ACCEPT"
+            if [ "$auto_fix" = true ]; then
+                echo "    [AUTO-FIX] Applying ufw and iptables rules for RPC..."
+                ufw allow $rpc_port/tcp 2>&1 && echo "      [OK] ufw rule applied" || echo "      [FAIL] ufw rule failed"
+                iptables -A INPUT -p tcp --dport $rpc_port -j ACCEPT 2>&1 && echo "      [OK] iptables rule applied" || echo "      [FAIL] iptables rule failed"
+            else
+                read -p "    Attempt to auto-fix firewall for RPC port $rpc_port? [y/N]: " ans
+                if [[ "$ans" =~ ^[Yy]$ ]]; then
+                    ufw allow $rpc_port/tcp 2>&1 && echo "      [OK] ufw rule applied" || echo "      [FAIL] ufw rule failed"
+                    iptables -A INPUT -p tcp --dport $rpc_port -j ACCEPT 2>&1 && echo "      [OK] iptables rule applied" || echo "      [FAIL] iptables rule failed"
+                fi
+            fi
             local_rules_ok=false
         fi
         # Test P2P port
@@ -210,6 +235,19 @@ test_connectivity() {
         else
             print_error "  P2P port $p2p_port is closed"
             echo "    Suggestion: Ensure firewall allows $p2p_port/tcp and GCP firewall is configured."
+            echo "    To allow with ufw: sudo ufw allow $p2p_port/tcp"
+            echo "    To allow with iptables: sudo iptables -A INPUT -p tcp --dport $p2p_port -j ACCEPT"
+            if [ "$auto_fix" = true ]; then
+                echo "    [AUTO-FIX] Applying ufw and iptables rules for P2P..."
+                ufw allow $p2p_port/tcp 2>&1 && echo "      [OK] ufw rule applied" || echo "      [FAIL] ufw rule failed"
+                iptables -A INPUT -p tcp --dport $p2p_port -j ACCEPT 2>&1 && echo "      [OK] iptables rule applied" || echo "      [FAIL] iptables rule failed"
+            else
+                read -p "    Attempt to auto-fix firewall for P2P port $p2p_port? [y/N]: " ans
+                if [[ "$ans" =~ ^[Yy]$ ]]; then
+                    ufw allow $p2p_port/tcp 2>&1 && echo "      [OK] ufw rule applied" || echo "      [FAIL] ufw rule failed"
+                    iptables -A INPUT -p tcp --dport $p2p_port -j ACCEPT 2>&1 && echo "      [OK] iptables rule applied" || echo "      [FAIL] iptables rule failed"
+                fi
+            fi
             local_rules_ok=false
         fi
         # Test HTTP RPC endpoint
@@ -375,6 +413,7 @@ main() {
     echo "6. Restart services"
     echo "7. Show manual steps"
     echo "8. Run all checks"
+    echo "9. Auto-fix firewall rules for all nodes (ufw & iptables)"
     echo ""
     read -p "Enter your choice (1-8): " choice
     
