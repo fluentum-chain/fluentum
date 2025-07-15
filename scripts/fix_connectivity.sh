@@ -445,12 +445,28 @@ main() {
             test_connectivity
             check_gcp_firewall
             ;;
+        9)
+            auto_fix_all_firewall
+            ;;
         *)
             print_error "Invalid choice"
             exit 1
             ;;
     esac
 }
+
+auto_fix_all_firewall() {
+    print_status "Auto-fixing firewall rules for all nodes (ufw & iptables)..."
+    auto_fix=true
+    test_connectivity
+    print_success "Auto-fix completed."
+}
+
+# If --auto-fix is set, skip menu and run auto-fix directly
+if [ "$auto_fix" = true ] && [[ "$*" == *--auto-fix* ]]; then
+    auto_fix_all_firewall
+    exit 0
+fi
 
 # Run main function
 main "$@"
