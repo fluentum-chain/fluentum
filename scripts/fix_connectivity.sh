@@ -363,7 +363,6 @@ show_manual_steps() {
     echo "   - Ensure no host-based firewall is blocking traffic."
     echo ""
 }
-}
 
 # Main execution
 main() {

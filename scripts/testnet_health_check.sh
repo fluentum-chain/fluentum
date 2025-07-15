@@ -102,9 +102,13 @@ check_node_health() {
                     print_success "  Node is caught up"
                 elif [ "$catching_up" = "true" ]; then
                     print_warning "  Node is still catching up"
-                    echo "    Explanation: Node is downloading and verifying new blocks. If this persists, check network connectivity, peer list, and logs."
+                    echo "    Explanation: Node is downloading and verifying new blocks. If this persists, check network connectivity, persistent_peers in config.toml, and recent logs."
+                elif [ -z "$catching_up" ] || [ "$catching_up" = "unknown" ]; then
+                    print_warning "  Catching up status unknown or not reported"
+                    echo "    Possible causes: Node is still starting, RPC is lagging, or there is a network issue."
+                    echo "    Troubleshooting: Ensure the node process is running, check RPC port, and review logs."
                 else
-                    print_warning "  Catching up status unknown"
+                    print_warning "  Unexpected catching_up value: $catching_up"
                 fi
                 
             else
@@ -527,11 +531,18 @@ main() {
 
     echo ""
     echo "Legend:"
-    echo "  Reachable: Ping success"
-    echo "  RPC/P2P: Port open"
+    echo "  Reachable: Ping success (node responded to HTTP status request)"
+    echo "  RPC/P2P: Port open (TCP check)"
     echo "  BlockHeight: Latest block height (if available)"
-    echo "  CatchingUp: true=still syncing, false=fully synced"
+    echo "  CatchingUp: true=still syncing, false=fully synced, unknown=not reported (see troubleshooting above)"
     echo "  Errors: Recent log errors (last 10 min) if SSH/journalctl available"
+    echo ""
+    echo "TIPS:"
+    echo "- If you encounter SSH host authenticity prompts, for automation you can use:"
+    echo "    ssh -o StrictHostKeyChecking=no user@host ..."
+    echo "  (NOT recommended for production security!)"
+    echo "- For persistent catching up, check persistent_peers in config.toml, network/firewall, and logs."
+    echo "- For unreachable nodes, verify service status, firewall, and cloud network settings."
     echo ""
     echo "=== Health Check Complete ==="
 }
