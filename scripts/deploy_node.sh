@@ -154,6 +154,18 @@ else
     print_success "Node initialized successfully"
 fi
 
+# Check for genesis file and copy it if it exists
+if [ -f "config/genesis.json" ]; then
+    print_status "Copying genesis file to node config..."
+    cp config/genesis.json "$FLUENTUM_HOME/config/"
+    print_success "Genesis file copied successfully"
+else
+    print_error "genesis.json not found in config/ directory. Please ensure you have a valid genesis file."
+    print_status "You can obtain the genesis file from an existing node or generate one using 'fluentumd init-genesis'"
+    print_status "Place it in the config/ directory and run this script again."
+    exit 1
+fi
+
 # Create systemd service
 SERVICE_NAME="fluentum-$NODE_NAME"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
