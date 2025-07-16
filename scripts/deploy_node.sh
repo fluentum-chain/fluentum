@@ -91,7 +91,7 @@ fi
 
 # Initialize the node
 print_status "Initializing node..."
-if ! INIT_OUT=$($FLUENTUMD init "$NODE_NAME" 2>&1); then
+if ! INIT_OUT=$($FLUENTUMD init "$NODE_NAME" --home "$FLUENTUM_HOME" 2>&1); then
     print_error "Node initialization failed. Output:\n$INIT_OUT"
     exit 1
 else

@@ -12,7 +12,7 @@ chain_id = "fluentum-testnet-1"
 laddr = "tcp://0.0.0.0:26656"
 external_address = ""
 seeds = ""
-persistent_peers = "0c89ba21d414cbfa4c9fb4ee5748845967ab60e0@34.44.82.114:26656,a282a50276ca6e2ea329c6a823ac6de976001a33@34.72.252.153:26656,bfce2c393b70ff18d6a1e970bc635b6f4296ea0a@35.225.118.226:26656"
+persistent_peers = ""
 max_num_inbound_peers = 40
 max_num_outbound_peers = 10
 flush_throttle_timeout = "100ms"
@@ -77,7 +77,7 @@ peer_query_maj23_sleep_duration = "2s"
 
 # Database Configuration
 [database]
-backend = "goleveldb"
+db_backend = "goleveldb"
 dir = "data"
 
 # Logging Configuration
@@ -165,12 +165,12 @@ rpc_write_timeout = 0
 rpc_max_body_bytes = 1000000
 
 [client]
-node = "tcp://localhost:26657"
+node = "tcp://0.0.0.0:26657"
 chain_id = "fluentum-testnet-1"
 keyring_backend = "test"
 gas = "auto"
 gas_adjustment = 1.2
-gas_prices = "0.025uatom"
+gas_prices = "0.025flumx"
 min_gas_prices = ""
 broadcast_mode = "sync"
 simulate_and_execute_gas_multiplier = 1.1

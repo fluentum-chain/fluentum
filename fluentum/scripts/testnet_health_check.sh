@@ -1,10 +1,24 @@
 #!/bin/bash
 
 # Fluentum Testnet Health Check Script
-# Version: 3.0.0
-# Description: Comprehensive health check for Fluentum testnet nodes with detailed status reporting
+# Version: 3.2.0
+# Description: Comprehensive health check with advanced diagnostics and troubleshooting
+# Features:
+# - Detailed network connectivity checks
+# - Node synchronization status
+# - Resource utilization monitoring
+# - JSON output support
+# - Email/Telegram alerts
 
-set -e
+set -euo pipefail
+
+# Ensure required commands are available
+for cmd in curl jq nc; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "Error: $cmd is required but not installed." >&2
+        exit 1
+    fi
+done
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -22,6 +36,8 @@ CHECK_INTERVAL=60  # seconds
 LOG_FILE="/var/log/fluentum_health.log"
 ALERT_THRESHOLD=3  # Number of failed attempts before alerting
 OUTPUT_FORMAT="text"  # text or json
+DIAGNOSE=true      # Run detailed diagnostics
+TIMEOUT=5          # Connection timeout in seconds
 
 # Node configuration - can be overridden with --nodes flag
 # Format: NODE_ID:IP:RPC_PORT:API_PORT:GRPC_PORT
@@ -163,25 +179,127 @@ parse_json() {
     fi
 }
 
-# Function to check RPC endpoint
+# Function to check RPC endpoint with detailed error reporting
 check_rpc() {
     local node_ip=$1
     local node_rpc_port=$2
     local endpoint=$3
+    local full_url="http://${node_ip}:${node_rpc_port}/${endpoint}"
     
+    # Try to get both the response and HTTP status code
     local response
-    response=$(curl -s --max-time 5 "http://${node_ip}:${node_rpc_port}/${endpoint}" 2>/dev/null || echo "ERROR")
+    local http_code
     
-    if [ "$response" = "ERROR" ] || [ -z "$response" ]; then
-        echo "ERROR"
-    else
-        if [ "$JSON_PROCESSOR" = "jq" ]; then
-            echo "$response" | jq -r '.result' 2>/dev/null || echo "ERROR"
+    response=$(curl -s -w "\n%{http_code}" --connect-timeout $TIMEOUT --max-time $TIMEOUT "$full_url" 2>/dev/null) || {
+        log "[DEBUG] curl failed to $full_url"
+        echo "ERROR:CONNECTION_FAILED"
+        return 1
+    }
+    
+    # Extract the HTTP status code and response body
+    http_code=$(echo "$response" | tail -n1)
+    response=$(echo "$response" | sed '$d')
+    
+    if [[ -z "$response" || "$http_code" == "000" ]]; then
+        log "[DEBUG] No response from $full_url (HTTP $http_code)"
+        echo "ERROR:NO_RESPONSE"
+        return 1
+    fi
+    
+    if [[ "$http_code" != "200" ]]; then
+        log "[DEBUG] HTTP $http_code from $full_url"
+        echo "ERROR:HTTP_$http_code"
+        return 1
+    fi
+    
+    # Check if response is valid JSON
+    if ! echo "$response" | jq -e . >/dev/null 2>&1; then
+        log "[DEBUG] Invalid JSON response from $full_url"
+        echo "ERROR:INVALID_JSON"
+        return 1
+    fi
+    
+    # Extract the result field if it exists
+    local result
+    result=$(echo "$response" | jq -r '.result' 2>/dev/null || echo "$response")
+    
+    if [ -z "$result" ] || [ "$result" = "null" ]; then
+        log "[DEBUG] Empty result from $full_url"
+        echo "ERROR:EMPTY_RESULT"
+        return 1
+    fi
+    
+    echo "$result"
+    return 0
+}
+
+# Function to diagnose connection issues
+diagnose_connection() {
+    local node_ip=$1
+    local port=$2
+    local service=$3
+    
+    log "[DIAGNOSE] Checking $service connection to $node_ip:$port"
+    
+    # Check if port is open
+    if ! nc -z -w $TIMEOUT "$node_ip" "$port" 2>/dev/null; then
+        echo "  - ❌ Port $port is not open"
+        return 1
+    fi
+    
+    echo "  - ✅ Port $port is open"
+    
+    # Check system resources if local node
+    if [ "$node_id" = "$LOCAL_NODE_ID" ]; then
+        echo -e "\n${BLUE}=== System Resources ===${NC}"
+        
+        # Disk usage
+        echo -n "  • Disk usage: "
+        local disk_pct
+        disk_pct=$(df -h / | awk 'NR==2 {print $5}' | tr -d '%')
+        local disk_free
+        disk_free=$(df -h / | awk 'NR==2 {print $4}')
+        
+        if [ "$disk_pct" -gt 90 ]; then
+            echo -e "${RED}❌ Critical: ${disk_pct}% used (${disk_free}B free)${NC}"
+            health_status=$((health_status + 1))
+        elif [ "$disk_pct" -gt 80 ]; then
+            echo -e "${YELLOW}⚠️  Warning: ${disk_pct}% used (${disk_free}B free)${NC}"
+            health_status=$((health_status + 1))
         else
-            # For Python parser, we'll handle the result extraction in the parse_json function
-            echo "$response"
+            echo -e "${GREEN}✅ ${disk_pct}% used (${disk_free}B free)${NC}"
+        fi
+        
+        # Memory usage
+        echo -n "  • Memory usage: "
+        local mem_total
+        mem_total=$(free -m | awk '/Mem:/ {print $2}')
+        local mem_used
+        mem_used=$(free -m | awk '/Mem:/ {print $3}')
+        local mem_pct
+        mem_pct=$((mem_used * 100 / mem_total))
+        
+        if [ "$mem_pct" -gt 90 ]; then
+            echo -e "${RED}❌ Critical: ${mem_pct}% used (${mem_used}M/${mem_total}M)${NC}"
+            health_status=$((health_status + 1))
+        elif [ "$mem_pct" -gt 80 ]; then
+            echo -e "${YELLOW}⚠️  Warning: ${mem_pct}% used (${mem_used}M/${mem_total}M)${NC}"
+            health_status=$((health_status + 1))
+        else
+            echo -e "${GREEN}✅ ${mem_pct}% used (${mem_used}M/${mem_total}M)${NC}"
+        fi
+        
+        # Check if fluentumd is running
+        echo -n "  • Fluentum service: "
+        if systemctl is-active --quiet fluentumd; then
+            echo -e "${GREEN}✅ Running${NC}"
+        else
+            echo -e "${RED}❌ Not running${NC}"
+            health_status=$((health_status + 1))
         fi
     fi
+    
+    return 0
 }
 
 # Function to check node health
@@ -193,11 +311,72 @@ check_node_health() {
     
     local health_status=0
     local status_info=""
+    local node_info_json=""
+    local connection_ok=true
+    
+    # Run diagnostics if enabled
+    if [ "$DIAGNOSE" = true ]; then
+        echo -e "\n${BLUE}=== Diagnosing $node_id ($node_ip) ===${NC}"
+        
+        # Check RPC connection
+        if ! diagnose_connection "$node_ip" "$node_rpc_port" "RPC"; then
+            status_info="${status_info}RPC connection failed. "
+            health_status=$((health_status + 1))
+            connection_ok=false
+        fi
+        
+        # Check P2P connection
+        if ! diagnose_connection "$node_ip" "$((node_rpc_port - 1))" "P2P"; then
+            status_info="${status_info}P2P connection failed. "
+            health_status=$((health_status + 1))
+            connection_ok=false
+        fi
+        
+        # Skip further checks if basic connections failed
+        if [ "$connection_ok" = false ]; then
+            echo -e "${RED}❌ Basic connectivity issues detected.${NC}\n"
+            if [ "$OUTPUT_FORMAT" = "json" ]; then
+                echo "{\"node_id\":\"$node_id\",\"ip\":\"$node_ip\",\"rpc_port\":$node_rpc_port,\"api_port\":$node_api_port,\"health_status\":$health_status,\"status\":\"${status_info}\"}"
+            else
+                echo -e "${RED}❌ $node_id is not healthy: $status_info${NC}\n"
+            fi
+            return 1
+        fi
+    fi
     
     # Check if node is responding
-    local node_status=$(check_rpc "$node_ip" "$node_rpc_port" "status")
-    if [ "$node_status" = "ERROR" ]; then
-        echo "0,Node not responding"
+    local node_status
+    node_status=$(check_rpc "$node_ip" "$node_rpc_port" "status")
+    
+    # Handle different error cases
+    if [[ "$node_status" == ERROR:* ]]; then
+        local error_type=${node_status#ERROR:}
+        case $error_type in
+            CONNECTION_FAILED)
+                status_info="Connection failed. Check if node is running and accessible."
+                ;;
+            NO_RESPONSE)
+                status_info="No response from node. Check if RPC port is open and node is running."
+                ;;
+            HTTP_*)
+                status_info="HTTP ${error_type#HTTP_} error. Check node configuration."
+                ;;
+            INVALID_JSON)
+                status_info="Invalid response format. Node might be initializing."
+                ;;
+            EMPTY_RESULT)
+                status_info="Empty response from node. Check node logs for errors."
+                ;;
+            *)
+                status_info="Unknown error: $error_type"
+                ;;
+        esac
+        
+        if [ "$OUTPUT_FORMAT" = "json" ]; then
+            echo "{\"node_id\":\"$node_id\",\"ip\":\"$node_ip\",\"rpc_port\":$node_rpc_port,\"api_port\":$node_api_port,\"health_status\":1,\"status\":\"$status_info\"}"
+        else
+            echo -e "${RED}❌ $node_id: $status_info${NC}\n"
+        fi
         return 1
     fi
     
