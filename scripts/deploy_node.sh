@@ -52,12 +52,28 @@ NODE_IP="${NODE_IPS[$NODE_NAME]}"
 print_status "Deploying Fluentum testnet node: $NODE_NAME (index: $NODE_INDEX, IP: $NODE_IP)"
 
 # Check for fluentumd binary
-
 if [ -f "/usr/local/bin/fluentumd" ]; then
     FLUENTUMD="/usr/local/bin/fluentumd"
 else
-    print_error "fluentumd binary not found at /usr/local/bin/fluentumd. Please install it first."
-    exit 1
+    print_status "fluentumd binary not found. Building and installing..."
+    
+    # Build fluentumd
+    if ! BUILD_OUT=$(make install 2>&1); then
+        print_error "Failed to build fluentumd. Output:\n$BUILD_OUT"
+        echo "Make sure you have Go and build dependencies installed."
+        exit 1
+    fi
+    
+    # Install to /usr/local/bin
+    if [ -f "$HOME/go/bin/fluentumd" ]; then
+        sudo cp "$HOME/go/bin/fluentumd" /usr/local/bin/
+        sudo chmod +x /usr/local/bin/fluentumd
+        FLUENTUMD="/usr/local/bin/fluentumd"
+        print_success "fluentumd installed to /usr/local/bin/"
+    else
+        print_error "fluentumd binary not found in $HOME/go/bin/ after build"
+        exit 1
+    fi
 fi
 
 # Set home directory
