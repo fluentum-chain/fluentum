@@ -102,14 +102,18 @@ if [ -z "$FLUENTUMD" ]; then
         echo "$BUILD_OUT"
         exit 1
     fi
-    
-    # Install to /usr/local/bin for system-wide access
-    if [ "$FLUENTUMD" != "/usr/local/bin/fluentumd" ]; then
-        print_status "Installing fluentumd to /usr/local/bin/..."
-        sudo cp "$FLUENTUMD" /usr/local/bin/
-        sudo chmod +x /usr/local/bin/fluentumd
-        FLUENTUMD="/usr/local/bin/fluentumd"
-    fi
+else
+    print_status "Found existing fluentumd at $FLUENTUMD"
+fi
+
+# Ensure fluentumd is in /usr/local/bin for systemd service
+if [ "$FLUENTUMD" != "/usr/local/bin/fluentumd" ]; then
+    print_status "Installing fluentumd to /usr/local/bin/..."
+    sudo cp "$FLUENTUMD" /usr/local/bin/
+    sudo chmod +x /usr/local/bin/fluentumd
+    FLUENTUMD="/usr/local/bin/fluentumd"
+    print_success "fluentumd installed to $FLUENTUMD"
+fi
 fi
 
 # Set home directory
@@ -165,7 +169,7 @@ After=network.target
 Type=simple
 User=$USER
 WorkingDirectory=$FLUENTUM_HOME
-ExecStart=$FLUENTUMD start --home $FLUENTUM_HOME
+ExecStart=$FLUENTUMD start --home $FLUENTUM_HOME --moniker $NODE_NAME --chain-id fluentum-testnet-1 --testnet --log_level info
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=4096
