@@ -114,7 +114,6 @@ if [ "$FLUENTUMD" != "/usr/local/bin/fluentumd" ]; then
     FLUENTUMD="/usr/local/bin/fluentumd"
     print_success "fluentumd installed to $FLUENTUMD"
 fi
-fi
 
 # Set home directory
 FLUENTUM_HOME="/opt/fluentum/$NODE_NAME"
