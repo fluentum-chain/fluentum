@@ -51,28 +51,64 @@ NODE_IP="${NODE_IPS[$NODE_NAME]}"
 
 print_status "Deploying Fluentum testnet node: $NODE_NAME (index: $NODE_INDEX, IP: $NODE_IP)"
 
-# Check for fluentumd binary
-if [ -f "/usr/local/bin/fluentumd" ]; then
-    FLUENTUMD="/usr/local/bin/fluentumd"
-else
-    print_status "fluentumd binary not found. Building and installing..."
+# Check for fluentumd binary in multiple possible locations
+FLUENTUMD=""
+POSSIBLE_PATHS=(
+    "/usr/local/bin/fluentumd"
+    "$HOME/go/bin/fluentumd"
+    "$GOPATH/bin/fluentumd"
+    "$(pwd)/build/fluentumd"
+    "$(pwd)/bin/fluentumd"
+)
+
+for path in "${POSSIBLE_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+        FLUENTUMD="$path"
+        print_status "Found fluentumd at $FLUENTUMD"
+        break
+    fi
+done
+
+if [ -z "$FLUENTUMD" ]; then
+    print_status "fluentumd binary not found in any standard locations. Building from source..."
     
-    # Build fluentumd
-    if ! BUILD_OUT=$(make install 2>&1); then
-        print_error "Failed to build fluentumd. Output:\n$BUILD_OUT"
-        echo "Make sure you have Go and build dependencies installed."
+    # Ensure Go is installed
+    if ! command -v go &> /dev/null; then
+        print_error "Go is not installed or not in PATH. Please install Go 1.18+ and try again."
         exit 1
     fi
     
-    # Install to /usr/local/bin
-    if [ -f "$HOME/go/bin/fluentumd" ]; then
-        sudo cp "$HOME/go/bin/fluentumd" /usr/local/bin/
+    # Build fluentumd
+    print_status "Building fluentumd..."
+    if ! BUILD_OUT=$(make install 2>&1); then
+        print_error "Failed to build fluentumd. Output:\n$BUILD_OUT"
+        echo "Make sure you have all build dependencies installed."
+        echo "You may need to install: build-essential git"
+        exit 1
+    fi
+    
+    # Check build output locations
+    for path in "${POSSIBLE_PATHS[@]}"; do
+        if [ -f "$path" ]; then
+            FLUENTUMD="$path"
+            print_success "Successfully built fluentumd at $FLUENTUMD"
+            break
+        fi
+    done
+    
+    if [ -z "$FLUENTUMD" ]; then
+        print_error "fluentumd binary not found after build. Checked paths: ${POSSIBLE_PATHS[*]}"
+        echo "Build output was:"
+        echo "$BUILD_OUT"
+        exit 1
+    fi
+    
+    # Install to /usr/local/bin for system-wide access
+    if [ "$FLUENTUMD" != "/usr/local/bin/fluentumd" ]; then
+        print_status "Installing fluentumd to /usr/local/bin/..."
+        sudo cp "$FLUENTUMD" /usr/local/bin/
         sudo chmod +x /usr/local/bin/fluentumd
         FLUENTUMD="/usr/local/bin/fluentumd"
-        print_success "fluentumd installed to /usr/local/bin/"
-    else
-        print_error "fluentumd binary not found in $HOME/go/bin/ after build"
-        exit 1
     fi
 fi
 
