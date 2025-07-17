@@ -100,6 +100,8 @@ install: deps
 	@sudo cp build/fluentumd /usr/local/bin/
 	@sudo chmod +x /usr/local/bin/fluentumd
 	@echo "--> Binary also installed as /usr/local/bin/fluentumd"
+	@sudo chmod +x /usr/local/bin/fluentumd
+	@echo "--> Binary also installed as /usr/local/bin/fluentumd"
 .PHONY: install
 
 # Install without dependency management
