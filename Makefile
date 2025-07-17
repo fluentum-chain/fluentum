@@ -11,7 +11,7 @@ VERSION := $(shell git describe)
 endif
 
 LD_FLAGS = -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(VERSION)
-BUILD_FLAGS = -mod=readonly -ldflags "$(LD_FLAGS)"
+BUILD_FLAGS = -mod=readonly
 HTTPS_GIT := https://github.com/tendermint/tendermint.git
 CGO_ENABLED ?= 0
 
@@ -82,18 +82,19 @@ deps-check:
 # Build with automatic dependency management
 build: deps
 	@echo "--> Building Fluentum Core $(VERSION)"
-	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(OUTPUT) ./cmd/fluentum/
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags "$(LD_FLAGS)" -tags "$(BUILD_TAGS)" -o $(OUTPUT) ./cmd/fluentum/
 .PHONY: build
 
 # Build without dependency management (for CI/CD when deps are already managed)
 build-only:
 	@echo "--> Building Fluentum Core $(VERSION) (dependencies assumed to be ready)"
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags "$(LD_FLAGS)" -tags "$(BUILD_TAGS)" -o $(OUTPUT) ./cmd/fluentum/
 	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(OUTPUT) ./cmd/fluentum/
 .PHONY: build-only
 
 install: deps
 	@echo "--> Installing Fluentum Core $(VERSION) as fluentumd"
-	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o build/fluentumd ./cmd/fluentum
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags "$(LD_FLAGS)" -tags "$(BUILD_TAGS)" -o build/fluentumd ./cmd/fluentum
 	@mkdir -p $(GOPATH)/bin
 	@cp build/fluentumd $(GOPATH)/bin/
 	@echo "--> Binary installed as fluentumd in $(GOPATH)/bin"
@@ -107,7 +108,7 @@ install: deps
 # Install without dependency management
 install-only:
 	@echo "--> Installing Fluentum Core $(VERSION) as fluentumd (dependencies assumed to be ready)"
-	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o build/fluentumd ./cmd/fluentum
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags "$(LD_FLAGS)" -tags "$(BUILD_TAGS)" -o build/fluentumd ./cmd/fluentum
 	@mkdir -p $(GOPATH)/bin
 	@cp build/fluentumd $(GOPATH)/bin/
 	@echo "--> Binary installed as fluentumd in $(GOPATH)/bin"
