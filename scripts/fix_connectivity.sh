@@ -45,11 +45,11 @@ TESTNET_CHAIN_ID="fluentum-testnet-1"
 
 # Server configurations with correct ports
 declare -A SERVERS=(
-    ["fluentum-node1"]="35.184.255.225"
-    ["fluentum-node2"]="34.44.82.114"
-    ["fluentum-node3"]="34.68.180.153"
-    ["fluentum-node4"]="34.72.252.153"
-    ["fluentum-node5"]="35.225.118.226"
+    ["fluentum-node1"]="34.30.12.211"
+    ["fluentum-node2"]="35.232.125.109"
+    ["fluentum-node3"]="34.57.206.217"
+    ["fluentum-node4"]="34.41.166.45"
+    ["fluentum-node5"]="35.222.79.161"
 )
 
 # Port configurations
