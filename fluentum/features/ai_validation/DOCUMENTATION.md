@@ -169,9 +169,9 @@ Create a configuration file `ai_validator_config.json`:
 package main
 
 import (
-    "github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-    "github.com/fluentum-chain/fluentum/fluentum/core/validator"
-    "github.com/fluentum-chain/fluentum/fluentum/core/types"
+    "github.com/fluentum-chain/fluentum/core/plugin"
+    "github.com/fluentum-chain/fluentum/core/validator"
+    "github.com/fluentum-chain/fluentum/core/types"
 )
 
 func main() {

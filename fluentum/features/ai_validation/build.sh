@@ -198,7 +198,7 @@ generate_docs() {
     sleep 3
     
     # Generate HTML documentation
-    curl -s "http://localhost:6060/pkg/github.com/fluentum-chain/fluentum/fluentum/features/ai_validation/" > "../../docs/ai_validation/index.html"
+    curl -s "http://localhost:6060/pkg/github.com/fluentum-chain/fluentum/features/ai_validation/" > "../../docs/ai_validation/index.html"
     
     # Kill godoc server
     kill $DOC_PID

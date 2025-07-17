@@ -14,8 +14,8 @@ import (
 	"github.com/fluentum-chain/fluentum/crypto/merkle"
 	"github.com/fluentum-chain/fluentum/crypto/tmhash"
 
-	// "github.com/fluentum-chain/fluentum/fluentum/quantum"
-	// "github.com/fluentum-chain/fluentum/fluentum/zkprover"
+	// "github.com/fluentum-chain/fluentum/quantum"
+	// "github.com/fluentum-chain/fluentum/zkprover"
 	"github.com/fluentum-chain/fluentum/libs/bits"
 	tmbytes "github.com/fluentum-chain/fluentum/libs/bytes"
 	tmmath "github.com/fluentum-chain/fluentum/libs/math"

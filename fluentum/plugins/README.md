@@ -26,7 +26,7 @@ chmod +x build.sh
 
 **Usage:**
 ```go
-import "github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+import "github.com/fluentum-chain/fluentum/core/plugin"
 
 // Load the quantum signer plugin
 err := plugin.LoadSignerPlugin("./quantum_signer.so")
@@ -68,7 +68,7 @@ plugins/
 ```go
 package main
 
-import "github.com/fluentum-chain/fluentum/fluentum/core/crypto"
+import "github.com/fluentum-chain/fluentum/core/crypto"
 
 type MySigner struct{}
 

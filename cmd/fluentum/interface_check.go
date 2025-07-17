@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/fluentum-chain/fluentum/fluentum/app"
+	"github.com/fluentum-chain/fluentum/app"
 )
 
 // Interface compliance verification for Cosmos SDK v0.50.6

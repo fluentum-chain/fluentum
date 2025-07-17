@@ -138,8 +138,8 @@ Built as a shared library using `go build -buildmode=plugin`:
 package main
 
 import (
-    "github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-    "github.com/fluentum-chain/fluentum/fluentum/core/validator"
+    "github.com/fluentum-chain/fluentum/core/plugin"
+    "github.com/fluentum-chain/fluentum/core/validator"
 )
 
 func main() {
@@ -258,7 +258,7 @@ go test -bench=. -benchmem ./...
 ```
 PASS
 coverage: 92.3% of statements
-ok      github.com/fluentum-chain/fluentum/fluentum/features/ai_validation    0.123s
+ok      github.com/fluentum-chain/fluentum/features/ai_validation    0.123s
 ```
 
 ## Deployment

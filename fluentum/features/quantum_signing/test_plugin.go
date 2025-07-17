@@ -2,7 +2,7 @@ package main
 
 import (
     "log"
-    "github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+    "github.com/fluentum-chain/fluentum/core/plugin"
 )
 
 func main() {
