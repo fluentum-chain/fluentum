@@ -528,30 +528,6 @@ LDFLAGS=-ldflags "-X github.com/fluentum-chain/fluentum/version.Name=Fluentum \
 	-X github.com/fluentum-chain/fluentum/version.Version=$(shell git describe --tags --always --dirty) \
 	-X github.com/fluentum-chain/fluentum/version.Commit=$(shell git log -1 --format='%H')"
 
-# Default target
-.PHONY: all
-all: build
-
-# Build the binary
-.PHONY: build
-build:
-	@echo "Building $(BINARY_NAME)..."
-	@mkdir -p $(BUILD_DIR)
-	$(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/fluentum
-
-# Install the binary
-.PHONY: install
-install:
-	@echo "Installing $(BINARY_NAME)..."
-	$(GO) install $(LDFLAGS) ./cmd/fluentum
-
-# Clean build artifacts
-.PHONY: clean
-clean:
-	@echo "Cleaning build artifacts..."
-	@if exist build rmdir /s /q build
-	@if exist .fluentum rmdir /s /q .fluentum
-
 # Run tests
 .PHONY: test
 test:
