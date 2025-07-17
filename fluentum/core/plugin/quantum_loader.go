@@ -16,6 +16,10 @@ const (
 // LoadSignerPlugin loads a signer from a Go plugin (.so file) and registers it by its Name().
 // Example: path = "./quantum_signing.so"
 func LoadSignerPlugin(path string) error {
+	// Allow override by environment variable for development flexibility
+	if envPath := os.Getenv("QUANTUM_SIGNER_PLUGIN_PATH"); envPath != "" {
+		path = envPath
+	}
 	p, err := plugin.Open(path)
 	if err != nil {
 		return err
