@@ -88,13 +88,13 @@ build: deps
 # Build without dependency management (for CI/CD when deps are already managed)
 build-only:
 	@echo "--> Building Fluentum Core $(VERSION) (dependencies assumed to be ready)"
-	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags "$(LD_FLAGS)" -tags "$(BUILD_TAGS)" -o $(OUTPUT) ./cmd/fluentum/
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags $(LDFLAGS) -tags "$(BUILD_TAGS)" -o $(OUTPUT) ./cmd/fluentum/
 	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(OUTPUT) ./cmd/fluentum/
 .PHONY: build-only
 
 install: deps
 	@echo "--> Installing Fluentum Core $(VERSION) as fluentumd"
-	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags "$(LD_FLAGS)" -tags "$(BUILD_TAGS)" -o build/fluentumd ./cmd/fluentum
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags $(LDFLAGS) -tags "$(BUILD_TAGS)" -o build/fluentumd ./cmd/fluentum
 	@mkdir -p $(GOPATH)/bin
 	@cp build/fluentumd $(GOPATH)/bin/
 	@echo "--> Binary installed as fluentumd in $(GOPATH)/bin"
@@ -108,7 +108,7 @@ install: deps
 # Install without dependency management
 install-only:
 	@echo "--> Installing Fluentum Core $(VERSION) as fluentumd (dependencies assumed to be ready)"
-	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags "$(LD_FLAGS)" -tags "$(BUILD_TAGS)" -o build/fluentumd ./cmd/fluentum
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -ldflags $(LDFLAGS) -tags "$(BUILD_TAGS)" -o build/fluentumd ./cmd/fluentum
 	@mkdir -p $(GOPATH)/bin
 	@cp build/fluentumd $(GOPATH)/bin/
 	@echo "--> Binary installed as fluentumd in $(GOPATH)/bin"
@@ -523,7 +523,7 @@ GO=go
 DOCKER=docker
 
 # Build flags
-LDFLAGS=-ldflags "-X github.com/fluentum-chain/fluentum/version.Name=Fluentum \
+LDFLAGS="-X github.com/fluentum-chain/fluentum/version.Name=Fluentum \
 	-X github.com/fluentum-chain/fluentum/version.ServerName=fluentumd \
 	-X github.com/fluentum-chain/fluentum/version.ClientName=fluentumcli \
 	-X github.com/fluentum-chain/fluentum/version.Version=$(shell git describe --tags --always --dirty) \
