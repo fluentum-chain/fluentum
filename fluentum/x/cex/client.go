@@ -3,7 +3,7 @@ package cex
 import (
 	"context"
 
-	"github.com/fluentum-chain/fluentum/fluentum/types"
+	"github.com/fluentum-chain/fluentum/types"
 )
 
 // Client handles interactions with centralized exchanges

@@ -14,9 +14,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum/client/cli"
-	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum/keeper"
-	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
+	"github.com/fluentum-chain/fluentum/x/fluentum/client/cli"
+	"github.com/fluentum-chain/fluentum/x/fluentum/keeper"
+	"github.com/fluentum-chain/fluentum/x/fluentum/types"
 )
 
 var (

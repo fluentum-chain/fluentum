@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
+	"github.com/fluentum-chain/fluentum/x/fluentum/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

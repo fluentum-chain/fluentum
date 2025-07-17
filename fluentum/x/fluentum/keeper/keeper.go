@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
+	"github.com/fluentum-chain/fluentum/x/fluentum/types"
 )
 
 // BankKeeper defines the expected bank keeper
