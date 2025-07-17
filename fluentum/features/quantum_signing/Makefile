@@ -21,7 +21,6 @@ else ifeq ($(shell uname -s),Darwin)
     GO_FLAGS += -H darwin
 else
     PLUGIN_EXT = .so
-    GO_FLAGS += -H linux
 endif
 
 # Update plugin path for platform
