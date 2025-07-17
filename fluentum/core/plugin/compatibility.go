@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fluentum-chain/fluentum/version"
+	"github.com/fluentum-chain/fluentum/fluentum/version"
 )
 
 // QuantumManifest represents the manifest.json structure for quantum plugins

@@ -4,6 +4,9 @@ go 1.24.4
 
 require (
 	github.com/cloudflare/circl v1.3.3
+	github.com/fluentum-chain/fluentum/fluentum/core/plugin v0.0.0
+	github.com/fluentum-chain/fluentum/fluentum/core/crypto v0.0.0
+	github.com/fluentum-chain/fluentum/fluentum/version v0.0.0
 )
 
 require (
@@ -13,3 +16,6 @@ require (
 
 // Replace with local path for development
 replace github.com/cloudflare/circl => github.com/cloudflare/circl v1.3.3
+replace github.com/fluentum-chain/fluentum/fluentum/core/plugin => ../../core/plugin
+replace github.com/fluentum-chain/fluentum/fluentum/core/crypto => ../../core/crypto
+replace github.com/fluentum-chain/fluentum/fluentum/version => ../../version
