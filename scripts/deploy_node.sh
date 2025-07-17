@@ -53,10 +53,21 @@ print_status "Deploying Fluentum testnet node: $NODE_NAME (index: $NODE_INDEX, I
 
 # Check for fluentumd binary in multiple possible locations
 FLUENTUMD=""
+# Dynamically detect Go binary output directory
+GO_BIN_PATH=""
+if command -v go &> /dev/null; then
+    GO_BIN_PATH=$(go env GOBIN)
+    if [ -z "$GO_BIN_PATH" ]; then
+        GO_BIN_PATH="$(go env GOPATH)/bin"
+    fi
+    echo "[DEBUG] Detected Go binary path: $GO_BIN_PATH"
+fi
+
 POSSIBLE_PATHS=(
     "/usr/local/bin/fluentumd"
     "$HOME/go/bin/fluentumd"
     "$GOPATH/bin/fluentumd"
+    "$GO_BIN_PATH/fluentumd"
     "$(pwd)/build/fluentumd"
     "$(pwd)/bin/fluentumd"
 )
