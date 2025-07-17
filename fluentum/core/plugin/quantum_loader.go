@@ -5,7 +5,7 @@ import (
 	"plugin"
 	"strings"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/crypto"
+	"github.com/fluentum-chain/fluentum/core/crypto"
 )
 
 const (

@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
-	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/types"
-	"github.com/fluentum-chain/fluentum/fluentum/x/cex"
-	"github.com/fluentum-chain/fluentum/fluentum/x/dex"
+	fluentumtypes "github.com/fluentum-chain/fluentum/types"
+	"github.com/fluentum-chain/fluentum/x/cex"
+	"github.com/fluentum-chain/fluentum/x/dex"
 )
 
 // Router handles order routing between CEX and DEX

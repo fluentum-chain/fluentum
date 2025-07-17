@@ -6,7 +6,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
-	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
+	fluentumtypes "github.com/fluentum-chain/fluentum/x/fluentum/types"
 )
 
 // RegisterLegacyAminoCodec registers Amino codec types

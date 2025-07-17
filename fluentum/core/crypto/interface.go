@@ -67,7 +67,7 @@ USAGE FOR FEATURES (e.g., quantum_signing):
 
 // Implement the Signer interface in your feature package
 // Register your signer at runtime:
-import "github.com/fluentum-chain/fluentum/fluentum/core/crypto"
+import "github.com/fluentum-chain/fluentum/core/crypto"
 
 crypto.RegisterSigner("dilithium", NewDilithiumSigner())
 crypto.SetActiveSigner("dilithium") // To activate

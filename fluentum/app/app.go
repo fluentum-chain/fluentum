@@ -45,9 +45,9 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	// Fluentum modules
-	"github.com/fluentum-chain/fluentum/fluentum/x/fluentum"
-	fluentumkeeper "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/keeper"
-	fluentumtypes "github.com/fluentum-chain/fluentum/fluentum/x/fluentum/types"
+	"github.com/fluentum-chain/fluentum/x/fluentum"
+	fluentumkeeper "github.com/fluentum-chain/fluentum/x/fluentum/keeper"
+	fluentumtypes "github.com/fluentum-chain/fluentum/x/fluentum/types"
 
 	"cosmossdk.io/core/store"
 	cosmossdkstore "cosmossdk.io/core/store"

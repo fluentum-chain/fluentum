@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	cfg "github.com/fluentum-chain/fluentum/config"
-	"github.com/fluentum-chain/fluentum/fluentum/core/crypto"
-	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+	"github.com/fluentum-chain/fluentum/core/crypto"
+	"github.com/fluentum-chain/fluentum/core/plugin"
 	ctypes "github.com/fluentum-chain/fluentum/rpc/core/types"
 	rpcserver "github.com/fluentum-chain/fluentum/rpc/jsonrpc/server"
 	rpctypes "github.com/fluentum-chain/fluentum/rpc/jsonrpc/types"

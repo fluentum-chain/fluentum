@@ -1,3 +1,3 @@
-module github.com/fluentum-chain/fluentum/fluentum/core/crypto
+module github.com/fluentum-chain/fluentum/core/crypto
 
 go 1.24.4

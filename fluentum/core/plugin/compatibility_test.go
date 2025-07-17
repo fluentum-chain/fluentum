@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/fluentum-chain/fluentum/fluentum/version"
+	"github.com/fluentum-chain/fluentum/version"
 )
 
 func TestQuantumManifestParsing(t *testing.T) {

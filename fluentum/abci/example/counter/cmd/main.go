@@ -7,7 +7,7 @@ import (
 
 	"github.com/cometbft/cometbft/abci/server"
 	tmlog "github.com/cometbft/cometbft/libs/log"
-	"github.com/fluentum-chain/fluentum/fluentum/abci/example/counter"
+	"github.com/fluentum-chain/fluentum/abci/example/counter"
 )
 
 func main() {

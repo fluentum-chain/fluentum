@@ -10,8 +10,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
-	"github.com/fluentum-chain/fluentum/fluentum/core/validator"
+	"github.com/fluentum-chain/fluentum/core/plugin"
+	"github.com/fluentum-chain/fluentum/core/validator"
 	"github.com/fluentum-chain/fluentum/types"
 )
 
