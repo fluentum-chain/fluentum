@@ -4,6 +4,7 @@ import (
 	"errors"
 	"plugin"
 	"strings"
+	"os"
 
 	"github.com/fluentum-chain/fluentum/core/crypto"
 )
