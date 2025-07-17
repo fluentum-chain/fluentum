@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core"
+	"github.com/fluentum-chain/fluentum/core"
 
 	dbm "github.com/cometbft/cometbft-db"
 	cometabci "github.com/cometbft/cometbft/abci/types"
@@ -38,8 +38,8 @@ import (
 	abcitypes "github.com/fluentum-chain/fluentum/abci/types"
 	"github.com/fluentum-chain/fluentum/config"
 	_ "github.com/fluentum-chain/fluentum/crypto/ed25519"
-	"github.com/fluentum-chain/fluentum/fluentum/app"
-	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+	"github.com/fluentum-chain/fluentum/app"
+	"github.com/fluentum-chain/fluentum/core/plugin"
 	fluentumlog "github.com/fluentum-chain/fluentum/libs/log"
 	"github.com/fluentum-chain/fluentum/node"
 	"github.com/fluentum-chain/fluentum/p2p"
