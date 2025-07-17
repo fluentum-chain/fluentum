@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/rand"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/crypto"
+	"github.com/fluentum-chain/fluentum/core/crypto"
 )
 
 // TODO: Replace Dilithium implementation when a suitable package is available.

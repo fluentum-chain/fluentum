@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fluentum-chain/fluentum/fluentum/core/plugin"
+	"github.com/fluentum-chain/fluentum/core/plugin"
 )
 
 // Validator represents a validator node that can sign and verify blocks
