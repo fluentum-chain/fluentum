@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fluentum/quantum_signing"
+	"github.com/fluentum-chain/fluentum/features/quantum_signing"
 	"github.com/stretchr/testify/require"
 )
 

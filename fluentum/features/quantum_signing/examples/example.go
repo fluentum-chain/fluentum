@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/fluentum/quantum_signing"
+	"github.com/fluentum-chain/fluentum/features/quantum_signing"
 )
 
 func main() {
