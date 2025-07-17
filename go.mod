@@ -16,6 +16,15 @@ replace (
 	github.com/fluentum-chain/fluentum/features/quantum_signing => ./fluentum/features/quantum_signing
 	github.com/fluentum-chain/fluentum/features/state_sync => ./fluentum/features/state_sync
 	github.com/fluentum-chain/fluentum/features/zk_rollup => ./fluentum/features/zk_rollup
+
+	github.com/fluentum-chain/fluentum/core/plugin => ./fluentum/core/plugin
+	github.com/fluentum-chain/fluentum/core/crypto => ./fluentum/core/crypto
+	github.com/fluentum-chain/fluentum/x/fluentum => ./fluentum/x/fluentum
+	github.com/fluentum-chain/fluentum/x/cex => ./fluentum/x/cex
+	github.com/fluentum-chain/fluentum/x/dex => ./fluentum/x/dex
+	github.com/fluentum-chain/fluentum/quantum => ./fluentum/quantum
+	github.com/fluentum-chain/fluentum/zkprover => ./fluentum/zkprover
+	github.com/fluentum-chain/fluentum/liquidity => ./fluentum/liquidity
 )
 
 require (
