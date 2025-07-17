@@ -9,6 +9,11 @@ replace github.com/tendermint/tendermint-db => github.com/cometbft/cometbft-db v
 // Local development replace for features package and its submodules
 replace (
 	github.com/fluentum-chain/fluentum => .
+
+	github.com/fluentum-chain/fluentum/app => ./fluentum/app
+	github.com/fluentum-chain/fluentum/core => ./fluentum/core
+	github.com/fluentum-chain/fluentum/core/crypto => ./fluentum/core/crypto
+	github.com/fluentum-chain/fluentum/core/plugin => ./fluentum/core/plugin
 	github.com/fluentum-chain/fluentum/features => ./fluentum/features
 	github.com/fluentum-chain/fluentum/features/ai_validation => ./fluentum/features/ai_validation
 	github.com/fluentum-chain/fluentum/features/qmoe_validator => ./fluentum/features/qmoe_validator
@@ -16,25 +21,18 @@ replace (
 	github.com/fluentum-chain/fluentum/features/quantum_signing => ./fluentum/features/quantum_signing
 	github.com/fluentum-chain/fluentum/features/state_sync => ./fluentum/features/state_sync
 	github.com/fluentum-chain/fluentum/features/zk_rollup => ./fluentum/features/zk_rollup
-
-	github.com/fluentum-chain/fluentum/core/plugin => ./fluentum/core/plugin
-	github.com/fluentum-chain/fluentum/core/crypto => ./fluentum/core/crypto
-	github.com/fluentum-chain/fluentum/x/fluentum => ./fluentum/x/fluentum
+	github.com/fluentum-chain/fluentum/liquidity => ./fluentum/liquidity
+	github.com/fluentum-chain/fluentum/quantum => ./fluentum/quantum
 	github.com/fluentum-chain/fluentum/x/cex => ./fluentum/x/cex
 	github.com/fluentum-chain/fluentum/x/dex => ./fluentum/x/dex
-	github.com/fluentum-chain/fluentum/quantum => ./fluentum/quantum
+	github.com/fluentum-chain/fluentum/x/fluentum => ./fluentum/x/fluentum
 	github.com/fluentum-chain/fluentum/zkprover => ./fluentum/zkprover
-	github.com/fluentum-chain/fluentum/liquidity => ./fluentum/liquidity
 )
 
 require (
 	cloud.google.com/go/kms v1.20.1
-	cosmossdk.io/core v0.11.3
-	cosmossdk.io/log v1.6.0
-	cosmossdk.io/store v1.1.2
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/ChainSafe/go-schnorrkel v1.1.0
-	github.com/CosmWasm/wasmd v0.61.0
 	github.com/Workiva/go-datastructures v1.1.5
 	github.com/adlio/schema v1.3.6
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4
@@ -43,14 +41,19 @@ require (
 	github.com/cloudflare/circl v1.3.7
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cometbft/cometbft-db v0.14.1
-	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/creachadair/taskgroup v0.13.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
+	github.com/fluentum-chain/fluentum/app v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/core v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/core/crypto v0.0.0
+	github.com/fluentum-chain/fluentum/core/plugin v0.0.0
 	github.com/fluentum-chain/fluentum/features v0.0.0-00010101000000-000000000000
-	github.com/fluentum-chain/fluentum/features/quantum_signing v0.0.0-00010101000000-000000000000
-	github.com/fluentum-chain/fluentum/features/state_sync v0.0.0-00010101000000-000000000000
-	github.com/fluentum-chain/fluentum/features/zk_rollup v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/liquidity v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/quantum v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/x/cex v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/x/dex v0.0.0-00010101000000-000000000000
+	github.com/fluentum-chain/fluentum/zkprover v0.0.0-00010101000000-000000000000
 	github.com/fortytw2/leaktest v1.3.0
 	github.com/go-kit/kit v0.13.0
 	github.com/go-kit/log v0.2.1
@@ -61,9 +64,7 @@ require (
 	github.com/golangci/golangci-lint v1.52.0
 	github.com/google/orderedcode v0.0.1
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
-	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/gtank/merlin v0.1.1
 	github.com/iden3/go-iden3-crypto v0.0.17
 	github.com/informalsystems/tm-load-test v1.3.0
@@ -77,7 +78,6 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/sasha-s/go-deadlock v0.3.5
 	github.com/snikch/goodman v0.0.0-20171125024755-10e37e294daa
-	github.com/spf13/cast v1.9.2
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
@@ -106,10 +106,13 @@ require (
 	cloud.google.com/go/storage v1.49.0 // indirect
 	cosmossdk.io/api v0.9.2 // indirect
 	cosmossdk.io/collections v1.2.1 // indirect
+	cosmossdk.io/core v0.11.3 // indirect
 	cosmossdk.io/depinject v1.2.0 // indirect
 	cosmossdk.io/errors v1.0.2 // indirect
+	cosmossdk.io/log v1.6.0 // indirect
 	cosmossdk.io/math v1.5.3 // indirect
 	cosmossdk.io/schema v1.1.0 // indirect
+	cosmossdk.io/store v1.1.2 // indirect
 	cosmossdk.io/x/evidence v0.1.1 // indirect
 	cosmossdk.io/x/feegrant v0.1.1 // indirect
 	cosmossdk.io/x/tx v0.14.0 // indirect
@@ -121,6 +124,7 @@ require (
 	github.com/Antonboom/errname v0.1.9 // indirect
 	github.com/Antonboom/nilnil v0.1.3 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
+	github.com/CosmWasm/wasmd v0.61.0 // indirect
 	github.com/CosmWasm/wasmvm/v3 v3.0.0 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
@@ -169,6 +173,7 @@ require (
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
+	github.com/cosmos/cosmos-db v1.1.1 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
@@ -206,6 +211,7 @@ require (
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/firefart/nonamedreturns v1.0.4 // indirect
+	github.com/fluentum-chain/fluentum/x/fluentum v0.0.0-00010101000000-000000000000 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/getsentry/sentry-go v0.32.0 // indirect
@@ -245,17 +251,19 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.13.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20230228050547-1710fef4ab10 // indirect
+	github.com/google/pprof v0.0.0-20240424215950-a892ee059fd6 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.1 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20230107090616-13ace0543b28 // indirect
 	github.com/gorilla/handlers v1.5.2 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
 	github.com/gostaticanalysis/forcetypeassert v0.1.0 // indirect
 	github.com/gostaticanalysis/nilerr v0.1.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/gtank/ristretto255 v0.1.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -329,6 +337,7 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/onsi/ginkgo/v2 v2.19.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
 	github.com/opencontainers/runc v1.1.12 // indirect
@@ -368,6 +377,7 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/sourcegraph/go-diff v0.7.0 // indirect
 	github.com/spf13/afero v1.12.0 // indirect
+	github.com/spf13/cast v1.9.2 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
