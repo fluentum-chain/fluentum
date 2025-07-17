@@ -1,7 +1,6 @@
-//go:build !plugin
-// +build !plugin
+package main
 
-package quantum_signing // import "github.com/fluentum/quantum_signing"
+// This file is built as a Go plugin. All exported symbols are available to the host application.
 
 import (
 	"context"
@@ -380,4 +379,5 @@ func (q *QuantumSigner) IsQuantumResistant() bool {
 	return true
 }
 
-func main() {} // Required but unused
+// Plugin is the exported symbol for the Go plugin loader.
+var Plugin QuantumSigner
