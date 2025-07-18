@@ -1,0 +1,19 @@
+language: go
+
+go:
+  - 1.13
+  - 1.16
+  - 1.17
+  - tip
+
+before_install:
+  - go get -t -v ./...
+
+script:
+  - go test -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+services:
+  - docker

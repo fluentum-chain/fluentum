@@ -1,0 +1,6 @@
+=== RUN   TestValidateQuantumPlugin
+    compatibility_test.go:117: Expected no error for valid plugin: requires core version >= v0.6.0
+--- FAIL: TestValidateQuantumPlugin (0.00s)
+FAIL
+exit status 1
+FAIL	github.com/fluentum-chain/fluentum/core/plugin	0.431s
