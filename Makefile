@@ -98,11 +98,7 @@ install: deps
 	@mkdir -p $(GOPATH)/bin
 	@cp build/fluentumd $(GOPATH)/bin/
 	@echo "--> Binary installed as fluentumd in $(GOPATH)/bin"
-	@sudo cp build/fluentumd /usr/local/bin/
-	@sudo chmod +x /usr/local/bin/fluentumd
-	@echo "--> Binary also installed as /usr/local/bin/fluentumd"
-	@sudo chmod +x /usr/local/bin/fluentumd
-	@echo "--> Binary also installed as /usr/local/bin/fluentumd"
+
 .PHONY: install
 
 # Install without dependency management
@@ -113,6 +109,12 @@ install-only:
 	@cp build/fluentumd $(GOPATH)/bin/
 	@echo "--> Binary installed as fluentumd in $(GOPATH)/bin"
 .PHONY: install-only
+
+system-install:
+	@sudo cp build/fluentumd /usr/local/bin/
+	@sudo chmod +x /usr/local/bin/fluentumd
+	@echo "--> Binary also installed as /usr/local/bin/fluentumd"
+.PHONY: system-install
 
 ###############################################################################
 ###                                Mocks                                    ###
