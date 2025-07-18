@@ -42,11 +42,14 @@ TIMEOUT=5          # Connection timeout in seconds
 # Node configuration - can be overridden with --nodes flag
 # Format: NODE_ID:IP:RPC_PORT:API_PORT:GRPC_PORT
 NODES=(
-    "node1:35.184.255.225:26657:1317:9090"
-    "node2:34.44.82.114:26657:1318:9091"
-    "node3:34.68.180.153:26657:1319:9092"
-    "node4:34.72.252.153:26657:1320:9093"
-    "node5:35.225.118.226:26657:1321:9094"
+    "node1:34.30.12.211:26657:1317:9090"
+    "node2:35.232.125.109:26657:1318:9091"
+)
+
+# Node IDs for peer checking
+NODE_IDS=(
+    "node1:ddd24452832859f5f60fcdc768526985a3b9acec"
+    "node2:7d0d3edf3a91d1d211280803521c0def4ec5c946"
 )
 
 # Alert configuration
@@ -446,6 +449,48 @@ check_node_health() {
     echo "${health_status},${status_info}"
 }
 
+# Function to check connected peers via RPC
+check_connected_peers() {
+    local NODE_NAME=$1
+    local NODE_IP=$2
+    local RPC_PORT=$3
+    local NODE_ID=$4
+    local EXPECTED_IDS=()
+    for entry in "${NODE_IDS[@]}"; do
+        IFS=":" read -r PEER_NAME PEER_ID <<< "$entry"
+        if [[ $PEER_NAME != $NODE_NAME ]]; then
+            EXPECTED_IDS+=("$PEER_ID")
+        fi
+    done
+    local PEERS=$(curl -s --max-time $TIMEOUT http://$NODE_IP:$RPC_PORT/net_info | jq -r '.result.peers[].node_info.id')
+    for expected in "${EXPECTED_IDS[@]}"; do
+        if echo "$PEERS" | grep -q "$expected"; then
+            echo -e "$GREEN[SUCCESS]$NC Connected to peer $expected"
+        else
+            echo -e "$RED[ERROR]$NC Not connected to expected peer $expected"
+        fi
+    done
+}
+
+# Function to check for stuck node
+check_stuck_node() {
+    local NODE_NAME=$1
+    local BLOCK_HEIGHT=$2
+    local TMP_DIR="/tmp/fluentum_health"
+    mkdir -p "$TMP_DIR"
+    local TMP_FILE="$TMP_DIR/${NODE_NAME}_block_height.tmp"
+    local PREV_HEIGHT=0
+    if [ -f "$TMP_FILE" ]; then
+        PREV_HEIGHT=$(cat "$TMP_FILE")
+    fi
+    echo "$BLOCK_HEIGHT" > "$TMP_FILE"
+    if [ "$BLOCK_HEIGHT" = "$PREV_HEIGHT" ]; then
+        echo -e "$YELLOW[WARNING]$NC Node $NODE_NAME block height stuck at $BLOCK_HEIGHT!"
+    else
+        echo -e "$GREEN[SUCCESS]$NC Node $NODE_NAME block height is advancing: $BLOCK_HEIGHT"
+    fi
+}
+
 # Function to print node status in text format
 print_node_status_text() {
     local status=$1
@@ -474,6 +519,20 @@ print_node_status_text() {
     echo -e "Validator: $is_validator | Peers: $peers | Disk: ${disk_usage}% | Memory: ${memory_usage}%"
     echo -e "----------------------------------------\n"
 }
+
+# Arrays to hold summary info
+SUMMARY_NODE_NAMES=()
+SUMMARY_NODE_IPS=()
+SUMMARY_BLOCK_HEIGHTS=()
+SUMMARY_CATCHING_UPS=()
+SUMMARY_PEER_STATUSES=()
+SUMMARY_STUCK_STATUSES=()
+SUMMARY_VERSIONS=()
+SUMMARY_VALIDATOR_STATUSES=()
+SUMMARY_DISK_USAGES=()
+SUMMARY_MEMORY_USAGES=()
+SUMMARY_HEALTH_STATUSES=()
+SUMMARY_STATUS_INFOS=()
 
 # Main monitoring loop
 log "Starting Fluentum Testnet Health Monitor"
@@ -506,6 +565,33 @@ while true; do
         # Check node health
         result=$(check_node_health "$node_id" "$node_ip" "$node_rpc_port" "$node_api_port")
         
+        # Extract summary info
+        version=$(curl -s --max-time $TIMEOUT http://$node_ip:$node_rpc_port/status | jq -r '.result.node_info.version' 2>/dev/null)
+        block_height=$(curl -s --max-time $TIMEOUT http://$node_ip:$node_rpc_port/status | jq -r '.result.sync_info.latest_block_height' 2>/dev/null)
+        catching_up=$(curl -s --max-time $TIMEOUT http://$node_ip:$node_rpc_port/status | jq -r '.result.sync_info.catching_up' 2>/dev/null)
+        is_validator=$(curl -s --max-time $TIMEOUT http://$node_ip:$node_rpc_port/status | jq -r '.result.validator_info.voting_power' 2>/dev/null)
+        disk_usage=$(df -h / | awk 'NR==2 {print $5}')
+        memory_usage=$(free -m | awk '/Mem:/ { printf("%d", $3*100/$2) }')
+        health_status=$(echo "$result" | cut -d',' -f1)
+        status_info=$(echo "$result" | cut -d',' -f2-)
+        # Peer status
+        peer_status="$(check_connected_peers "$node_id" "$node_ip" "$node_rpc_port" "$node_id" | grep -Eo '\[SUCCESS\]|\[ERROR\]')"
+        # Stuck status
+        stuck_status="$(check_stuck_node "$node_id" "$block_height" | grep -Eo '\[SUCCESS\]|\[WARNING\]')"
+
+        SUMMARY_NODE_NAMES+=("$node_id")
+        SUMMARY_NODE_IPS+=("$node_ip")
+        SUMMARY_BLOCK_HEIGHTS+=("$block_height")
+        SUMMARY_CATCHING_UPS+=("$catching_up")
+        SUMMARY_VERSIONS+=("$version")
+        SUMMARY_VALIDATOR_STATUSES+=("$is_validator")
+        SUMMARY_DISK_USAGES+=("$disk_usage")
+        SUMMARY_MEMORY_USAGES+=("$memory_usage")
+        SUMMARY_HEALTH_STATUSES+=("$health_status")
+        SUMMARY_STATUS_INFOS+=("$status_info")
+        SUMMARY_PEER_STATUSES+=("$peer_status")
+        SUMMARY_STUCK_STATUSES+=("$stuck_status")
+
         if [ "$OUTPUT_FORMAT" = "json" ]; then
             # Add to JSON array
             if [ "$first_node" = true ]; then
