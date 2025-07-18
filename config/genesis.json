@@ -21,19 +21,19 @@
   },
   "validators": [
     {
-      "address": "0EAF87294A7CF05BE83C038719F7EAA913EB73C5",
+      "address": "76b290164aa079b0e271bdabb7999e3aa804a770",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "EJhpB0ufLWumLLrt0i+Kyyb74lOw3MDI5cheBcp7F8w="
+        "value": "hD4wQquraASzdksXfyx3jdTdzQr6JbUh3WhyUf5W3EY="
       },
       "power": "10",
       "name": "node1-validator"
     },
     {
-      "address": "03808C47B05605109EDAF743EB17D8BDB04E0ABB",
+      "address": "d9fe07ae9bb8ecfb66e54b440a135a6139b04ab8",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "havU7mvCHTzpBneYcKfvZMR9W7H4m2aKtn4bpll565E="
+        "value": "iGobvjbo62xQJ+ioaUaq3n/uN3omrCMrtCCUevNEAls="
       },
       "power": "10",
       "name": "node2-validator"
