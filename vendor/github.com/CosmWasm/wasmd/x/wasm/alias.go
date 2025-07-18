@@ -82,10 +82,7 @@ var (
 	StakingQuerier = keeper.StakingQuerier
 	// Deprecated: Do not use.
 	WasmQuerier = keeper.WasmQuerier
-	// Deprecated: Do not use.
-	CreateTestInput = keeper.CreateTestInput
-	// Deprecated: Do not use.
-	TestHandler = keeper.TestHandler
+
 	// Deprecated: Do not use.
 	NewQuerier = keeper.Querier
 	// Deprecated: Do not use.
