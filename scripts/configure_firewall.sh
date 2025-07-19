@@ -72,10 +72,12 @@ ufw allow 26660/tcp
 
 # Allow specific server IPs for better security
 print_status "Allowing specific server IPs..."
-ufw allow from 35.184.255.225 to any port 26656:26660 proto tcp
-ufw allow from 34.44.82.114 to any port 26656:26660 proto tcp
-ufw allow from 34.68.180.153 to any port 26656:26660 proto tcp
-ufw allow from 34.72.252.153 to any port 26656:26660 proto tcp
+# Node IPs
+ufw allow from 34.30.12.211 to any port 26656:26660 proto tcp    # node1
+ufw allow from 35.232.125.109 to any port 26656:26660 proto tcp  # node2
+ufw allow from 34.57.206.217 to any port 26656:26660 proto tcp   # node3
+ufw allow from 34.41.166.45 to any port 26656:26660 proto tcp    # node4
+ufw allow from 35.222.79.161 to any port 26656:26660 proto tcp   # node5
 
 # Enable ufw
 print_status "Enabling ufw..."
