@@ -1,0 +1,364 @@
+{
+  "genesis_time": "2025-07-19T08:00:05+07:00",
+  "chain_id": "fluentum-testnet-1",
+  "initial_height": "1",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "100000000",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "172800000000000",
+      "max_bytes": "1048576"
+    },
+    "validator": {
+      "pub_key_types": ["ed25519"]
+    }
+  },
+  "validators": [
+    {
+      "address": "76b290164aa079b0e271bdabb7999e3aa804a770",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "hD4wQquraASzdksXfyx3jdTdzQr6JbUh3WhyUf5W3EY="
+      },
+      "power": "10",
+      "name": "node1-validator"
+    },
+    {
+      "address": "d9fe07ae9bb8ecfb66e54b440a135a6139b04ab8",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "iGobvjbo62xQJ+ioaUaq3n/uN3omrCMrtCCUevNEAls="
+      },
+      "power": "10",
+      "name": "node2-validator"
+    },
+    {
+      "address": "9639933ac556c6b4f47db8f87a12f5b33d2bcb30",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "RGewy5PwSgTn/ueBdwczNuCtnkFxowuUZwC2H9EV9Yg="
+      },
+      "power": "10",
+      "name": "node3-validator"
+    },
+    {
+      "address": "8061839ded53652cedd4513927cd4129080837da",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "m9HMWJSGnbzO+zFH9iorLk71V7dv2sLkt9kTNSNC7wc="
+      },
+      "power": "10",
+      "name": "node4-validator"
+    },
+    {
+      "address": "4f8e9820a4f9493185e54de8e713d9c908f62dfd",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "LCcr4YC5ffpLYtZkjquvX8geGsn1PGAg0pOgF3JoOFQ="
+      },
+      "power": "10",
+      "name": "node5-validator"
+    }
+  ],
+  "app_hash": "",
+  "app_state": {
+    "auth": {
+      "params": {
+        "max_memo_characters": "256",
+        "tx_sig_limit": "7",
+        "tx_size_cost_per_byte": "10",
+        "sig_verify_cost_ed25519": "590",
+        "sig_verify_cost_secp256k1": "1000"
+      },
+      "accounts": [
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "<TEAM_VESTING_ADDRESS>",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "<AIRDROP_DISTRIBUTOR_ADDRESS>",
+          "pub_key": null,
+          "account_number": "1",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "<TREASURY_ADDRESS>",
+          "pub_key": null,
+          "account_number": "2",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "<RD_FUND_ADDRESS>",
+          "pub_key": null,
+          "account_number": "3",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "<GAS_STATION_ADDRESS>",
+          "pub_key": null,
+          "account_number": "4",
+          "sequence": "0"
+        }
+      ]
+    },
+    "bank": {
+      "params": {
+        "send_enabled": [
+          {
+            "denom": "uflumx",
+            "enabled": true
+          }
+        ],
+        "default_send_enabled": true
+      },
+      "balances": [
+        {
+          "address": "<TEAM_VESTING_ADDRESS>",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "83333333000000000"
+            }
+          ]
+        },
+        {
+          "address": "<AIRDROP_DISTRIBUTOR_ADDRESS>",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "83333333000000000"
+            }
+          ]
+        },
+        {
+          "address": "<TREASURY_ADDRESS>",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "83333334000000000"
+            }
+          ]
+        }
+      ],
+      "supply": [
+        {
+          "denom": "uflumx",
+          "amount": "250000000000000000"
+        }
+      ],
+      "denom_metadata": [
+        {
+          "description": "FLUMX Token - The native token of the Fluentum blockchain",
+          "denom_units": [
+            {
+              "denom": "uflumx",
+              "exponent": 0,
+              "aliases": ["microflumx"]
+            },
+            {
+              "denom": "mflumx",
+              "exponent": 3,
+              "aliases": ["milliflumx"]
+            },
+            {
+              "denom": "flumx",
+              "exponent": 9,
+              "aliases": []
+            }
+          ],
+          "base": "uflumx",
+          "display": "flumx",
+          "name": "FLUMX Token",
+          "symbol": "FLUMX"
+        }
+      ]
+    },
+    "staking": {
+      "params": {
+        "unbonding_time": "1814400s",
+        "max_validators": 100,
+        "max_entries": 7,
+        "historical_entries": 10000,
+        "bond_denom": "uflumx",
+        "min_commission_rate": "0.000000000000000000"
+      },
+      "last_total_power": "0",
+      "last_validator_powers": [],
+      "validators": [],
+      "delegations": [],
+      "unbonding_delegations": [],
+      "redelegations": [],
+      "exported": false
+    },
+    "mint": {
+      "minter": {
+        "inflation": "0.000000000000000000",
+        "annual_provisions": "0.000000000000000000"
+      },
+      "params": {
+        "mint_denom": "uflumx",
+        "inflation_rate_change": "0.000000000000000000",
+        "inflation_max": "0.000000000000000000",
+        "inflation_min": "0.000000000000000000",
+        "goal_bonded": "0.670000000000000000",
+        "blocks_per_year": "6311520"
+      }
+    },
+    "distribution": {
+      "params": {
+        "community_tax": "0.020000000000000000",
+        "base_proposer_reward": "0.010000000000000000",
+        "bonus_proposer_reward": "0.040000000000000000",
+        "withdraw_addr_enabled": true
+      },
+      "fee_pool": {
+        "community_pool": []
+      },
+      "delegator_withdraw_infos": [],
+      "previous_proposer": "",
+      "outstanding_rewards": [],
+      "validator_accumulated_commissions": [],
+      "validator_historical_rewards": [],
+      "validator_current_rewards": [],
+      "validator_slash_events": [],
+      "delegator_starting_infos": [],
+      "validator_outstanding_rewards": []
+    },
+    "slashing": {
+      "params": {
+        "signed_blocks_window": "100",
+        "min_signed_per_window": "0.500000000000000000",
+        "downtime_jail_duration": "600s",
+        "slash_fraction_double_sign": "0.050000000000000000",
+        "slash_fraction_downtime": "0.010000000000000000"
+      },
+      "signing_infos": [],
+      "missed_blocks": []
+    },
+    "gov": {
+      "starting_proposal_id": "1",
+      "deposits": [],
+      "votes": [],
+      "proposals": [],
+      "deposit_params": {
+        "min_deposit": [
+          {
+            "denom": "uflumx",
+            "amount": "10000000000"
+          }
+        ],
+        "max_deposit_period": "172800s"
+      },
+      "voting_params": {
+        "voting_period": "172800s"
+      },
+      "tally_params": {
+        "quorum": "0.334000000000000000",
+        "threshold": "0.500000000000000000",
+        "veto_threshold": "0.334000000000000000"
+      }
+    },
+    "crisis": {
+      "constant_fee": {
+        "denom": "uflumx",
+        "amount": "1000000000"
+      }
+    },
+    "genutil": {
+      "gen_txs": []
+    },
+    "flumx": {
+      "params": {
+        "max_supply": "1000000000000000000",
+        "initial_supply": "250000000000000000",
+        "emission_rate": "25000000000000",
+        "min_emission_rate": "1000000000",
+        "max_emission_rate": "100000000000000",
+        "velocity_threshold_high": "1.200000000000000000",
+        "velocity_threshold_low": "0.800000000000000000",
+        "emission_reduction_factor": "0.850000000000000000",
+        "emission_increase_factor": "1.100000000000000000",
+        "quantum_validator_bonus": "0.300000000000000000",
+        "min_validator_stake": "50000000000000",
+        "min_delegation": "100000000000",
+        "max_commission_rate": "0.200000000000000000",
+        "gas_station_min_stake": "500000000000",
+        "yield_min_deposit": "100000000000",
+        "harvest_cooldown": "86400s",
+        "multisig_threshold": "5",
+        "multisig_total": "9",
+        "emergency_pause_duration": "259200s",
+        "min_quantum_nodes": "5"
+      },
+      "team_vesting_address": "<TEAM_VESTING_ADDRESS>",
+      "airdrop_distributor_address": "<AIRDROP_DISTRIBUTOR_ADDRESS>",
+      "treasury_address": "<TREASURY_ADDRESS>",
+      "rd_fund_address": "<RD_FUND_ADDRESS>",
+      "gas_station_address": "<GAS_STATION_ADDRESS>"
+    },
+    "cex": {
+      "params": {
+        "trading_threshold": "10000000000000",
+        "max_slippage": "0.050000000000000000",
+        "fee_rate": "0.001000000000000000",
+        "burn_percentage": "0.300000000000000000",
+        "treasury_percentage": "0.400000000000000000",
+        "other_percentage": "0.300000000000000000"
+      },
+      "liquidity_pools": [],
+      "orders": []
+    },
+    "dex": {
+      "params": {
+        "fee_rate": "0.001000000000000000",
+        "quantum_fee_rate": "0.000500000000000000",
+        "quantum_rd_percentage": "0.600000000000000000",
+        "min_liquidity": "1000000000000"
+      },
+      "pools": [],
+      "positions": []
+    },
+    "gasstation": {
+      "params": {
+        "min_stake_for_subsidy": "500000000000",
+        "gas_refund_percentage": "0.500000000000000000",
+        "burn_percentage": "0.500000000000000000",
+        "large_delegation_threshold": "10000000000000"
+      },
+      "subsidies": [],
+      "refunds": []
+    },
+    "quantum": {
+      "params": {
+        "certification_required": true,
+        "min_quantum_validators": "5",
+        "quantum_bonus_rate": "0.300000000000000000",
+        "migration_threshold": "0.800000000000000000"
+      },
+      "certified_validators": [],
+      "quantum_nodes": []
+    },
+    "yield": {
+      "params": {
+        "min_deposit": "100000000000",
+        "harvest_cooldown": "86400s",
+        "ai_optimization_enabled": true,
+        "max_strategies": "10",
+        "performance_fee": "0.100000000000000000"
+      },
+      "strategies": [],
+      "deposits": []
+    }
+  }
+}
