@@ -24,7 +24,7 @@
         "type": "tendermint/PubKeyEd25519",
         "value": "hD4wQquraASzdksXfyx3jdTdzQr6JbUh3WhyUf5W3EY="
       },
-      "power": "10",
+      "power": "1000000000",
       "name": "node1-validator"
     },
     {
@@ -33,7 +33,7 @@
         "type": "tendermint/PubKeyEd25519",
         "value": "iGobvjbo62xQJ+ioaUaq3n/uN3omrCMrtCCUevNEAls="
       },
-      "power": "10",
+      "power": "1000000000",
       "name": "node2-validator"
     },
     {
@@ -42,7 +42,7 @@
         "type": "tendermint/PubKeyEd25519",
         "value": "RGewy5PwSgTn/ueBdwczNuCtnkFxowuUZwC2H9EV9Yg="
       },
-      "power": "10",
+      "power": "1000000000",
       "name": "node3-validator"
     },
     {
@@ -51,7 +51,7 @@
         "type": "tendermint/PubKeyEd25519",
         "value": "m9HMWJSGnbzO+zFH9iorLk71V7dv2sLkt9kTNSNC7wc="
       },
-      "power": "10",
+      "power": "1000000000",
       "name": "node4-validator"
     },
     {
@@ -60,7 +60,7 @@
         "type": "tendermint/PubKeyEd25519",
         "value": "LCcr4YC5ffpLYtZkjquvX8geGsn1PGAg0pOgF3JoOFQ="
       },
-      "power": "10",
+      "power": "1000000000",
       "name": "node5-validator"
     }
   ],
@@ -114,21 +114,61 @@
     },
     "bank": {
       "params": {
-        "send_enabled": [
-          {
-            "denom": "uflumx",
-            "enabled": true
-          }
-        ],
+        "send_enabled": [],
         "default_send_enabled": true
       },
       "balances": [
+        {
+          "address": "fluentum1y5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "1000000000"
+            }
+          ]
+        },
+        {
+          "address": "fluentum1x5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "1000000000"
+            }
+          ]
+        },
+        {
+          "address": "fluentum1z5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "1000000000"
+            }
+          ]
+        },
+        {
+          "address": "fluentum1w5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "1000000000"
+            }
+          ]
+        },
+        {
+          "address": "fluentum1v5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "1000000000"
+            }
+          ]
+        },
         {
           "address": "<TEAM_VESTING_ADDRESS>",
           "coins": [
             {
               "denom": "uflumx",
-              "amount": "83333333000000000"
+              "amount": "100000000000000"
             }
           ]
         },
@@ -137,7 +177,7 @@
           "coins": [
             {
               "denom": "uflumx",
-              "amount": "83333333000000000"
+              "amount": "50000000000000"
             }
           ]
         },
@@ -146,7 +186,25 @@
           "coins": [
             {
               "denom": "uflumx",
-              "amount": "83333334000000000"
+              "amount": "50000000000000"
+            }
+          ]
+        },
+        {
+          "address": "<RND_FUND_ADDRESS>",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "30000000000000"
+            }
+          ]
+        },
+        {
+          "address": "<GAS_STATION_ADDRESS>",
+          "coins": [
+            {
+              "denom": "uflumx",
+              "amount": "2000000000000"
             }
           ]
         }
@@ -154,12 +212,12 @@
       "supply": [
         {
           "denom": "uflumx",
-          "amount": "250000000000000000"
+          "amount": "250000000000000"
         }
       ],
       "denom_metadata": [
         {
-          "description": "FLUMX Token - The native token of the Fluentum blockchain",
+          "description": "The native staking and governance token of the Fluentum Network.",
           "denom_units": [
             {
               "denom": "uflumx",
@@ -169,20 +227,26 @@
             {
               "denom": "mflumx",
               "exponent": 3,
-              "aliases": ["milliflumx"]
+              "aliases": ["millifluumx"]
+            },
+            {
+              "denom": "flumx",
+              "exponent": 6,
+              "aliases": []
             },
             {
               "denom": "flumx",
               "exponent": 9,
-              "aliases": []
+              "aliases": ["FLUMX"]
             }
           ],
           "base": "uflumx",
           "display": "flumx",
-          "name": "FLUMX Token",
+          "name": "Fluentum",
           "symbol": "FLUMX"
         }
-      ]
+      ],
+      "send_enabled": []
     },
     "staking": {
       "params": {
@@ -193,10 +257,203 @@
         "bond_denom": "uflumx",
         "min_commission_rate": "0.000000000000000000"
       },
-      "last_total_power": "0",
-      "last_validator_powers": [],
-      "validators": [],
-      "delegations": [],
+      "last_total_power": "5000000000",
+      "last_validator_powers": [
+        {
+          "address": "fluentumvaloper1y5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "power": "1000000000"
+        },
+        {
+          "address": "fluentumvaloper1x5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "power": "1000000000"
+        },
+        {
+          "address": "fluentumvaloper1z5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "power": "1000000000"
+        },
+        {
+          "address": "fluentumvaloper1w5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "power": "1000000000"
+        },
+        {
+          "address": "fluentumvaloper1v5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "power": "1000000000"
+        }
+      ],
+      "validators": [
+        {
+          "operator_address": "fluentumvaloper1y5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "consensus_pubkey": {
+            "@type": "/cosmos.crypto.ed25519.PubKey",
+            "key": "hD4wQquraASzdksXfyx3jdTdzQr6JbUh3WhyUf5W3EY="
+          },
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "1000000000",
+          "delegator_shares": "1000000000.000000000000000000",
+          "description": {
+            "moniker": "node1-validator",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.100000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-07-19T08:00:05Z"
+          },
+          "min_self_delegation": "1"
+        },
+        {
+          "operator_address": "fluentumvaloper1x5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "consensus_pubkey": {
+            "@type": "/cosmos.crypto.ed25519.PubKey",
+            "key": "iGobvjbo62xQJ+ioaUaq3n/uN3omrCMrtCCUevNEAls="
+          },
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "1000000000",
+          "delegator_shares": "1000000000.000000000000000000",
+          "description": {
+            "moniker": "node2-validator",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.100000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-07-19T08:00:05Z"
+          },
+          "min_self_delegation": "1"
+        },
+        {
+          "operator_address": "fluentumvaloper1z5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "consensus_pubkey": {
+            "@type": "/cosmos.crypto.ed25519.PubKey",
+            "key": "RGewy5PwSgTn/ueBdwczNuCtnkFxowuUZwC2H9EV9Yg="
+          },
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "1000000000",
+          "delegator_shares": "1000000000.000000000000000000",
+          "description": {
+            "moniker": "node3-validator",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.100000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-07-19T08:00:05Z"
+          },
+          "min_self_delegation": "1"
+        },
+        {
+          "operator_address": "fluentumvaloper1w5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "consensus_pubkey": {
+            "@type": "/cosmos.crypto.ed25519.PubKey",
+            "key": "m9HMWJSGnbzO+zFH9iorLk71V7dv2sLkt9kTNSNC7wc="
+          },
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "1000000000",
+          "delegator_shares": "1000000000.000000000000000000",
+          "description": {
+            "moniker": "node4-validator",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.100000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-07-19T08:00:05Z"
+          },
+          "min_self_delegation": "1"
+        },
+        {
+          "operator_address": "fluentumvaloper1v5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "consensus_pubkey": {
+            "@type": "/cosmos.crypto.ed25519.PubKey",
+            "key": "LCcr4YC5ffpLYtZkjquvX8geGsn1PGAg0pOgF3JoOFQ="
+          },
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "1000000000",
+          "delegator_shares": "1000000000.000000000000000000",
+          "description": {
+            "moniker": "node5-validator",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.100000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-07-19T08:00:05Z"
+          },
+          "min_self_delegation": "1"
+        }
+      ],
+      "delegations": [
+        {
+          "delegator_address": "fluentum1y5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "validator_address": "fluentumvaloper1y5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "shares": "1000000000.000000000000000000"
+        },
+        {
+          "delegator_address": "fluentum1x5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "validator_address": "fluentumvaloper1x5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "shares": "1000000000.000000000000000000"
+        },
+        {
+          "delegator_address": "fluentum1z5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "validator_address": "fluentumvaloper1z5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "shares": "1000000000.000000000000000000"
+        },
+        {
+          "delegator_address": "fluentum1w5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "validator_address": "fluentumvaloper1w5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "shares": "1000000000.000000000000000000"
+        },
+        {
+          "delegator_address": "fluentum1v5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "validator_address": "fluentumvaloper1v5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "shares": "1000000000.000000000000000000"
+        }
+      ],
       "unbonding_delegations": [],
       "redelegations": [],
       "exported": false
@@ -215,26 +472,6 @@
         "blocks_per_year": "6311520"
       }
     },
-    "distribution": {
-      "params": {
-        "community_tax": "0.020000000000000000",
-        "base_proposer_reward": "0.010000000000000000",
-        "bonus_proposer_reward": "0.040000000000000000",
-        "withdraw_addr_enabled": true
-      },
-      "fee_pool": {
-        "community_pool": []
-      },
-      "delegator_withdraw_infos": [],
-      "previous_proposer": "",
-      "outstanding_rewards": [],
-      "validator_accumulated_commissions": [],
-      "validator_historical_rewards": [],
-      "validator_current_rewards": [],
-      "validator_slash_events": [],
-      "delegator_starting_infos": [],
-      "validator_outstanding_rewards": []
-    },
     "slashing": {
       "params": {
         "signed_blocks_window": "100",
@@ -245,6 +482,80 @@
       },
       "signing_infos": [],
       "missed_blocks": []
+    },
+    "distribution": {
+      "params": {
+        "community_tax": "0.050000000000000000",
+        "base_proposer_reward": "0.010000000000000000",
+        "bonus_proposer_reward": "0.040000000000000000",
+        "withdraw_addr_enabled": true
+      },
+      "fee_pool": {
+        "community_pool": [
+          {
+            "denom": "uflumx",
+            "amount": "100000000000"
+          }
+        ]
+      },
+      "delegator_withdraw_infos": [],
+      "previous_proposer": "",
+      "outstanding_rewards": [],
+      "validator_accumulated_commissions": [
+        {
+          "validator_address": "fluentumvaloper1y5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "commission": []
+        },
+        {
+          "validator_address": "fluentumvaloper1x5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "commission": []
+        },
+        {
+          "validator_address": "fluentumvaloper1z5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "commission": []
+        },
+        {
+          "validator_address": "fluentumvaloper1w5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "commission": []
+        },
+        {
+          "validator_address": "fluentumvaloper1v5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "commission": []
+        }
+      ],
+      "validator_historical_rewards": [],
+      "validator_current_rewards": [
+        {
+          "validator_address": "fluentumvaloper1y5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "rewards": []
+        },
+        {
+          "validator_address": "fluentumvaloper1x5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "rewards": []
+        },
+        {
+          "validator_address": "fluentumvaloper1z5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "rewards": []
+        },
+        {
+          "validator_address": "fluentumvaloper1w5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "rewards": []
+        },
+        {
+          "validator_address": "fluentumvaloper1v5j3z6j5j5j5j5j5j5j5j5j5j5j5j5j5j5j5j",
+          "rewards": []
+        }
+      ],
+      "delegator_starting_infos": [],
+      "validator_slash_events": []
+    },
+    "validator": {
+      "pub_key_types": [
+        "/cosmos.crypto.ed25519.PubKey"
+      ]
+    },
+    "version": {
+      "app_version": 0
     },
     "gov": {
       "starting_proposal_id": "1",
